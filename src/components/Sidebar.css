@@ -1,0 +1,108 @@
+.sidebar {
+  width: 280px;
+  background: rgba(26, 34, 54, 0.4);
+  backdrop-filter: blur(10px);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  position: sticky;
+  top: 100px; /* Below header */
+  height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.sidebar-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  letter-spacing: 1px;
+}
+
+.category-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.category-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  border: 1px solid transparent;
+}
+
+.category-item:hover, .category-item.active {
+  background: rgba(0, 207, 251, 0.08);
+  color: var(--primary-color);
+  border-color: rgba(0, 207, 251, 0.2);
+}
+
+.category-icon {
+  margin-right: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.category-name {
+  flex: 1;
+  text-align: left;
+}
+
+.category-count {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.sidebar-community {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.community-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #fff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.community-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  color: #fff;
+}
+
+.btn-zalo { background: linear-gradient(135deg, #0068ff 0%, #0056d6 100%); }
+.btn-facebook { background: linear-gradient(135deg, #1877F2 0%, #1656c1 100%); }
+.btn-telegram { background: linear-gradient(135deg, #0088cc 0%, #006699 100%); }
+.btn-wechat { background: linear-gradient(135deg, #07C160 0%, #069e4f 100%); }
+
+
