@@ -417,7 +417,7 @@ const Admin = () => {
                 />
                 <label className="btn-outline upload-btn" style={{ cursor: 'pointer' }}>
                   <Upload size={16} /> Tải lên
-                  <input type="file" accept="image/*,video/mp4,video/webm" style={{ display: 'none' }} onChange={handleImageUpload} />
+                  <input type="file" accept="image/*, video/*" style={{ display: 'none' }} onChange={handleImageUpload} />
                 </label>
               </div>
               {imagePreview && (
@@ -440,7 +440,7 @@ const Admin = () => {
                 <label className="form-label" style={{ margin: 0 }}>Mô tả (hỗ trợ HTML)</label>
                 <label className="btn-ghost insert-img-btn" style={{ cursor: 'pointer', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <ImageIcon size={14} /> Chèn ảnh
-                  <input type="file" accept="image/*,video/mp4,video/webm" style={{ display: 'none' }} onChange={handleInsertImageToDesc} />
+                  <input type="file" accept="image/*, video/*" style={{ display: 'none' }} onChange={handleInsertImageToDesc} />
                 </label>
               </div>
               <textarea
