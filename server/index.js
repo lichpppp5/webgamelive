@@ -94,6 +94,14 @@ const db = new sqlite3.Database(dbPath, (err) => {
             });
           }
         });
+
+        // Create visits_log table
+        db.run(`CREATE TABLE IF NOT EXISTS visits_log (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          ip TEXT,
+          user_agent TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
       }
     });
   }
@@ -101,6 +109,13 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // POST record a visit
 app.post('/api/visit', (req, res) => {
+  const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+  const ip = rawIp.split(',')[0].trim();
+  const userAgent = req.headers['user-agent'] || '';
+
+  // Log detailed visit info
+  db.run(`INSERT INTO visits_log (ip, user_agent) VALUES (?, ?)`, [ip, userAgent]);
+
   db.get("SELECT value FROM settings WHERE key = 'visitCount'", (err, row) => {
     let currentCount = row ? (parseInt(row.value, 10) || 1250) : 1250;
     const newCount = currentCount + 1;
@@ -114,6 +129,24 @@ app.post('/api/visit', (req, res) => {
         res.json({ visitCount: newCount });
       }
     );
+  });
+});
+
+// GET analytics data for admin
+app.get('/api/admin/analytics', (req, res) => {
+  db.get("SELECT count(*) as totalRealVisits FROM visits_log", (err1, rowTotal) => {
+    db.get("SELECT count(*) as todayVisits FROM visits_log WHERE date(created_at) = date('now')", (err2, rowToday) => {
+      db.get("SELECT count(*) as monthVisits FROM visits_log WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')", (err3, rowMonth) => {
+        db.all("SELECT id, ip, user_agent, created_at FROM visits_log ORDER BY id DESC LIMIT 20", [], (err4, recentRows) => {
+          res.json({
+            totalRealVisits: rowTotal ? rowTotal.totalRealVisits : 0,
+            todayVisits: rowToday ? rowToday.todayVisits : 0,
+            monthVisits: rowMonth ? rowMonth.monthVisits : 0,
+            recentVisits: recentRows || []
+          });
+        });
+      });
+    });
   });
 });
 

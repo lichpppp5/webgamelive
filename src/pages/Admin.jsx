@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon } from 'lucide-react';
+import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon, BarChart2, Globe, Clock } from 'lucide-react';
 import { useToast, useSettings } from '../context/AppContext';
 import './Admin.css';
 
@@ -26,6 +26,12 @@ const Admin = () => {
   const [loginShake, setLoginShake] = useState(false);
 
   const [activeTab, setActiveTab] = useState('products');
+  const [analytics, setAnalytics] = useState({
+    totalRealVisits: 0,
+    todayVisits: 0,
+    monthVisits: 0,
+    recentVisits: []
+  });
   const [settingsForm, setSettingsForm] = useState({
     zalo: '', facebook: '', telegram: ''
   });
@@ -90,6 +96,13 @@ const Admin = () => {
       .then(res => res.json())
       .then(data => { setGames(data); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });
+  };
+
+  const fetchAnalytics = () => {
+    fetch('/api/admin/analytics')
+      .then(res => res.json())
+      .then(data => { if (data) setAnalytics(data); })
+      .catch(err => console.error(err));
   };
 
   const handleInputChange = (e) => {
@@ -290,7 +303,75 @@ const Admin = () => {
         >
           <SettingsIcon size={18} /> Cài đặt chung
         </button>
+        <button 
+          className={`admin-tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('analytics'); fetchAnalytics(); }}
+          style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'analytics' ? 'var(--primary)' : 'transparent', color: activeTab === 'analytics' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <BarChart2 size={18} /> Thống kê Truy cập Thực tế
+        </button>
       </div>
+
+      {activeTab === 'analytics' && (
+        <div className="admin-card analytics-card" style={{ background: 'var(--bg-card)', padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <BarChart2 size={22} color="var(--primary)" />
+              Thống kê Lượt truy cập Thực tế
+            </h2>
+            <button type="button" className="btn-outline" onClick={fetchAnalytics} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+              Cập nhật dữ liệu
+            </button>
+          </div>
+
+          <div className="admin-stats" style={{ marginBottom: '2.5rem' }}>
+            <StatCard icon={<Clock size={22} />} label="Truy cập Hôm nay" value={analytics.todayVisits.toLocaleString()} color="#00cffb" />
+            <StatCard icon={<BarChart2 size={22} />} label="Truy cập Tháng này" value={analytics.monthVisits.toLocaleString()} color="var(--primary)" />
+            <StatCard icon={<Globe size={22} />} label="Thực tế đã ghi nhận" value={analytics.totalRealVisits.toLocaleString()} color="var(--secondary)" />
+          </div>
+
+          <h3 style={{ fontSize: '1.05rem', marginBottom: '1rem', color: 'var(--text-200)' }}>
+            Nhật ký 20 lượt ghé thăm gần đây nhất
+          </h3>
+
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Thời gian</th>
+                  <th>Địa chỉ IP</th>
+                  <th>Thiết bị / Trình duyệt</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analytics.recentVisits && analytics.recentVisits.length > 0 ? (
+                  analytics.recentVisits.map((item, idx) => (
+                    <tr key={item.id || idx} className="admin-row">
+                      <td style={{ color: 'var(--text-400)' }}>#{idx + 1}</td>
+                      <td style={{ fontWeight: 600 }}>{new Date(item.created_at).toLocaleString('vi-VN')}</td>
+                      <td>
+                        <span style={{ background: 'rgba(0, 207, 251, 0.1)', color: '#00cffb', padding: '3px 8px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                          {item.ip || 'Chưa rõ'}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: '0.82rem', color: 'var(--text-300)', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.user_agent}>
+                        {item.user_agent || 'Khách truy cập'}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-400)' }}>
+                      Chưa có nhật ký truy cập nào được ghi nhận.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {activeTab === 'settings' && (
         <div className="admin-card settings-card" style={{ background: 'var(--bg-card)', padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
