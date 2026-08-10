@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Eye, Share2, Download } from 'lucide-react';
+import { ShoppingCart, Eye, Share2, Download, Play } from 'lucide-react';
 import ContactModal from './ContactModal';
 import DownloadConfirmModal from './DownloadConfirmModal';
 import { useCart, useToast } from '../context/AppContext';
