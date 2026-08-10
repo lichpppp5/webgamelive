@@ -21,7 +21,7 @@ const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, onContact }) => {
 
         <div className="download-modal-body">
           <p className="download-warning-text">
-            Vui lòng liên hệ thanh toán và nhận key kích hoạt. Xin cảm ơn !
+            Vui lòng liên hệ thanh toán và nhận key kích hoạt sau khi tải xuống.  Xin cảm ơn !
           </p>
         </div>
 
