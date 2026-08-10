@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Zap, MessageCircle, Send, MessageSquare, ArrowRight } from 'lucide-react';
+import ContactModal from './ContactModal';
 import { useSettings } from '../context/AppContext';
 import './Footer.css';
 
 const Footer = () => {
   const { contactSettings } = useSettings();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const year = new Date().getFullYear();
 
   return (
@@ -25,9 +28,15 @@ const Footer = () => {
             <a href={contactSettings?.facebook || 'https://facebook.com'} target="_blank" rel="noreferrer" className="social-link" title="Facebook">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
             </a>
-            <a href={contactSettings?.zalo || 'https://zalo.me/'} target="_blank" rel="noreferrer" className="social-link" title="Zalo" style={{ fontWeight: 'bold', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="social-link"
+              title="Zalo QR Code"
+              style={{ fontWeight: 'bold', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer' }}
+            >
               Zalo
-            </a>
+            </button>
             <a href={contactSettings?.telegram || 'https://t.me/'} target="_blank" rel="noreferrer" className="social-link" title="Telegram">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             </a>
@@ -48,9 +57,9 @@ const Footer = () => {
         <div className="footer-col">
           <h3 className="footer-col-title">Hỗ trợ</h3>
           <ul className="footer-links">
-            <li><a href="https://zalo.me/0833954354" target="_blank" rel="noreferrer">Hướng dẫn cài đặt</a></li>
-            <li><a href="https://zalo.me/0833954354" target="_blank" rel="noreferrer">Chính sách bảo hành</a></li>
-            <li><a href="https://zalo.me/0833954354" target="_blank" rel="noreferrer">Liên hệ tư vấn</a></li>
+            <li><button type="button" onClick={() => setIsModalOpen(true)} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Hướng dẫn cài đặt</button></li>
+            <li><button type="button" onClick={() => setIsModalOpen(true)} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Chính sách bảo hành</button></li>
+            <li><button type="button" onClick={() => setIsModalOpen(true)} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Liên hệ tư vấn</button></li>
           </ul>
         </div>
 
@@ -58,16 +67,18 @@ const Footer = () => {
         <div className="footer-col footer-cta-col">
           <h3 className="footer-col-title">Cần tư vấn?</h3>
           <p className="footer-cta-desc">Liên hệ ngay để được hỗ trợ miễn phí và nhận ưu đãi tốt nhất.</p>
-          <a
-            href="https://zalo.me/0833954354"
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
             className="footer-cta-btn"
+            style={{ cursor: 'pointer', border: 'none' }}
           >
             Chat với tư vấn viên <ArrowRight size={15} />
-          </a>
+          </button>
         </div>
       </div>
+
+      <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
       {/* Bottom bar */}
       <div className="footer-bottom">

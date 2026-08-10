@@ -111,14 +111,14 @@ const ContactModal = ({ isOpen, onClose, productTitle, cartItems, totalAmount })
 
             {/* Action buttons */}
             <div className="zalo-qr-actions">
-              <a
-                href={zaloLink}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
                 className="btn-open-zalo"
+                onClick={handleCopyPhone}
               >
-                <ExternalLink size={16} /> Mở ứng dụng Zalo
-              </a>
+                {copied ? <Check size={16} color="#00e676" /> : <Copy size={16} />}
+                {copied ? 'Đã sao chép SĐT Zalo!' : 'Sao chép SĐT Zalo để nhắn tin'}
+              </button>
             </div>
           </div>
         ) : (

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import ContactModal from './ContactModal';
 import { useSettings } from '../context/AppContext';
 import './HeroBanner.css';
 
@@ -8,6 +9,7 @@ const HeroBanner = ({ hotGames = [] }) => {
   const { contactSettings } = useSettings();
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const slides = hotGames.length > 0
     ? hotGames
@@ -68,15 +70,16 @@ const HeroBanner = ({ hotGames = [] }) => {
             </svg>
             Khám phá ngay
           </button>
-          <a 
-            href={contactSettings?.zalo || 'https://zalo.me/'} 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <button 
+            type="button"
+            onClick={() => setIsModalOpen(true)} 
             className="btn-outline hero-btn-outline"
           >
             Tư vấn miễn phí
-          </a>
+          </button>
         </div>
+
+        <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         <div className="hero-stats">
           <div className="stat">
             <span className="stat-num text-gradient">20+</span>
