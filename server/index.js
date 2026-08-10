@@ -88,6 +88,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 stmt.run('zalo', 'https://zalo.me/0833954354');
                 stmt.run('facebook', 'https://facebook.com');
                 stmt.run('telegram', 'https://t.me');
+                stmt.run('visitCount', '1250');
                 stmt.finalize();
               }
             });
@@ -96,6 +97,24 @@ const db = new sqlite3.Database(dbPath, (err) => {
       }
     });
   }
+});
+
+// POST record a visit
+app.post('/api/visit', (req, res) => {
+  db.get("SELECT value FROM settings WHERE key = 'visitCount'", (err, row) => {
+    let currentCount = row ? (parseInt(row.value, 10) || 1250) : 1250;
+    const newCount = currentCount + 1;
+    db.run(
+      `INSERT INTO settings (key, value) VALUES ('visitCount', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+      [newCount.toString()],
+      (updateErr) => {
+        if (updateErr) {
+          return res.status(500).json({ error: updateErr.message });
+        }
+        res.json({ visitCount: newCount });
+      }
+    );
+  });
 });
 
 // GET all settings

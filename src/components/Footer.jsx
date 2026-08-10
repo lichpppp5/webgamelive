@@ -76,7 +76,7 @@ const Footer = () => {
             © {year} <strong>TOOLLIVE</strong>. All rights reserved.
           </p>
           <p className="footer-tagline">
-            Chuyên cung cấp game &amp; tool MMO chất lượng cao
+            Chuyên cung cấp game &amp; tool MMO chất lượng cao | 👁️ <strong>{contactSettings?.visitCount ? parseInt(contactSettings.visitCount, 10).toLocaleString('vi-VN') : '1.250'}</strong> Lượt truy cập
           </p>
         </div>
       </div>

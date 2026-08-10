@@ -311,6 +311,10 @@ const Admin = () => {
               <label className="form-label">Link Telegram</label>
               <input className="form-input" type="url" value={settingsForm.telegram} onChange={e => setSettingsForm({ ...settingsForm, telegram: e.target.value })} required />
             </div>
+            <div className="form-group">
+              <label className="form-label">Số Lượt truy cập (Hiển thị &amp; Đếm)</label>
+              <input className="form-input" type="number" value={settingsForm.visitCount || '1250'} onChange={e => setSettingsForm({ ...settingsForm, visitCount: e.target.value })} min="0" />
+            </div>
             <div className="form-actions" style={{ marginTop: '2rem' }}>
               <button type="submit" className="btn-primary" style={{ padding: '1rem 2rem' }}>
                 <Save size={18} /> Lưu cấu hình
@@ -327,6 +331,7 @@ const Admin = () => {
             <StatCard icon={<Package size={22} />} label="Tổng sản phẩm" value={games.length} color="var(--primary)" />
             <StatCard icon={<Flame size={22} />} label="Đang HOT" value={hotCount} color="#ff6b6b" />
             <StatCard icon={<Upload size={22} />} label="Tổng lượt tải" value={games.reduce((s, g) => s + (g.downloads || 0), 0).toLocaleString()} color="var(--secondary)" />
+            <StatCard icon={<Eye size={22} />} label="Lượt truy cập" value={parseInt(contactSettings.visitCount || '1250', 10).toLocaleString()} color="#00cffb" />
           </div>
     
           <div className="admin-content" ref={formTopRef}>

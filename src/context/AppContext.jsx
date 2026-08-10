@@ -34,18 +34,36 @@ export const AppProvider = ({ children }) => {
   const [contactSettings, setContactSettings] = useState({
     zalo: 'https://zalo.me/',
     facebook: 'https://facebook.com',
-    telegram: 'https://t.me'
+    telegram: 'https://t.me',
+    visitCount: '1250'
   });
 
   useEffect(() => {
-    fetch('/api/settings')
-      .then(res => res.json())
-      .then(data => {
-        if (data && Object.keys(data).length > 0) {
-          setContactSettings(prev => ({ ...prev, ...data }));
-        }
-      })
-      .catch(err => console.error('Lỗi lấy settings:', err));
+    const hasVisited = sessionStorage.getItem('visited');
+    if (!hasVisited) {
+      fetch('/api/visit', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.visitCount) {
+            setContactSettings(prev => ({ ...prev, visitCount: data.visitCount.toString() }));
+          }
+          sessionStorage.setItem('visited', 'true');
+        })
+        .catch(() => {
+          fetch('/api/settings')
+            .then(res => res.json())
+            .then(data => { if (data) setContactSettings(prev => ({ ...prev, ...data })); });
+        });
+    } else {
+      fetch('/api/settings')
+        .then(res => res.json())
+        .then(data => {
+          if (data && Object.keys(data).length > 0) {
+            setContactSettings(prev => ({ ...prev, ...data }));
+          }
+        })
+        .catch(err => console.error('Lỗi lấy settings:', err));
+    }
   }, []);
 
   // ── Cart Actions ──

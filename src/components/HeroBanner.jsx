@@ -84,8 +84,10 @@ const HeroBanner = ({ hotGames = [] }) => {
           </div>
           <div className="stat-divider" />
           <div className="stat">
-            <span className="stat-num text-gradient">500+</span>
-            <span className="stat-label">Khách hàng</span>
+            <span className="stat-num text-gradient">
+              {contactSettings?.visitCount ? parseInt(contactSettings.visitCount, 10).toLocaleString('vi-VN') : '1.250'}+
+            </span>
+            <span className="stat-label">Lượt truy cập</span>
           </div>
           <div className="stat-divider" />
           <div className="stat">
