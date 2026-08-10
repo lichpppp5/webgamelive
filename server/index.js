@@ -35,7 +35,7 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Không có file nào được tải lên.' });
   }
-  const imageUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
+  const imageUrl = `/uploads/${req.file.filename}`;
   // Trả về 'location' để TinyMCE nhận diện
   res.json({ location: imageUrl });
 });

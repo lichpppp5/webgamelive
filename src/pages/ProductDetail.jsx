@@ -17,7 +17,7 @@ const ProductDetail = () => {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetch(`http://localhost:3005/api/products/${id}`)
+    fetch(`/api/products/${id}`)
       .then(res => res.json())
       .then(data => {
         if (!data.error) setProduct(data);

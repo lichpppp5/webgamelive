@@ -71,7 +71,7 @@ const Admin = () => {
 
   const handleSettingsSubmit = (e) => {
     e.preventDefault();
-    fetch('http://localhost:3005/api/settings', {
+    fetch('/api/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(settingsForm)
@@ -86,7 +86,7 @@ const Admin = () => {
 
   const fetchGames = () => {
     setLoading(true);
-    fetch('http://localhost:3005/api/products')
+    fetch('/api/products')
       .then(res => res.json())
       .then(data => { setGames(data); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });
@@ -104,7 +104,7 @@ const Admin = () => {
     if (!file) return;
     const fd = new FormData();
     fd.append('image', file);
-    fetch('http://localhost:3005/api/upload', { method: 'POST', body: fd })
+    fetch('/api/upload', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
         if (data.location) {
@@ -121,7 +121,7 @@ const Admin = () => {
     if (!file) return;
     const fd = new FormData();
     fd.append('image', file);
-    fetch('http://localhost:3005/api/upload', { method: 'POST', body: fd })
+    fetch('/api/upload', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
         if (data.location) {
@@ -136,8 +136,8 @@ const Admin = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = isEditing
-      ? `http://localhost:3005/api/products/${currentId}`
-      : 'http://localhost:3005/api/products';
+      ? `/api/products/${currentId}`
+      : '/api/products';
     const method = isEditing ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -170,7 +170,7 @@ const Admin = () => {
 
   const handleDelete = (id, title) => {
     if (window.confirm(`Xóa sản phẩm "${title}"?`)) {
-      fetch(`http://localhost:3005/api/products/${id}`, { method: 'DELETE' })
+      fetch(`/api/products/${id}`, { method: 'DELETE' })
         .then(() => { fetchGames(); showToast('Đã xóa sản phẩm!', 'info'); })
         .catch(() => showToast('Lỗi khi xóa!', 'error'));
     }

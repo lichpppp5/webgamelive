@@ -38,7 +38,7 @@ export const AppProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    fetch('http://localhost:3005/api/settings')
+    fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
         if (data && Object.keys(data).length > 0) {
@@ -94,7 +94,7 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   const refreshSettings = useCallback(() => {
-    fetch('http://localhost:3005/api/settings')
+    fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
         if (data && Object.keys(data).length > 0) {

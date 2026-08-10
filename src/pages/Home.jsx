@@ -36,7 +36,7 @@ const Home = () => {
   const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
-    fetch('http://localhost:3005/api/products')
+    fetch('/api/products')
       .then(res => res.json())
       .then(data => {
         setGames(data);
