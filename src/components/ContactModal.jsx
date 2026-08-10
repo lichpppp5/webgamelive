@@ -1,19 +1,44 @@
 import { createPortal } from 'react-dom';
 import { useState } from 'react';
-import { X, MessageCircle, Send, MessageSquare, Phone } from 'lucide-react';
-import { useSettings } from '../context/AppContext';
+import { X, MessageCircle, Send, MessageSquare, Phone, QrCode, Copy, Check, ExternalLink, ArrowLeft } from 'lucide-react';
+import { useSettings, useToast } from '../context/AppContext';
 import './ContactModal.css';
 
 const ContactModal = ({ isOpen, onClose, productTitle, cartItems, totalAmount }) => {
   const { contactSettings } = useSettings();
+  const { showToast } = useToast();
+  const [showZaloView, setShowZaloView] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const rawZalo = contactSettings?.zalo || 'https://zalo.me/0833954354';
+  const zaloPhone = rawZalo.replace(/[^0-9]/g, '') || '0833954354';
+  const zaloLink = rawZalo.startsWith('http') ? rawZalo : `https://zalo.me/${zaloPhone}`;
+  
+  // Custom uploaded QR or auto-generated high quality QR code
+  const zaloQrImage = contactSettings?.zaloQr || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(zaloLink)}`;
+
+  const handleCopyPhone = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(zaloPhone);
+    setCopied(true);
+    if (showToast) showToast(`Đã sao chép SĐT Zalo (${zaloPhone})!`, 'success');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleClose = () => {
+    setShowZaloView(false);
+    onClose();
+  };
+
+  if (!isOpen) return null;
 
   const contacts = [
     {
       id: 'zalo',
-      name: 'Zalo',
+      name: 'Zalo (Quét mã QR / SĐT)',
       desc: 'Phản hồi nhanh nhất',
-      icon: <MessageCircle size={22} />,
-      link: contactSettings?.zalo || 'https://zalo.me/',
+      icon: <QrCode size={22} />,
+      isQr: true,
       color: '#0068ff',
       gradient: 'linear-gradient(135deg, #0068ff, #0056d6)',
     },
@@ -37,80 +62,143 @@ const ContactModal = ({ isOpen, onClose, productTitle, cartItems, totalAmount })
     },
   ];
 
-  if (!isOpen) return null;
-
   return createPortal(
     <div
       className="modal-overlay"
-      onClick={onClose}
+      onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-label="Chọn kênh liên hệ"
     >
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         {/* Close */}
-        <button className="modal-close" onClick={onClose} aria-label="Đóng">
+        <button className="modal-close" onClick={handleClose} aria-label="Đóng">
           <X size={20} />
         </button>
 
-        {/* Header */}
-        <div className="modal-header">
-          <div className="modal-icon">
-            <Phone size={22} />
-          </div>
-          <div>
-            <h2 className="modal-title">Liên hệ mua hàng</h2>
-            <p className="modal-subtitle">Chọn kênh bên dưới để được hỗ trợ nhanh nhất</p>
-          </div>
-        </div>
+        {showZaloView ? (
+          /* ── Zalo QR View ── */
+          <div className="zalo-qr-view animate-fadeIn">
+            <button className="zalo-back-btn" onClick={() => setShowZaloView(false)}>
+              <ArrowLeft size={16} /> Quay lại danh sách
+            </button>
 
-        {/* Product / Cart info */}
-        {productTitle && (
-          <div className="modal-product-info">
-            <span className="modal-product-label">Sản phẩm:</span>
-            <span className="modal-product-name">{productTitle}</span>
-          </div>
-        )}
-
-        {cartItems && cartItems.length > 0 && (
-          <div className="modal-product-info">
-            <span className="modal-product-label">{cartItems.length} sản phẩm —</span>
-            <span className="modal-product-name">
-              Tổng: {totalAmount?.toLocaleString('vi-VN')}đ
-            </span>
-          </div>
-        )}
-
-        {/* Contacts */}
-        <div className="contact-options">
-          {contacts.map(c => (
-            <a
-              key={c.id}
-              href={c.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="contact-btn"
-              id={`contact-${c.id}`}
-              aria-label={`Liên hệ qua ${c.name}`}
-            >
-              <span
-                className="contact-icon"
-                style={{ background: c.gradient }}
-              >
-                {c.icon}
-              </span>
-              <div className="contact-text">
-                <span className="contact-name">{c.name}</span>
-                <span className="contact-desc">{c.desc}</span>
+            <div className="zalo-qr-header">
+              <div className="zalo-qr-icon-wrap">
+                <MessageCircle size={24} />
               </div>
-              <span className="contact-arrow">→</span>
-            </a>
-          ))}
-        </div>
+              <h2 className="zalo-qr-title">Mã QR Zalo Hỗ Trợ</h2>
+              <p className="zalo-qr-subtitle">Quét bằng ứng dụng Zalo trên điện thoại để nhắn tin ngay</p>
+            </div>
 
-        <p className="modal-note">
-          Phản hồi trong vòng 5–15 phút. Hỗ trợ 8:00 – 23:00 mỗi ngày.
-        </p>
+            {/* QR Card */}
+            <div className="zalo-qr-card">
+              <div className="zalo-qr-img-frame">
+                <img src={zaloQrImage} alt="Zalo QR Code" className="zalo-qr-img" />
+              </div>
+              
+              <div className="zalo-phone-row">
+                <div className="zalo-phone-info">
+                  <span className="zalo-phone-label">SĐT Zalo:</span>
+                  <span className="zalo-phone-val">{zaloPhone}</span>
+                </div>
+                <button className="btn-copy-phone" onClick={handleCopyPhone}>
+                  {copied ? <Check size={14} color="#00e676" /> : <Copy size={14} />}
+                  {copied ? 'Đã chép' : 'Sao chép'}
+                </button>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="zalo-qr-actions">
+              <a
+                href={zaloLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-open-zalo"
+              >
+                <ExternalLink size={16} /> Mở ứng dụng Zalo
+              </a>
+            </div>
+          </div>
+        ) : (
+          /* ── Default Options List ── */
+          <>
+            {/* Header */}
+            <div className="modal-header">
+              <div className="modal-icon">
+                <Phone size={22} />
+              </div>
+              <div>
+                <h2 className="modal-title">Liên hệ mua hàng</h2>
+                <p className="modal-subtitle">Chọn kênh bên dưới để được hỗ trợ nhanh nhất</p>
+              </div>
+            </div>
+
+            {/* Product / Cart info */}
+            {productTitle && (
+              <div className="modal-product-info">
+                <span className="modal-product-label">Sản phẩm:</span>
+                <span className="modal-product-name">{productTitle}</span>
+              </div>
+            )}
+
+            {cartItems && cartItems.length > 0 && (
+              <div className="modal-product-info">
+                <span className="modal-product-label">{cartItems.length} sản phẩm —</span>
+                <span className="modal-product-name">
+                  Tổng: {totalAmount?.toLocaleString('vi-VN')}đ
+                </span>
+              </div>
+            )}
+
+            {/* Contacts */}
+            <div className="contact-options">
+              {contacts.map(c => (
+                c.isQr ? (
+                  <button
+                    key={c.id}
+                    onClick={() => setShowZaloView(true)}
+                    className="contact-btn contact-btn-clickable"
+                    id={`contact-${c.id}`}
+                    type="button"
+                  >
+                    <span className="contact-icon" style={{ background: c.gradient }}>
+                      {c.icon}
+                    </span>
+                    <div className="contact-text">
+                      <span className="contact-name">{c.name}</span>
+                      <span className="contact-desc">{c.desc}</span>
+                    </div>
+                    <span className="contact-arrow">→</span>
+                  </button>
+                ) : (
+                  <a
+                    key={c.id}
+                    href={c.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="contact-btn"
+                    id={`contact-${c.id}`}
+                  >
+                    <span className="contact-icon" style={{ background: c.gradient }}>
+                      {c.icon}
+                    </span>
+                    <div className="contact-text">
+                      <span className="contact-name">{c.name}</span>
+                      <span className="contact-desc">{c.desc}</span>
+                    </div>
+                    <span className="contact-arrow">→</span>
+                  </a>
+                )
+              ))}
+            </div>
+
+            <p className="modal-note">
+              Phản hồi trong vòng 5–15 phút. Hỗ trợ 8:00 – 23:00 mỗi ngày.
+            </p>
+          </>
+        )}
       </div>
     </div>,
     document.body

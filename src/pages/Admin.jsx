@@ -129,6 +129,22 @@ const Admin = () => {
       .catch(() => showToast('Lỗi tải ảnh lên!', 'error'));
   };
 
+  const handleZaloQrUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('image', file);
+    fetch('/api/upload', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        if (data.location) {
+          setSettingsForm(prev => ({ ...prev, zaloQr: data.location }));
+          showToast('Đã tải lên Ảnh Mã QR Zalo!', 'success');
+        }
+      })
+      .catch(() => showToast('Lỗi tải ảnh QR!', 'error'));
+  };
+
   const handleInsertImageToDesc = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -381,8 +397,23 @@ const Admin = () => {
           </h2>
           <form onSubmit={handleSettingsSubmit}>
             <div className="form-group">
-              <label className="form-label">Link Zalo</label>
-              <input className="form-input" type="url" value={settingsForm.zalo} onChange={e => setSettingsForm({ ...settingsForm, zalo: e.target.value })} required />
+              <label className="form-label">Link hoặc Số điện thoại Zalo</label>
+              <input className="form-input" type="text" value={settingsForm.zalo} onChange={e => setSettingsForm({ ...settingsForm, zalo: e.target.value })} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Ảnh Mã QR Zalo (Hiển thị khi khách bấm liên hệ)</label>
+              <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                <input className="form-input" type="text" value={settingsForm.zaloQr || ''} onChange={e => setSettingsForm({ ...settingsForm, zaloQr: e.target.value })} placeholder="URL ảnh QR hoặc bấm Tải QR..." style={{ flex: 1 }} />
+                <label className="btn-outline upload-btn" style={{ cursor: 'pointer' }}>
+                  <Upload size={16} /> Tải QR
+                  <input type="file" style={{ display: 'none' }} onChange={handleZaloQrUpload} />
+                </label>
+              </div>
+              {settingsForm.zaloQr && (
+                <div style={{ marginTop: '0.6rem', width: '110px', height: '110px', border: '1px solid var(--border-subtle)', borderRadius: '10px', overflow: 'hidden', background: '#fff', padding: '5px' }}>
+                  <img src={settingsForm.zaloQr} alt="Zalo QR Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+              )}
             </div>
             <div className="form-group">
               <label className="form-label">Link Facebook</label>
