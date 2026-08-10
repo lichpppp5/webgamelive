@@ -49,7 +49,7 @@ const HeroBanner = ({ hotGames = [] }) => {
       <div className="hero-content">
         <div className="hero-badge">
           <span className="hero-badge-dot" />
-          Nền tảng Tool MMO #1 Việt Nam
+          Nền Tảng Tool - Game tương tác
         </div>
         <h1 className="hero-title">
           Công Cụ &amp; Giải Pháp <span className="text-gradient">MMO</span>
@@ -79,12 +79,12 @@ const HeroBanner = ({ hotGames = [] }) => {
         </div>
         <div className="hero-stats">
           <div className="stat">
-            <span className="stat-num text-gradient">500+</span>
+            <span className="stat-num text-gradient">20+</span>
             <span className="stat-label">Sản phẩm</span>
           </div>
           <div className="stat-divider" />
           <div className="stat">
-            <span className="stat-num text-gradient">10K+</span>
+            <span className="stat-num text-gradient">500+</span>
             <span className="stat-label">Khách hàng</span>
           </div>
           <div className="stat-divider" />
