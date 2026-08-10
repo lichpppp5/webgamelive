@@ -39,6 +39,17 @@ export const AppProvider = ({ children }) => {
   });
 
   useEffect(() => {
+    // Always load actual settings from database
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data && Object.keys(data).length > 0) {
+          setContactSettings(prev => ({ ...prev, ...data }));
+        }
+      })
+      .catch(err => console.error('Lỗi lấy settings:', err));
+
+    // Record visit count once per session
     const hasVisited = sessionStorage.getItem('visited');
     if (!hasVisited) {
       fetch('/api/visit', { method: 'POST' })
@@ -49,20 +60,7 @@ export const AppProvider = ({ children }) => {
           }
           sessionStorage.setItem('visited', 'true');
         })
-        .catch(() => {
-          fetch('/api/settings')
-            .then(res => res.json())
-            .then(data => { if (data) setContactSettings(prev => ({ ...prev, ...data })); });
-        });
-    } else {
-      fetch('/api/settings')
-        .then(res => res.json())
-        .then(data => {
-          if (data && Object.keys(data).length > 0) {
-            setContactSettings(prev => ({ ...prev, ...data }));
-          }
-        })
-        .catch(err => console.error('Lỗi lấy settings:', err));
+        .catch(() => {});
     }
   }, []);
 

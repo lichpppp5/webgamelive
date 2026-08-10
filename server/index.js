@@ -85,7 +85,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
               if (row.count === 0) {
                 console.log('Seeding initial settings...');
                 const stmt = db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)`);
-                stmt.run('zalo', 'https://zalo.me/0833954354');
+                stmt.run('zalo', 'https://zalo.me/');
                 stmt.run('facebook', 'https://facebook.com');
                 stmt.run('telegram', 'https://t.me');
                 stmt.run('visitCount', '1250');

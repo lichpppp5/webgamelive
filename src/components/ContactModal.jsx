@@ -10,15 +10,17 @@ const ContactModal = ({ isOpen, onClose, productTitle, cartItems, totalAmount })
   const [showZaloView, setShowZaloView] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  const rawZalo = contactSettings?.zalo || 'https://zalo.me/0833954354';
-  const zaloPhone = rawZalo.replace(/[^0-9]/g, '') || '0833954354';
-  const zaloLink = rawZalo.startsWith('http') ? rawZalo : `https://zalo.me/${zaloPhone}`;
+  const rawZalo = contactSettings?.zalo || '';
+  const extractedDigits = rawZalo.replace(/[^0-9]/g, '');
+  const zaloPhone = extractedDigits || rawZalo || 'Zalo Support';
+  const zaloLink = rawZalo.startsWith('http') ? rawZalo : (extractedDigits ? `https://zalo.me/${extractedDigits}` : 'https://zalo.me/');
   
-  // Custom uploaded QR or auto-generated high quality QR code
-  const zaloQrImage = contactSettings?.zaloQr || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(zaloLink)}`;
+  // Custom uploaded QR or auto-generated QR code
+  const zaloQrImage = contactSettings?.zaloQr || (extractedDigits ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(zaloLink)}` : '');
 
   const handleCopyPhone = (e) => {
     e.stopPropagation();
+    if (!zaloPhone) return;
     navigator.clipboard.writeText(zaloPhone);
     setCopied(true);
     if (showToast) showToast(`Đã sao chép SĐT Zalo (${zaloPhone})!`, 'success');
