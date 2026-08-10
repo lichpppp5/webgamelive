@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon, BarChart2, Globe, Clock } from 'lucide-react';
+import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon, BarChart2, Globe, Clock, RotateCcw } from 'lucide-react';
 import { useToast, useSettings } from '../context/AppContext';
 import './Admin.css';
 
@@ -204,6 +204,18 @@ const Admin = () => {
       fetch(`/api/products/${id}`, { method: 'DELETE' })
         .then(() => { fetchGames(); showToast('Đã xóa sản phẩm!', 'info'); })
         .catch(() => showToast('Lỗi khi xóa!', 'error'));
+    }
+  };
+
+  const handleResetAllDownloads = () => {
+    if (window.confirm('Bạn có chắc chắn muốn đặt lại TẤT CẢ lượt tải của toàn bộ sản phẩm về 0?')) {
+      fetch('/api/products/reset-downloads', { method: 'POST' })
+        .then(res => res.json())
+        .then(() => {
+          fetchGames();
+          showToast('Đã đặt lại tất cả lượt tải về 0 thành công!', 'success');
+        })
+        .catch(() => showToast('Lỗi khi đặt lại lượt tải!', 'error'));
     }
   };
 
@@ -456,9 +468,14 @@ const Admin = () => {
                     <><Plus size={18} /> Thêm Sản Phẩm</>
                   )}
                 </h2>
-                <button type="button" className="btn-outline" onClick={resetForm} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                  <Plus size={14} /> Làm mới form
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button type="button" className="btn-outline" onClick={handleResetAllDownloads} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', color: '#ff4d4f', borderColor: '#ff4d4f44' }} title="Đặt lại tất cả số lượt tải sản phẩm về 0">
+                    <RotateCcw size={14} /> Đặt lại tất cả lượt tải về 0
+                  </button>
+                  <button type="button" className="btn-outline" onClick={resetForm} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                    <Plus size={14} /> Làm mới form
+                  </button>
+                </div>
               </div>
 
           <form onSubmit={handleSubmit} className="product-form">

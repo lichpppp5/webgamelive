@@ -229,6 +229,16 @@ app.post('/api/products/:id/download', (req, res) => {
   );
 });
 
+// POST reset all product download counts to 0
+app.post('/api/products/reset-downloads', (req, res) => {
+  db.run("UPDATE products SET downloads = 0", [], function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ message: 'Reset all downloads to 0' });
+  });
+});
+
 // GET single product
 app.get('/api/products/:id', (req, res) => {
   const { id } = req.params;
