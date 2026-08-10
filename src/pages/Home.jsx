@@ -100,7 +100,7 @@ const Home = () => {
         />
 
         <div className="main-content-area">
-          <HeroBanner hotGames={hotGames} />
+          <HeroBanner hotGames={hotGames} totalProducts={games.length} />
 
           {/* Top Bar */}
           <div className="top-bar">

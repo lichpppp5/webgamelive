@@ -5,7 +5,7 @@ import './HeroBanner.css';
 
 const SLIDE_INTERVAL = 4000;
 
-const HeroBanner = ({ hotGames = [] }) => {
+const HeroBanner = ({ hotGames = [], totalProducts = 0 }) => {
   const { contactSettings } = useSettings();
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -82,7 +82,9 @@ const HeroBanner = ({ hotGames = [] }) => {
         <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         <div className="hero-stats">
           <div className="stat">
-            <span className="stat-num text-gradient">20+</span>
+            <span className="stat-num text-gradient">
+              {totalProducts > 0 ? `${totalProducts}+` : '0+'}
+            </span>
             <span className="stat-label">Sản phẩm</span>
           </div>
           <div className="stat-divider" />
