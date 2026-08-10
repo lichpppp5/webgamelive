@@ -1,16 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ShoppingCart, Check, Shield, ArrowLeft } from 'lucide-react';
+import { Check, ArrowLeft, ShoppingCart, Download, Share2, Flame, MessageSquare } from 'lucide-react';
 import ContactModal from '../components/ContactModal';
+import DownloadConfirmModal from '../components/DownloadConfirmModal';
+import { useCart, useToast } from '../context/AppContext';
 import './ProductDetail.css';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDownloadConfirmOpen, setIsDownloadConfirmOpen] = useState(false);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
+  const { showToast } = useToast();
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     fetch(`http://localhost:3005/api/products/${id}`)
       .then(res => res.json())
       .then(data => {
@@ -23,10 +29,43 @@ const ProductDetail = () => {
       });
   }, [id]);
 
+  const handleAddToCart = () => {
+    if (!product) return;
+    addToCart(product);
+    showToast(`Đã thêm "${product.title}" vào giỏ hàng!`, 'success');
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: product?.title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        showToast('Đã sao chép link sản phẩm!', 'info');
+      }
+    } catch { /* user cancelled */ }
+  };
+
+  const discountPct = product?.oldPrice > 0
+    ? Math.round((1 - product.price / product.oldPrice) * 100)
+    : 0;
+
   if (loading) {
     return (
-      <div className="product-detail-page container" style={{ padding: '4rem 0', textAlign: 'center' }}>
-        <h2>Đang tải thông tin sản phẩm...</h2>
+      <div className="product-detail-page container page-enter">
+        <div className="detail-skeleton">
+          <div className="skeleton" style={{ height: '20px', width: '200px', borderRadius: '4px', marginBottom: '2rem' }} />
+          <div className="detail-skeleton-grid">
+            <div className="skeleton" style={{ aspectRatio: '16/9', borderRadius: '16px' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {[100, 70, 50, 80, 60].map((w, i) => (
+                <div key={i} className="skeleton" style={{ height: i === 0 ? '36px' : '16px', width: `${w}%`, borderRadius: '4px' }} />
+              ))}
+              <div className="skeleton" style={{ height: '52px', borderRadius: '10px', marginTop: '1rem' }} />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -34,71 +73,173 @@ const ProductDetail = () => {
   if (!product) {
     return (
       <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>
-        <h2>Không tìm thấy sản phẩm!</h2>
-        <Link to="/" className="btn-primary" style={{ marginTop: '1rem' }}>Về trang chủ</Link>
+        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>😕</div>
+        <h2 style={{ marginBottom: '1rem' }}>Không tìm thấy sản phẩm!</h2>
+        <Link to="/" className="btn-primary">← Về trang chủ</Link>
       </div>
     );
   }
 
   return (
-    <div className="product-detail-page container">
-      <Link to="/" className="back-link">
-        <ArrowLeft size={20} /> Quay lại
-      </Link>
-      
+    <div className="product-detail-page container page-enter">
+      {/* Breadcrumb */}
+      <nav className="breadcrumb" aria-label="Điều hướng">
+        <Link to="/" className="breadcrumb-link">Trang chủ</Link>
+        <span className="breadcrumb-sep">›</span>
+        <span className="breadcrumb-link">{product.category}</span>
+        <span className="breadcrumb-sep">›</span>
+        <span className="breadcrumb-current">{product.title}</span>
+      </nav>
+
       <div className="product-detail-container">
+        {/* Gallery */}
         <div className="product-gallery">
-          <img src={product.image} alt={product.title} className="main-image" />
+          <div className="main-image-wrap">
+            <img
+              src={product.image}
+              alt={product.title}
+              className="main-image"
+              onError={e => { e.target.src = 'https://via.placeholder.com/600x400?text=No+Image'; }}
+            />
+            {product.isHot && (
+              <div className="detail-hot-badge">
+                <Flame size={14} /> HOT
+              </div>
+            )}
+          </div>
+
+          {/* Features box */}
+          <div className="features-box">
+            <h3 className="features-title">✅ Bao gồm trong gói</h3>
+            <div className="features-list">
+              {[
+                'Hỗ trợ cài đặt từ xa',
+                'Hướng dẫn vận hành chi tiết',
+                'Cập nhật theo yêu cầu',
+                'Hỗ trợ kỹ thuật 24/7',
+              ].map((f, i) => (
+                <div key={i} className="feature-item">
+                  <Check size={16} className="feature-icon" />
+                  <span>{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        
+
+        {/* Info Panel */}
         <div className="product-info-full">
-          <span className="category-label">{product.category}</span>
-          <h1 className="title">{product.title}</h1>
-          
-          <div className="price-section">
-            <span className="current">{product.price.toLocaleString('vi-VN')}đ</span>
-            {product.oldPrice > 0 && (
-              <span className="old">{product.oldPrice.toLocaleString('vi-VN')}đ</span>
-            )}
-            {product.oldPrice > 0 && (
-              <span className="discount">
-                -{Math.round((1 - product.price / product.oldPrice) * 100)}%
+          <div className="info-sticky">
+            <span className="category-label">{product.category}</span>
+            <h1 className="detail-title">{product.title}</h1>
+
+            {/* Stats row */}
+            <div className="detail-stats">
+              <span className="detail-stat">
+                <Download size={14} />
+                {(product.downloads || 0).toLocaleString()} lượt tải
               </span>
+              {product.isHot && (
+                <span className="detail-stat hot-stat">
+                  <Flame size={14} />
+                  Đang hot
+                </span>
+              )}
+            </div>
+
+            {/* Price */}
+            <div className="price-section">
+              <span className="price-current">
+                {product.price > 0
+                  ? product.price.toLocaleString('vi-VN') + 'đ'
+                  : 'Liên hệ báo giá'}
+              </span>
+              {product.oldPrice > 0 && (
+                <>
+                  <span className="price-old">{product.oldPrice.toLocaleString('vi-VN')}đ</span>
+                  <span className="price-discount">-{discountPct}%</span>
+                </>
+              )}
+            </div>
+
+            {/* Description */}
+            {product.description && (
+              <div className="description-section">
+                <h3 className="desc-heading">Mô tả sản phẩm</h3>
+                <div
+                  className="description ql-editor-content"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
+              </div>
             )}
-          </div>
-          
-          <div 
-            className="description ql-editor-content" 
-            dangerouslySetInnerHTML={{ __html: product.description }} 
-          />
-          
-          <div className="features">
-            <div className="feature-item">
-              <Check size={20} className="icon-success" /> Giao hàng tự động
+
+            {/* Action Buttons */}
+            <div className="action-buttons">
+              {product.downloadLink ? (
+                <>
+                  <button
+                    className="btn-primary btn-action-main"
+                    onClick={() => setIsDownloadConfirmOpen(true)}
+                    id={`detail-download-btn-${product.id}`}
+                  >
+                    <Download size={20} />
+                    Tải xuống ngay
+                  </button>
+                  <button
+                    className="btn-outline btn-action-cart"
+                    onClick={() => setIsModalOpen(true)}
+                    id={`detail-contact-btn-${product.id}`}
+                  >
+                    <MessageSquare size={18} />
+                    Liên hệ tư vấn
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="btn-primary btn-action-main"
+                  onClick={() => setIsModalOpen(true)}
+                  id={`detail-download-btn-${product.id}`}
+                >
+                  <Download size={20} />
+                  Tải xuống ngay
+                </button>
+              )}
+              <button
+                className="btn-action-cart" style={{ flex: '0 0 auto' }}
+                onClick={handleAddToCart}
+                id={`detail-cart-btn-${product.id}`}
+                title="Thêm vào giỏ hàng"
+              >
+                <ShoppingCart size={20} />
+              </button>
+              <button
+                className="btn-share"
+                onClick={handleShare}
+                id={`detail-share-btn-${product.id}`}
+                aria-label="Chia sẻ"
+              >
+                <Share2 size={18} />
+              </button>
             </div>
-            <div className="feature-item">
-              <Shield size={20} className="icon-primary" /> Bảo hành 100%
-            </div>
-            <div className="feature-item">
-              <Check size={20} className="icon-success" /> Hỗ trợ cài đặt
-            </div>
-          </div>
-          
-          <div className="action-buttons">
-            <button className="btn-primary btn-large w-full" onClick={() => setIsModalOpen(true)}>
-              TẢI XUỐNG
-            </button>
-            <button className="btn-outline btn-large w-full" onClick={() => setIsModalOpen(true)}>
-              <ShoppingCart size={20} /> Thêm Vào Giỏ Hàng
-            </button>
+
+            <p className="contact-note">
+              Vui lòng liên hệ để được tư vấn và nhận hỗ trợ tốt nhất.
+            </p>
           </div>
         </div>
       </div>
-      
-      <ContactModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        productTitle={product.title} 
+
+      <ContactModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        productTitle={product.title}
+      />
+
+      <DownloadConfirmModal
+        isOpen={isDownloadConfirmOpen}
+        onClose={() => setIsDownloadConfirmOpen(false)}
+        downloadLink={product.downloadLink}
+        onContact={() => setIsModalOpen(true)}
       />
     </div>
   );

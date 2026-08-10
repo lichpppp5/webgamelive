@@ -12,7 +12,7 @@ function App() {
         <Route index element={<Home />} />
         <Route path="product/:id" element={<ProductDetail />} />
         <Route path="cart" element={<Cart />} />
-        <Route path="admin" element={<Admin />} />
+        <Route path="admin-ad" element={<Admin />} />
       </Route>
     </Routes>
   );

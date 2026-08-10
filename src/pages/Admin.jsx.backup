@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon } from 'lucide-react';
-import { useToast, useSettings } from '../context/AppContext';
+import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package } from 'lucide-react';
+import { useToast } from '../context/AppContext';
 import './Admin.css';
 
 const CATEGORIES = ['Tương tác', 'Tool MMO', 'Treo AFK'];
@@ -17,19 +17,12 @@ const StatCard = ({ icon, label, value, color }) => (
 
 const Admin = () => {
   const { showToast } = useToast();
-  const { contactSettings, refreshSettings } = useSettings();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginShake, setLoginShake] = useState(false);
-
-  const [activeTab, setActiveTab] = useState('products');
-  const [settingsForm, setSettingsForm] = useState({
-    zalo: '', facebook: '', telegram: ''
-  });
-
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTable, setSearchTable] = useState('');
@@ -41,7 +34,7 @@ const Admin = () => {
   const [currentId, setCurrentId] = useState(null);
   const [formData, setFormData] = useState({
     title: '', category: CATEGORIES[0], price: 0, oldPrice: 0,
-    image: '', downloads: 0, isHot: false, description: '', downloadLink: ''
+    image: '', downloads: 0, isHot: false, description: ''
   });
 
   const handleLogin = async (e) => {
@@ -57,31 +50,6 @@ const Admin = () => {
       setTimeout(() => setLoginShake(false), 600);
     }
     setLoginLoading(false);
-  };
-
-  useEffect(() => {
-    if (contactSettings) {
-      setSettingsForm({
-        zalo: contactSettings.zalo || '',
-        facebook: contactSettings.facebook || '',
-        telegram: contactSettings.telegram || ''
-      });
-    }
-  }, [contactSettings]);
-
-  const handleSettingsSubmit = (e) => {
-    e.preventDefault();
-    fetch('http://localhost:3005/api/settings', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(settingsForm)
-    })
-      .then(res => res.json())
-      .then(() => {
-        showToast('Đã lưu cấu hình liên hệ!', 'success');
-        refreshSettings();
-      })
-      .catch(() => showToast('Lỗi khi lưu cấu hình', 'error'));
   };
 
   const fetchGames = () => {
@@ -161,8 +129,7 @@ const Admin = () => {
       title: game.title, category: game.category,
       price: game.price, oldPrice: game.oldPrice,
       image: game.image, downloads: game.downloads,
-      isHot: game.isHot, description: game.description || '',
-      downloadLink: game.downloadLink || ''
+      isHot: game.isHot, description: game.description || ''
     });
     setImagePreview(game.image || '');
     formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -178,7 +145,7 @@ const Admin = () => {
 
   const resetForm = () => {
     setIsEditing(false); setCurrentId(null);
-    setFormData({ title: '', category: CATEGORIES[0], price: 0, oldPrice: 0, image: '', downloads: 0, isHot: false, description: '', downloadLink: '' });
+    setFormData({ title: '', category: CATEGORIES[0], price: 0, oldPrice: 0, image: '', downloads: 0, isHot: false, description: '' });
     setImagePreview('');
   };
 
@@ -263,84 +230,33 @@ const Admin = () => {
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h1 className="admin-page-title">Quản trị Hệ thống</h1>
-          <p className="admin-page-sub">Thiết lập chung và quản lý sản phẩm</p>
+          <h1 className="admin-page-title">Quản lý Sản phẩm</h1>
+          <p className="admin-page-sub">Thêm, sửa, xóa sản phẩm trong hệ thống</p>
         </div>
         <div className="admin-header-actions">
-          <button className="btn-outline btn-logout" onClick={() => setIsAuthenticated(false)}>Đăng xuất</button>
+          <button className="btn-primary" onClick={resetForm} id="add-product-btn">
+            <Plus size={18} /> Thêm mới
+          </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="admin-tabs" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-        <button 
-          className={`admin-tab-btn ${activeTab === 'products' ? 'active' : ''}`}
-          onClick={() => setActiveTab('products')}
-          style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'products' ? 'var(--primary)' : 'transparent', color: activeTab === 'products' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-        >
-          <Package size={18} /> Quản lý Sản phẩm
-        </button>
-        <button 
-          className={`admin-tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('settings')}
-          style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'settings' ? 'var(--primary)' : 'transparent', color: activeTab === 'settings' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-        >
-          <SettingsIcon size={18} /> Cài đặt chung
-        </button>
+      {/* Stats */}
+      <div className="admin-stats">
+        <StatCard icon={<Package size={22} />} label="Tổng sản phẩm" value={games.length} color="var(--primary)" />
+        <StatCard icon={<Flame size={22} />} label="Đang HOT" value={hotCount} color="#ff6b6b" />
+        <StatCard icon={<Upload size={22} />} label="Tổng lượt tải" value={games.reduce((s, g) => s + (g.downloads || 0), 0).toLocaleString()} color="var(--secondary)" />
       </div>
 
-      {activeTab === 'settings' && (
-        <div className="admin-card settings-card" style={{ background: 'var(--bg-card)', padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
-          <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <SettingsIcon size={22} color="var(--primary)" />
-            Cấu hình Liên hệ & Tư vấn
+      <div className="admin-content" ref={formTopRef}>
+        {/* Form Panel */}
+        <div className="admin-form-panel">
+          <h2 className="panel-title">
+            {isEditing ? (
+              <><Edit size={18} /> Sửa Sản Phẩm</>
+            ) : (
+              <><Plus size={18} /> Thêm Sản Phẩm</>
+            )}
           </h2>
-          <form onSubmit={handleSettingsSubmit}>
-            <div className="form-group">
-              <label className="form-label">Link Zalo</label>
-              <input className="form-input" type="url" value={settingsForm.zalo} onChange={e => setSettingsForm({ ...settingsForm, zalo: e.target.value })} required />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Link Facebook</label>
-              <input className="form-input" type="url" value={settingsForm.facebook} onChange={e => setSettingsForm({ ...settingsForm, facebook: e.target.value })} required />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Link Telegram</label>
-              <input className="form-input" type="url" value={settingsForm.telegram} onChange={e => setSettingsForm({ ...settingsForm, telegram: e.target.value })} required />
-            </div>
-            <div className="form-actions" style={{ marginTop: '2rem' }}>
-              <button type="submit" className="btn-primary" style={{ padding: '1rem 2rem' }}>
-                <Save size={18} /> Lưu cấu hình
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {activeTab === 'products' && (
-        <>
-          {/* Stats */}
-          <div className="admin-stats">
-            <StatCard icon={<Package size={22} />} label="Tổng sản phẩm" value={games.length} color="var(--primary)" />
-            <StatCard icon={<Flame size={22} />} label="Đang HOT" value={hotCount} color="#ff6b6b" />
-            <StatCard icon={<Upload size={22} />} label="Tổng lượt tải" value={games.reduce((s, g) => s + (g.downloads || 0), 0).toLocaleString()} color="var(--secondary)" />
-          </div>
-    
-          <div className="admin-content" ref={formTopRef}>
-            {/* Form Panel */}
-            <div className="admin-form-panel">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h2 className="panel-title" style={{ margin: 0 }}>
-                  {isEditing ? (
-                    <><Edit size={18} /> Sửa Sản Phẩm</>
-                  ) : (
-                    <><Plus size={18} /> Thêm Sản Phẩm</>
-                  )}
-                </h2>
-                <button type="button" className="btn-outline" onClick={resetForm} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                  <Plus size={14} /> Làm mới form
-                </button>
-              </div>
 
           <form onSubmit={handleSubmit} className="product-form">
             <div className="form-group">
@@ -370,35 +286,6 @@ const Admin = () => {
                 <label className="form-label">Giá cũ (VNĐ)</label>
                 <input className="form-input" type="number" name="oldPrice" value={formData.oldPrice} onChange={handleInputChange} min="0" />
               </div>
-            </div>
-
-            {/* Download Link */}
-            <div className="form-group">
-              <label className="form-label">
-                🔗 Link tải xuống trực tiếp
-                <span className="form-label-hint">(để trống nếu muốn hiện form liên hệ)</span>
-              </label>
-              <input
-                className="form-input"
-                type="url"
-                name="downloadLink"
-                value={formData.downloadLink}
-                onChange={handleInputChange}
-                placeholder="https://drive.google.com/... hoặc https://mediafire.com/..."
-              />
-              {formData.downloadLink && (
-                <div className="download-link-preview">
-                  <span className="dlp-icon">✅</span>
-                  <span>Người dùng sẽ được tải trực tiếp</span>
-                  <a href={formData.downloadLink} target="_blank" rel="noreferrer" className="dlp-test">Kiểm tra link</a>
-                </div>
-              )}
-              {!formData.downloadLink && (
-                <div className="download-link-preview dlp-contact">
-                  <span className="dlp-icon">💬</span>
-                  <span>Người dùng sẽ thấy form liên hệ</span>
-                </div>
-              )}
             </div>
 
             {/* Image Upload */}
@@ -432,9 +319,9 @@ const Admin = () => {
 
             {/* Description */}
             <div className="form-group">
-              <div className="desc-label-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <div className="desc-label-row">
                 <label className="form-label" style={{ margin: 0 }}>Mô tả (hỗ trợ HTML)</label>
-                <label className="btn-ghost insert-img-btn" style={{ cursor: 'pointer', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <label className="btn-ghost insert-img-btn" style={{ cursor: 'pointer', fontSize: '0.82rem' }}>
                   <ImageIcon size={14} /> Chèn ảnh
                   <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleInsertImageToDesc} />
                 </label>
@@ -445,7 +332,6 @@ const Admin = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 placeholder="Nhập mô tả sản phẩm... Hỗ trợ <b>in đậm</b>, <br>, <img>, ..."
-                style={{ minHeight: '200px' }}
               />
             </div>
 
@@ -560,10 +446,9 @@ const Admin = () => {
           )}
         </div>
       </div>
-      </>
-      )}
     </div>
   );
 };
 
 export default Admin;
+

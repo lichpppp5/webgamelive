@@ -1,0 +1,73 @@
+.download-modal-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  width: 90%;
+  max-width: 420px;
+  position: relative;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05);
+  text-align: center;
+}
+
+.download-modal-icon-wrap {
+  width: 60px;
+  height: 60px;
+  background: rgba(0, 207, 251, 0.15);
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+  box-shadow: 0 0 20px rgba(0, 207, 251, 0.2);
+}
+
+.download-modal-header h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-100);
+  margin-bottom: 1rem;
+}
+
+.download-warning-text {
+  font-size: 0.95rem;
+  color: var(--text-300);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.download-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.download-modal-actions .btn-primary {
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.download-modal-actions .btn-outline {
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .download-modal-content {
+    padding: 1.75rem 1.5rem;
+  }
+}
