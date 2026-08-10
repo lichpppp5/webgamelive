@@ -95,12 +95,24 @@ const ProductDetail = () => {
         {/* Gallery */}
         <div className="product-gallery">
           <div className="main-image-wrap">
-            <img
-              src={product.image}
-              alt={product.title}
-              className="main-image"
-              onError={e => { e.target.src = 'https://via.placeholder.com/600x400?text=No+Image'; }}
-            />
+            {product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm')) ? (
+              <video
+                src={product.image}
+                className="main-image"
+                autoPlay
+                loop
+                muted
+                playsInline
+                onError={e => { e.target.style.display = 'none'; }}
+              />
+            ) : (
+              <img
+                src={product.image}
+                alt={product.title}
+                className="main-image"
+                onError={e => { e.target.src = 'https://via.placeholder.com/600x400?text=No+Image'; }}
+              />
+            )}
             {product.isHot && (
               <div className="detail-hot-badge">
                 <Flame size={14} /> HOT

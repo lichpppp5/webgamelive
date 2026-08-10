@@ -422,7 +422,11 @@ const Admin = () => {
               </div>
               {imagePreview && (
                 <div className="image-preview">
-                  <img src={imagePreview} alt="Preview" onError={() => setImagePreview('')} />
+                  {imagePreview && (imagePreview.endsWith('.mp4') || imagePreview.endsWith('.webm')) ? (
+                    <video src={imagePreview} autoPlay loop muted playsInline onError={() => setImagePreview('')} />
+                  ) : (
+                    <img src={imagePreview} alt="Preview" onError={() => setImagePreview('')} />
+                  )}
                   <button type="button" className="preview-remove" onClick={() => { setImagePreview(''); setFormData(p => ({ ...p, image: '' })); }}>
                     <X size={14} />
                   </button>
@@ -518,8 +522,12 @@ const Admin = () => {
                     <tr key={game.id} className="admin-row">
                       <td>
                         <div className="admin-img-wrap">
+                        {game.image && (game.image.endsWith('.mp4') || game.image.endsWith('.webm')) ? (
+                          <video src={game.image} autoPlay loop muted playsInline className="admin-table-img" />
+                        ) : (
                           <img src={game.image} alt={game.title} className="admin-table-img"
-                            onError={e => { e.target.style.display = 'none'; }} />
+                            onError={e => { e.target.src = 'https://via.placeholder.com/100x60?text=No+Image' }} />
+                        )}
                         </div>
                       </td>
                       <td>

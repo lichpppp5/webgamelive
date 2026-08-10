@@ -51,6 +51,15 @@ const ProductCard = ({ product }) => {
               <div className="img-fallback">
                 <Download size={32} />
               </div>
+            ) : product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm')) ? (
+              <video
+                src={product.image}
+                autoPlay
+                loop
+                muted
+                playsInline
+                onError={() => setImgError(true)}
+              />
             ) : (
               <img
                 src={product.image}
