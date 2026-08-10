@@ -125,9 +125,12 @@ const Admin = () => {
       .then(r => r.json())
       .then(data => {
         if (data.location) {
-          const imgTag = `\n<img src="${data.location}" alt="Minh họa" />\n`;
-          setFormData(prev => ({ ...prev, description: (prev.description || '') + imgTag }));
-          showToast('Đã chèn ảnh vào nội dung!', 'success');
+          const isVideo = data.location.endsWith('.mp4') || data.location.endsWith('.webm');
+          const mediaTag = isVideo 
+            ? `\n<video src="${data.location}" autoPlay loop muted playsInline style="max-width:100%; border-radius:8px;"></video>\n`
+            : `\n<img src="${data.location}" alt="Minh họa" />\n`;
+          setFormData(prev => ({ ...prev, description: (prev.description || '') + mediaTag }));
+          showToast(isVideo ? 'Đã chèn video vào nội dung!' : 'Đã chèn ảnh vào nội dung!', 'success');
         }
       })
       .catch(() => showToast('Lỗi tải ảnh!', 'error'));
