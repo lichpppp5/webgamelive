@@ -11,6 +11,7 @@ const ProductDetail = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDownloadConfirmOpen, setIsDownloadConfirmOpen] = useState(false);
   const [product, setProduct] = useState(null);
+  const [downloadCount, setDownloadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { showToast } = useToast();
@@ -20,7 +21,10 @@ const ProductDetail = () => {
     fetch(`/api/products/${id}`)
       .then(res => res.json())
       .then(data => {
-        if (!data.error) setProduct(data);
+        if (!data.error) {
+          setProduct(data);
+          setDownloadCount(data.downloads || 0);
+        }
         setLoading(false);
       })
       .catch(err => {
@@ -155,7 +159,7 @@ const ProductDetail = () => {
             <div className="detail-stats">
               <span className="detail-stat">
                 <Download size={14} />
-                {(product.downloads || 0).toLocaleString()} lượt tải
+                {(downloadCount || 0).toLocaleString()} lượt tải
               </span>
               {product.isHot && (
                 <span className="detail-stat hot-stat">
@@ -257,7 +261,9 @@ const ProductDetail = () => {
         isOpen={isDownloadConfirmOpen}
         onClose={() => setIsDownloadConfirmOpen(false)}
         downloadLink={product.downloadLink}
+        productId={product.id}
         onContact={() => setIsModalOpen(true)}
+        onDownloadSuccess={(newCount) => setDownloadCount(newCount)}
       />
     </div>
   );

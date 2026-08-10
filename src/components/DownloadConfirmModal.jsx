@@ -2,8 +2,22 @@ import { createPortal } from 'react-dom';
 import { X, Download, MessageSquare } from 'lucide-react';
 import './DownloadConfirmModal.css';
 
-const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, onContact }) => {
+const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, productId, onContact, onDownloadSuccess }) => {
   if (!isOpen) return null;
+
+  const handleDownloadClick = () => {
+    if (productId) {
+      fetch(`/api/products/${productId}/download`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.downloads !== undefined && onDownloadSuccess) {
+            onDownloadSuccess(data.downloads);
+          }
+        })
+        .catch(() => {});
+    }
+    onClose();
+  };
 
   return createPortal(
     <div className="modal-overlay active" onClick={onClose}>
@@ -31,7 +45,7 @@ const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, onContact }) => {
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary"
-            onClick={onClose}
+            onClick={handleDownloadClick}
           >
             <Download size={18} />
             Vẫn Tải xuống

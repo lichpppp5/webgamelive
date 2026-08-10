@@ -209,6 +209,26 @@ app.get('/api/products', (req, res) => {
   });
 });
 
+// POST increment product download count
+app.post('/api/products/:id/download', (req, res) => {
+  const productId = req.params.id;
+  db.run(
+    "UPDATE products SET downloads = downloads + 1 WHERE id = ?",
+    [productId],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      db.get("SELECT downloads FROM products WHERE id = ?", [productId], (err2, row) => {
+        if (err2 || !row) {
+          return res.json({ downloads: 1 });
+        }
+        res.json({ downloads: row.downloads });
+      });
+    }
+  );
+});
+
 // GET single product
 app.get('/api/products/:id', (req, res) => {
   const { id } = req.params;

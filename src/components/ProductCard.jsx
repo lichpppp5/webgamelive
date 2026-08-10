@@ -14,6 +14,8 @@ const ProductCard = ({ product }) => {
   const { showToast } = useToast();
   const navigate = useNavigate();
 
+  const [downloadCount, setDownloadCount] = useState(product.downloads || 0);
+
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -118,7 +120,7 @@ const ProductCard = ({ product }) => {
             <span className="product-category">{product.category}</span>
             <span className="product-downloads">
               <Download size={12} />
-              {(product.downloads || 0).toLocaleString()}
+              {(downloadCount || 0).toLocaleString()}
             </span>
           </div>
 
@@ -184,7 +186,9 @@ const ProductCard = ({ product }) => {
         isOpen={isDownloadConfirmOpen}
         onClose={() => setIsDownloadConfirmOpen(false)}
         downloadLink={product.downloadLink}
+        productId={product.id}
         onContact={() => setIsModalOpen(true)}
+        onDownloadSuccess={(newCount) => setDownloadCount(newCount)}
       />
     </>
   );
