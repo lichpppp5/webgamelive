@@ -46,60 +46,70 @@ const ProductCard = ({ product }) => {
       <div className="product-card">
         {/* Image */}
         <Link to={`/product/${product.id}`} className="product-image-link" tabIndex={-1}>
-          <div className="product-image">
-            {imgError ? (
-              <div className="img-fallback">
-                <Download size={32} />
+          {(() => {
+            const isVideo = product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm'));
+            return (
+              <div className={`product-image ${isVideo ? 'video-mode' : ''}`}>
+                {imgError ? (
+                  <div className="img-fallback">
+                    <Download size={32} />
+                  </div>
+                ) : isVideo ? (
+                  <>
+                    <video
+                      src={product.image}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      onError={() => setImgError(true)}
+                    />
+                    <div className="tiktok-badge">
+                      <Play size={10} fill="currentColor" /> TikTok Video
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={product.image}
+                    alt={product.title}
+                    loading="lazy"
+                    onError={() => setImgError(true)}
+                  />
+                )}
+
+                {/* Overlay */}
+                <div className="product-overlay">
+                  <button
+                    className="overlay-btn"
+                    onClick={(e) => { e.preventDefault(); navigate(`/product/${product.id}`); }}
+                    aria-label="Xem chi tiết"
+                  >
+                    <Eye size={18} />
+                    <span>Xem chi tiết</span>
+                  </button>
+                </div>
+
+                {/* Badges */}
+                <div className="product-badges">
+                  {product.isHot && (
+                    <span className="badge badge-hot" aria-label="Sản phẩm hot">🔥 HOT</span>
+                  )}
+                  {discountPct > 0 && (
+                    <span className="badge badge-sale">-{discountPct}%</span>
+                  )}
+                </div>
+
+                {/* Share btn */}
+                <button
+                  className="share-btn"
+                  onClick={handleShare}
+                  aria-label="Chia sẻ sản phẩm"
+                >
+                  <Share2 size={14} />
+                </button>
               </div>
-            ) : product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm')) ? (
-              <video
-                src={product.image}
-                autoPlay
-                loop
-                muted
-                playsInline
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <img
-                src={product.image}
-                alt={product.title}
-                loading="lazy"
-                onError={() => setImgError(true)}
-              />
-            )}
-
-            {/* Overlay */}
-            <div className="product-overlay">
-              <button
-                className="overlay-btn"
-                onClick={() => navigate(`/product/${product.id}`)}
-                aria-label="Xem chi tiết"
-              >
-                <Eye size={18} />
-                <span>Xem chi tiết</span>
-              </button>
-            </div>
-
-            {/* Badges */}
-            <div className="product-badges">
-              {product.isHot && (
-                <span className="badge badge-hot" aria-label="Sản phẩm hot">🔥 HOT</span>
-              )}
-              {discountPct > 0 && (
-                <span className="badge badge-sale">-{discountPct}%</span>
-              )}
-            </div>
-
-            {/* Share btn */}
-            <button
-              className="share-btn"
-              onClick={handleShare}
-              aria-label="Chia sẻ sản phẩm"
-            >
-              <Share2 size={14} />
-            </button>
-          </div>
+            );
+          })()}
         </Link>
 
         {/* Info */}

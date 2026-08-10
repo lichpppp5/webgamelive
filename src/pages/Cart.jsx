@@ -46,7 +46,11 @@ const Cart = () => {
             {cartItems.map(item => (
               <div key={item.id} className="cart-item animate-fadeInUp">
                 <Link to={`/product/${item.id}`} className="cart-item-img-wrap">
-                  <img src={item.image} alt={item.title} className="cart-item-img" />
+                  {item.image && (item.image.endsWith('.mp4') || item.image.endsWith('.webm')) ? (
+                    <video src={item.image} autoPlay loop muted playsInline className="cart-item-img" />
+                  ) : (
+                    <img src={item.image} alt={item.title} className="cart-item-img" />
+                  )}
                 </Link>
 
                 <div className="cart-item-info">

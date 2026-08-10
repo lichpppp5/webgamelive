@@ -94,31 +94,37 @@ const ProductDetail = () => {
       <div className="product-detail-container">
         {/* Gallery */}
         <div className="product-gallery">
-          <div className="main-image-wrap">
-            {product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm')) ? (
-              <video
-                src={product.image}
-                className="main-image"
-                autoPlay
-                loop
-                muted
-                playsInline
-                onError={e => { e.target.style.display = 'none'; }}
-              />
-            ) : (
-              <img
-                src={product.image}
-                alt={product.title}
-                className="main-image"
-                onError={e => { e.target.src = 'https://via.placeholder.com/600x400?text=No+Image'; }}
-              />
-            )}
-            {product.isHot && (
-              <div className="detail-hot-badge">
-                <Flame size={14} /> HOT
+          {(() => {
+            const isVideo = product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm'));
+            return (
+              <div className={`main-image-wrap ${isVideo ? 'tiktok-video-wrap' : ''}`}>
+                {isVideo ? (
+                  <video
+                    src={product.image}
+                    className="main-image main-video"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    controls
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                ) : (
+                  <img
+                    src={product.image}
+                    alt={product.title}
+                    className="main-image"
+                    onError={e => { e.target.src = 'https://via.placeholder.com/600x400?text=No+Image'; }}
+                  />
+                )}
+                {product.isHot && (
+                  <div className="detail-hot-badge">
+                    <Flame size={14} /> HOT
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Features box */}
           <div className="features-box">
