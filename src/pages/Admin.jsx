@@ -33,7 +33,7 @@ const Admin = () => {
     recentVisits: []
   });
   const [settingsForm, setSettingsForm] = useState({
-    zalo: '', facebook: '', telegram: ''
+    zalo: '', facebook: '', telegram: '', zaloQr: '', visitCount: '1250'
   });
 
   const [games, setGames] = useState([]);
@@ -67,11 +67,10 @@ const Admin = () => {
 
   useEffect(() => {
     if (contactSettings) {
-      setSettingsForm({
-        zalo: contactSettings.zalo || '',
-        facebook: contactSettings.facebook || '',
-        telegram: contactSettings.telegram || ''
-      });
+      setSettingsForm(prev => ({
+        ...prev,
+        ...contactSettings
+      }));
     }
   }, [contactSettings]);
 
