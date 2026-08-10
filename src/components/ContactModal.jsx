@@ -7,7 +7,7 @@ import './ContactModal.css';
 const ContactModal = ({ isOpen, onClose, productTitle, cartItems, totalAmount }) => {
   const { contactSettings } = useSettings();
   const { showToast } = useToast();
-  const [showZaloView, setShowZaloView] = useState(false);
+  const [showZaloView, setShowZaloView] = useState(true);
   const [copied, setCopied] = useState(false);
 
   const rawZalo = contactSettings?.zalo || 'https://zalo.me/0833954354';
@@ -26,7 +26,7 @@ const ContactModal = ({ isOpen, onClose, productTitle, cartItems, totalAmount })
   };
 
   const handleClose = () => {
-    setShowZaloView(false);
+    setShowZaloView(true);
     onClose();
   };
 
@@ -80,7 +80,7 @@ const ContactModal = ({ isOpen, onClose, productTitle, cartItems, totalAmount })
           /* ── Zalo QR View ── */
           <div className="zalo-qr-view animate-fadeIn">
             <button className="zalo-back-btn" onClick={() => setShowZaloView(false)}>
-              <ArrowLeft size={16} /> Quay lại danh sách
+              <ArrowLeft size={16} /> Xem kênh liên hệ khác (FB, Telegram)
             </button>
 
             <div className="zalo-qr-header">

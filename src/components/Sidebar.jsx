@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Gamepad2, MonitorPlay, Cpu, Wrench, Sparkles, MessageCircle, Send, MessageSquare } from 'lucide-react';
 import { categories } from '../data/mockData';
 import { useSettings } from '../context/AppContext';
+import ContactModal from './ContactModal';
 import './Sidebar.css';
 
 const getCategoryIcon = (id) => {
@@ -22,6 +23,7 @@ const getCategoryCount = (name, games) => {
 
 const Sidebar = ({ activeCategory, setActiveCategory, games }) => {
   const { contactSettings } = useSettings();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <aside className="sidebar" aria-label="Sidebar điều hướng">
@@ -68,16 +70,16 @@ const Sidebar = ({ activeCategory, setActiveCategory, games }) => {
           LIÊN HỆ - TƯ VẤN
         </h2>
         <div className="community-links">
-          <a
-            href={contactSettings?.zalo || 'https://zalo.me/0833954354'}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
             className="community-btn btn-zalo"
             aria-label="Liên hệ qua Zalo"
+            style={{ cursor: 'pointer', border: 'none' }}
           >
             <MessageCircle size={16} />
-            <span>Zalo</span>
-          </a>
+            <span>Zalo QR</span>
+          </button>
           <a
             href={contactSettings?.facebook || 'https://facebook.com'}
             target="_blank"
@@ -100,6 +102,7 @@ const Sidebar = ({ activeCategory, setActiveCategory, games }) => {
           </a>
         </div>
       </div>
+      <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </aside>
   );
 };
