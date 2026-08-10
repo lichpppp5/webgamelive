@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Eye, Share2, Download, Play } from 'lucide-react';
 import ContactModal from './ContactModal';
@@ -15,6 +15,10 @@ const ProductCard = ({ product }) => {
   const navigate = useNavigate();
 
   const [downloadCount, setDownloadCount] = useState(product.downloads || 0);
+
+  useEffect(() => {
+    setDownloadCount(product.downloads || 0);
+  }, [product.downloads]);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
