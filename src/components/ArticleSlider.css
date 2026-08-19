@@ -45,39 +45,39 @@
   color: var(--primary);
 }
 
-.article-slider-container {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary) var(--bg-800);
+.marquee-container {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
   padding-bottom: 0.5rem;
-  /* Mượt mà trên mobile */
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
+  /* Thêm hiệu ứng mờ ở hai mép để nhìn đẹp hơn */
+  -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
 }
 
-.article-slider-container::-webkit-scrollbar {
-  height: 6px;
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 25s linear infinite;
 }
 
-.article-slider-container::-webkit-scrollbar-track {
-  background: var(--bg-800);
-  border-radius: 4px;
-}
-
-.article-slider-container::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 4px;
-}
-
-.article-slider-track {
+.marquee-group {
   display: flex;
   gap: 1.25rem;
-  min-width: min-content;
+  padding-right: 1.25rem; /* Khoảng cách với group tiếp theo */
 }
 
-.article-slide-card {
+/* Tạm dừng chạy khi di chuột vào */
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marqueeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); } /* Có 4 group, dịch -50% nghĩa là cuộn qua 2 group hoàn hảo */
+}
+
+.marquee-item {
   width: 260px;
   min-width: 260px;
   background: var(--bg-800);
@@ -85,12 +85,11 @@
   overflow: hidden;
   text-decoration: none;
   transition: transform 0.3s, box-shadow 0.3s;
-  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
 }
 
-.article-slide-card:hover {
+.marquee-item:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 207, 251, 0.2);
 }

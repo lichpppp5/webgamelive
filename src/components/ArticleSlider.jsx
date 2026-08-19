@@ -35,26 +35,31 @@ const ArticleSlider = () => {
         </Link>
       </div>
 
-      <div className="article-slider-container">
-        <div className="article-slider-track">
-          {articles.map((article, i) => (
-            <Link to={`/docs/${article.id}`} key={article.id} className="article-slide-card">
-              <div className="article-slide-img">
-                {article.thumbnail ? (
-                  <img src={article.thumbnail} alt={article.title} />
-                ) : (
-                  <div className="article-slide-placeholder">
-                    <BookOpen size={30} />
+      <div className="article-slider-container marquee-container">
+        <div className="article-slider-track marquee-track">
+          {/* Lặp lại 4 lần danh sách để đảm bảo đủ chiều dài cho hiệu ứng vô tận */}
+          {[1, 2, 3, 4].map(group => (
+            <div key={group} className="marquee-group">
+              {articles.map((article, i) => (
+                <Link to={`/docs/${article.id}`} key={`${article.id}-${group}-${i}`} className="article-slide-card marquee-item">
+                  <div className="article-slide-img">
+                    {article.thumbnail ? (
+                      <img src={article.thumbnail} alt={article.title} />
+                    ) : (
+                      <div className="article-slide-placeholder">
+                        <BookOpen size={30} />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="article-slide-content">
-                <h3 className="article-slide-title">{article.title}</h3>
-                <span className="article-slide-date">
-                  {new Date(article.created_at).toLocaleDateString('vi-VN')}
-                </span>
-              </div>
-            </Link>
+                  <div className="article-slide-content">
+                    <h3 className="article-slide-title">{article.title}</h3>
+                    <span className="article-slide-date">
+                      {new Date(article.created_at).toLocaleDateString('vi-VN')}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           ))}
         </div>
       </div>
