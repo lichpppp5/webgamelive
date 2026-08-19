@@ -3,17 +3,20 @@
    =========================== */
 .hero-banner {
   position: relative;
-  background: linear-gradient(135deg, rgba(0,207,251,0.08) 0%, rgba(168,85,247,0.06) 50%, rgba(10,14,26,0.9) 100%);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 3rem 3rem 2.5rem;
+  background: radial-gradient(circle at 50% 0%, rgba(0, 207, 251, 0.12), transparent 50%),
+              radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.08), transparent 50%);
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 0;
+  padding: 6rem 5% 5rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 2.5rem;
+  justify-content: center;
+  gap: 4rem;
+  margin-bottom: 3.5rem;
   overflow: hidden;
-  animation: fadeInUp 0.5s ease;
+  animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  min-height: 500px;
 }
 
 /* ── Glows ── */
@@ -68,7 +71,7 @@
 /* ── Content ── */
 .hero-content {
   flex: 1;
-  max-width: 56%;
+  max-width: 600px;
   z-index: 2;
   position: relative;
 }
@@ -80,13 +83,14 @@
   background: rgba(0, 207, 251, 0.1);
   border: 1px solid rgba(0, 207, 251, 0.25);
   color: var(--primary);
-  padding: 0.35rem 0.9rem;
+  padding: 0.4rem 1.1rem;
   border-radius: var(--radius-full);
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   letter-spacing: 0.5px;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
   animation: fadeInUp 0.5s ease 0.1s both;
+  box-shadow: 0 0 15px rgba(0, 207, 251, 0.15);
 }
 
 .hero-badge-dot {
@@ -99,21 +103,21 @@
 }
 
 .hero-title {
-  font-size: 2.6rem;
-  font-weight: 800;
-  line-height: 1.15;
-  margin-bottom: 1rem;
+  font-size: 3.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 1.2rem;
   color: var(--text-100);
   animation: fadeInUp 0.5s ease 0.2s both;
-  letter-spacing: -0.5px;
+  letter-spacing: -1px;
 }
 
 .hero-desc {
-  color: var(--text-300);
-  font-size: 1.05rem;
+  color: var(--text-200);
+  font-size: 1.15rem;
   line-height: 1.7;
-  margin-bottom: 1.75rem;
-  max-width: 480px;
+  margin-bottom: 2rem;
+  max-width: 520px;
   animation: fadeInUp 0.5s ease 0.3s both;
 }
 
@@ -212,7 +216,7 @@
 
 .hero-img-container {
   position: relative;
-  width: 280px;
+  width: 320px;
   padding-bottom: 36px; /* space for dots */
 }
 
@@ -223,36 +227,42 @@
 
 .hero-img-ring {
   position: absolute;
-  inset: -12px;
+  inset: -20px;
   border-radius: var(--radius-xl);
-  border: 1px solid rgba(0, 207, 251, 0.2);
-  animation: spin 20s linear infinite;
-  background: linear-gradient(135deg, rgba(0,207,251,0.05), transparent);
+  border: 1px solid rgba(0, 207, 251, 0.3);
+  animation: spin 15s linear infinite;
+  background: linear-gradient(135deg, rgba(0,207,251,0.1), transparent);
+  box-shadow: 0 0 30px rgba(0, 207, 251, 0.1);
 }
 
 /* ── Slide wrapper ── */
 .hero-slide {
   position: relative;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   overflow: hidden; /* cần để border-radius hoạt động cho ảnh */
-  transition: all var(--transition-slow);
-  transform: perspective(1200px) rotateY(-12deg) rotateX(4deg);
+  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: perspective(1500px) rotateY(-18deg) rotateX(6deg) scale(1.05);
   box-shadow:
-    0 0 0 1px rgba(0,207,251,0.15),
-    0 20px 60px rgba(0,0,0,0.6),
-    0 0 40px rgba(0,207,251,0.1);
+    -20px 20px 60px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(0, 207, 251, 0.2),
+    0 0 50px rgba(0, 207, 251, 0.15);
 }
 
 .hero-slide.fading {
   opacity: 0;
+  transform: perspective(1500px) rotateY(-18deg) rotateX(6deg) scale(0.95);
 }
 
 .hero-banner:hover .hero-slide {
-  transform: perspective(1200px) rotateY(-4deg) rotateX(2deg);
+  transform: perspective(1500px) rotateY(-8deg) rotateX(4deg) scale(1.08);
+  box-shadow:
+    -10px 10px 40px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(0, 207, 251, 0.3),
+    0 0 70px rgba(0, 207, 251, 0.25);
 }
 
 .hero-img {
-  width: 280px;
+  width: 320px;
   aspect-ratio: 4/3;
   object-fit: cover;
   display: block;

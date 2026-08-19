@@ -92,79 +92,84 @@ const Home = () => {
   const hotGames = useMemo(() => games.filter(g => g.isHot), [games]);
 
   return (
-    <div className="home-page container page-enter" id="product-section">
-      <div className="dashboard-layout">
-        <Sidebar
-          activeCategory={activeCategory}
-          setActiveCategory={setActiveCategory}
-          games={games}
-        />
+    <div className="home-page page-enter">
+      {/* Hero Banner Section (Full Width / Wide) */}
+      <div className="hero-section-wrapper">
+        <HeroBanner hotGames={hotGames} totalProducts={games.length} />
+      </div>
 
-        <div className="main-content-area">
-          <HeroBanner hotGames={hotGames} totalProducts={games.length} />
+      <div className="container" id="product-section">
+        <div className="dashboard-layout">
+          <Sidebar
+            activeCategory={activeCategory}
+            setActiveCategory={setActiveCategory}
+            games={games}
+          />
 
-          {/* Top Bar */}
-          <div className="top-bar">
-            <div className="result-info">
-              {loading ? (
-                <div className="skeleton" style={{ height: '16px', width: '160px', borderRadius: '4px' }} />
-              ) : (
-                <>
-                  {searchQuery && (
-                    <span className="search-tag">
-                      🔍 "{searchQuery}"
+          <div className="main-content-area">
+            {/* Top Bar */}
+            <div className="top-bar">
+              <div className="result-info">
+                {loading ? (
+                  <div className="skeleton" style={{ height: '16px', width: '160px', borderRadius: '4px' }} />
+                ) : (
+                  <>
+                    {searchQuery && (
+                      <span className="search-tag">
+                        🔍 "{searchQuery}"
+                      </span>
+                    )}
+                    <span className="result-count">
+                      <strong style={{ color: 'var(--primary)' }}>{filteredAndSorted.length}</strong> sản phẩm
                     </span>
-                  )}
-                  <span className="result-count">
-                    <strong style={{ color: 'var(--primary)' }}>{filteredAndSorted.length}</strong> sản phẩm
-                  </span>
-                </>
-              )}
+                  </>
+                )}
+              </div>
+
+              <div className="top-bar-actions">
+                <select
+                  className="sort-select"
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value)}
+                  id="sort-select"
+                  aria-label="Sắp xếp sản phẩm"
+                >
+                  {SORT_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className="top-bar-actions">
-              <select
-                className="sort-select"
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value)}
-                id="sort-select"
-                aria-label="Sắp xếp sản phẩm"
-              >
-                {SORT_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+            {/* Product Grid */}
+            {loading ? (
+              <div className="product-grid">
+                {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
+              </div>
+            ) : filteredAndSorted.length > 0 ? (
+              <div className="product-grid">
+                {filteredAndSorted.map((game, i) => (
+                  <div key={game.id} className="card-enter" style={{ animationDelay: `${i * 0.05}s` }}>
+                    <ProductCard product={game} />
+                  </div>
                 ))}
-              </select>
-            </div>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-icon">🔍</div>
+                <h3>Không tìm thấy sản phẩm</h3>
+                <p>
+                  {searchQuery
+                    ? `Không có kết quả cho "${searchQuery}". Thử từ khóa khác nhé!`
+                    : 'Danh mục này chưa có sản phẩm nào.'}
+                </p>
+              </div>
+            )}
+
+            {/* Disclaimer Section */}
+            <DisclaimerSection />
+
           </div>
-
-          {/* Product Grid */}
-          {loading ? (
-            <div className="product-grid">
-              {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
-            </div>
-          ) : filteredAndSorted.length > 0 ? (
-            <div className="product-grid">
-              {filteredAndSorted.map((game, i) => (
-                <div key={game.id} className="card-enter" style={{ animationDelay: `${i * 0.05}s` }}>
-                  <ProductCard product={game} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              <div className="empty-icon">🔍</div>
-              <h3>Không tìm thấy sản phẩm</h3>
-              <p>
-                {searchQuery
-                  ? `Không có kết quả cho "${searchQuery}". Thử từ khóa khác nhé!`
-                  : 'Danh mục này chưa có sản phẩm nào.'}
-              </p>
-            </div>
-          )}
-
-          {/* Disclaimer Section */}
-          <DisclaimerSection />
-
         </div>
       </div>
     </div>
