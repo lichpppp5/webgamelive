@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import Sidebar from '../components/Sidebar';
 import HeroBanner from '../components/HeroBanner';
+import DisclaimerSection from '../components/DisclaimerSection';
 import { categories } from '../data/mockData';
 import './Home.css';
 
@@ -160,6 +161,10 @@ const Home = () => {
               </p>
             </div>
           )}
+
+          {/* Disclaimer Section */}
+          <DisclaimerSection />
+
         </div>
       </div>
     </div>
