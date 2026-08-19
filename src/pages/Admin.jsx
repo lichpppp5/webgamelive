@@ -142,6 +142,23 @@ const Admin = () => {
       .catch(() => showToast('Lỗi tải ảnh lên!', 'error'));
   };
 
+  const handleArticleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('image', file);
+    fetch('/api/upload', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        if (data.location) {
+          setArticleFormData(prev => ({ ...prev, thumbnail: data.location }));
+          setArticleImagePreview(data.location);
+          showToast('Ảnh đại diện bài viết đã tải lên!', 'success');
+        }
+      })
+      .catch(() => showToast('Lỗi tải ảnh lên!', 'error'));
+  };
+
   const handleZaloQrUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -802,7 +819,13 @@ const Admin = () => {
               </div>
               <div className="form-group">
                 <label className="form-label">Ảnh đại diện (Thumbnail)</label>
-                <input className="form-input" type="text" name="thumbnail" value={articleFormData.thumbnail} onChange={handleArticleInputChange} placeholder="URL ảnh..." />
+                <div className="image-upload-row" style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                  <input className="form-input" type="text" name="thumbnail" value={articleFormData.thumbnail} onChange={handleArticleInputChange} placeholder="URL ảnh hoặc tải lên..." style={{ flex: 1 }} />
+                  <label className="btn-outline upload-btn" style={{ cursor: 'pointer' }}>
+                    <Upload size={16} /> Tải lên
+                    <input type="file" style={{ display: 'none' }} onChange={handleArticleImageUpload} />
+                  </label>
+                </div>
                 {articleImagePreview && (
                   <div style={{ marginTop: '0.5rem' }}>
                     <img src={articleImagePreview} alt="Preview" style={{ maxWidth: '100px', borderRadius: '8px' }} onError={() => setArticleImagePreview('')} />
