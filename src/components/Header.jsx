@@ -44,6 +44,9 @@ const Header = ({ searchQuery, setSearchQuery }) => {
               </button>
             )}
           </div>
+          <Link to="/docs" className="icon-btn" style={{ width: 'auto', padding: '0 1rem', fontSize: '0.95rem', fontWeight: '600', marginLeft: '1rem', whiteSpace: 'nowrap' }}>
+            Tài Liệu MMO
+          </Link>
         </div>
 
         {/* Right Actions */}
