@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Gamepad2, MonitorPlay, Cpu, Wrench, Sparkles, MessageCircle, Send, MessageSquare, Layers } from 'lucide-react';
+import { Gamepad2, MonitorPlay, Cpu, Wrench, Sparkles, MessageCircle, Send, MessageSquare, Layers, BookOpen } from 'lucide-react';
 import { categories } from '../data/mockData';
 import { useSettings } from '../context/AppContext';
 import ContactModal from './ContactModal';
@@ -59,6 +59,18 @@ const Sidebar = ({ activeCategory, setActiveCategory, games }) => {
               </li>
             );
           })}
+          <li role="listitem">
+            <Link
+              to="/docs"
+              className="category-item"
+              aria-label="Tài Liệu MMO"
+            >
+              <span className="category-icon" aria-hidden="true">
+                <BookOpen size={17} />
+              </span>
+              <span className="category-name">Tài Liệu MMO</span>
+            </Link>
+          </li>
         </ul>
       </div>
 
