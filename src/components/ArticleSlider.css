@@ -61,6 +61,12 @@
   animation: marqueeScroll 25s linear infinite;
 }
 
+.static-track {
+  display: flex;
+  gap: 1.25rem;
+  width: 100%;
+}
+
 .marquee-group {
   display: flex;
   gap: 1.25rem;

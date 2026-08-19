@@ -28,39 +28,61 @@ const ArticleSlider = () => {
       <div className="article-slider-header">
         <h2 className="article-slider-title">
           <BookOpen size={20} className="text-primary" />
-          Tài Liệu & Hướng Dẫn Mới
+          Tài Liệu MMO
         </h2>
         <Link to="/docs" className="article-slider-more">
           Xem tất cả <ChevronRight size={16} />
         </Link>
       </div>
 
-      <div className="article-slider-container marquee-container">
-        <div className="article-slider-track marquee-track">
-          {/* Lặp lại 4 lần danh sách để đảm bảo đủ chiều dài cho hiệu ứng vô tận */}
-          {[1, 2, 3, 4].map(group => (
-            <div key={group} className="marquee-group">
-              {articles.map((article, i) => (
-                <Link to={`/docs/${article.id}`} key={`${article.id}-${group}-${i}`} className="article-slide-card marquee-item">
-                  <div className="article-slide-img">
-                    {article.thumbnail ? (
-                      <img src={article.thumbnail} alt={article.title} />
-                    ) : (
-                      <div className="article-slide-placeholder">
-                        <BookOpen size={30} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="article-slide-content">
-                    <h3 className="article-slide-title">{article.title}</h3>
-                    <span className="article-slide-date">
-                      {new Date(article.created_at).toLocaleDateString('vi-VN')}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ))}
+      <div className={`article-slider-container ${articles.length >= 4 ? 'marquee-container' : ''}`}>
+        <div className={`article-slider-track ${articles.length >= 4 ? 'marquee-track' : 'static-track'}`}>
+          {articles.length >= 4 ? (
+            /* Lặp lại 4 lần danh sách để đảm bảo đủ chiều dài cho hiệu ứng vô tận */
+            [1, 2, 3, 4].map(group => (
+              <div key={group} className="marquee-group">
+                {articles.map((article, i) => (
+                  <Link to={`/docs/${article.id}`} key={`${article.id}-${group}-${i}`} className="article-slide-card marquee-item">
+                    <div className="article-slide-img">
+                      {article.thumbnail ? (
+                        <img src={article.thumbnail} alt={article.title} />
+                      ) : (
+                        <div className="article-slide-placeholder">
+                          <BookOpen size={30} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="article-slide-content">
+                      <h3 className="article-slide-title">{article.title}</h3>
+                      <span className="article-slide-date">
+                        {new Date(article.created_at).toLocaleDateString('vi-VN')}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ))
+          ) : (
+            articles.map((article, i) => (
+              <Link to={`/docs/${article.id}`} key={article.id} className="article-slide-card marquee-item">
+                <div className="article-slide-img">
+                  {article.thumbnail ? (
+                    <img src={article.thumbnail} alt={article.title} />
+                  ) : (
+                    <div className="article-slide-placeholder">
+                      <BookOpen size={30} />
+                    </div>
+                  )}
+                </div>
+                <div className="article-slide-content">
+                  <h3 className="article-slide-title">{article.title}</h3>
+                  <span className="article-slide-date">
+                    {new Date(article.created_at).toLocaleDateString('vi-VN')}
+                  </span>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
       </div>
     </section>
