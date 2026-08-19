@@ -48,8 +48,10 @@ const Footer = () => {
           <h3 className="footer-col-title">Sản phẩm</h3>
           <ul className="footer-links">
             <li><Link to="/?cat=tuong-tac">Game Tương Tác</Link></li>
-            <li><Link to="/?cat=tool-mmo">Tool MMO</Link></li>
+            <li><Link to="/?cat=tools-mmo">Tools MMO</Link></li>
+            <li><Link to="/?cat=tools-suu-tam">Tools Sưu Tầm</Link></li>
             <li><Link to="/?cat=treo-afk">Treo AFK</Link></li>
+            <li><Link to="/docs">Tài Liệu MMO</Link></li>
             <li><Link to="/cart">Giỏ hàng</Link></li>
           </ul>
         </div>

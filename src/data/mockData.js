@@ -3,6 +3,7 @@ export const mockGames = [];
 export const categories = [
   { id: 'all', name: 'Tất cả' },
   { id: 'tuong-tac', name: 'Tương tác' },
-  { id: 'tool-mmo', name: 'Tool MMO' },
+  { id: 'tools-mmo', name: 'Tools MMO' },
+  { id: 'tools-suu-tam', name: 'Tools Sưu Tầm' },
   { id: 'treo-afk', name: 'Treo AFK' }
 ];

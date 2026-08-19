@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon, BarChart2, Globe, Clock, RotateCcw } from 'lucide-react';
+import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon, BarChart2, Globe, Clock, RotateCcw, BookOpen } from 'lucide-react';
 import { useToast, useSettings } from '../context/AppContext';
 import './Admin.css';
 
-const CATEGORIES = ['Tương tác', 'Tool MMO', 'Treo AFK'];
+const CATEGORIES = ['Tương tác', 'Tools MMO', 'Tools Sưu Tầm', 'Treo AFK'];
 
 const StatCard = ({ icon, label, value, color }) => (
   <div className="stat-card" style={{ '--stat-color': color }}>
@@ -49,6 +49,13 @@ const Admin = () => {
     title: '', category: CATEGORIES[0], price: 0, oldPrice: 0,
     image: '', downloads: 0, isHot: false, description: '', downloadLink: ''
   });
+
+  const [articles, setArticles] = useState([]);
+  const [articleSearch, setArticleSearch] = useState('');
+  const [isArticleEditing, setIsArticleEditing] = useState(false);
+  const [currentArticleId, setCurrentArticleId] = useState(null);
+  const [articleFormData, setArticleFormData] = useState({ title: '', content: '', thumbnail: '' });
+  const [articleImagePreview, setArticleImagePreview] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -101,6 +108,13 @@ const Admin = () => {
     fetch('/api/admin/analytics')
       .then(res => res.json())
       .then(data => { if (data) setAnalytics(data); })
+      .catch(err => console.error(err));
+  };
+
+  const fetchArticles = () => {
+    fetch('/api/articles')
+      .then(res => res.json())
+      .then(data => setArticles(data))
       .catch(err => console.error(err));
   };
 
@@ -225,9 +239,69 @@ const Admin = () => {
     setImagePreview('');
   };
 
+  const resetArticleForm = () => {
+    setIsArticleEditing(false);
+    setCurrentArticleId(null);
+    setArticleFormData({ title: '', content: '', thumbnail: '' });
+    setArticleImagePreview('');
+  };
+
+  const handleArticleInputChange = (e) => {
+    const { name, value } = e.target;
+    setArticleFormData(p => ({ ...p, [name]: value }));
+    if (name === 'thumbnail') setArticleImagePreview(value);
+  };
+
+  const handleArticleSubmit = (e) => {
+    e.preventDefault();
+    const url = isArticleEditing ? `/api/articles/${currentArticleId}` : '/api/articles';
+    const method = isArticleEditing ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(articleFormData)
+    })
+      .then(res => res.json())
+      .then(() => {
+        fetchArticles();
+        resetArticleForm();
+        showToast(isArticleEditing ? 'Cập nhật bài viết thành công!' : 'Thêm bài viết mới thành công!', 'success');
+      })
+      .catch(() => showToast('Lỗi khi lưu bài viết!', 'error'));
+  };
+
+  const handleArticleEdit = (article) => {
+    setIsArticleEditing(true);
+    setCurrentArticleId(article.id);
+    fetch(`/api/articles/${article.id}`)
+      .then(res => res.json())
+      .then(data => {
+        setArticleFormData({
+          title: data.title,
+          content: data.content,
+          thumbnail: data.thumbnail || ''
+        });
+        setArticleImagePreview(data.thumbnail || '');
+        formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+  };
+
+  const handleArticleDelete = (id, title) => {
+    if (window.confirm(`Xóa bài viết "${title}"?`)) {
+      fetch(`/api/articles/${id}`, { method: 'DELETE' })
+        .then(() => { fetchArticles(); showToast('Đã xóa bài viết!', 'info'); })
+        .catch(() => showToast('Lỗi khi xóa!', 'error'));
+    }
+  };
+
   const filteredGames = games.filter(g =>
     g.title?.toLowerCase().includes(searchTable.toLowerCase()) ||
     g.category?.toLowerCase().includes(searchTable.toLowerCase())
+  );
+
+  const filteredArticles = articles.filter(a =>
+    a.title?.toLowerCase().includes(articleSearch.toLowerCase())
   );
 
   const hotCount = games.filter(g => g.isHot).length;
@@ -336,6 +410,13 @@ const Admin = () => {
           style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'analytics' ? 'var(--primary)' : 'transparent', color: activeTab === 'analytics' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <BarChart2 size={18} /> Thống kê Truy cập Thực tế
+        </button>
+        <button 
+          className={`admin-tab-btn ${activeTab === 'articles' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('articles'); fetchArticles(); }}
+          style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'articles' ? 'var(--primary)' : 'transparent', color: activeTab === 'articles' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <BookOpen size={18} /> Quản lý Tài Liệu
         </button>
       </div>
 
@@ -705,6 +786,77 @@ const Admin = () => {
         </div>
       </div>
       </>
+      )}
+
+      {activeTab === 'articles' && (
+        <div className="admin-content" ref={formTopRef}>
+          <div className="admin-form-panel">
+            <h2 className="panel-title" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <BookOpen size={22} color="var(--primary)" />
+              {isArticleEditing ? 'Sửa Bài Viết' : 'Thêm Bài Viết Mới'}
+            </h2>
+            <form onSubmit={handleArticleSubmit} className="product-form">
+              <div className="form-group">
+                <label className="form-label">Tiêu đề bài viết *</label>
+                <input className="form-input" type="text" name="title" value={articleFormData.title} onChange={handleArticleInputChange} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Ảnh đại diện (Thumbnail)</label>
+                <input className="form-input" type="text" name="thumbnail" value={articleFormData.thumbnail} onChange={handleArticleInputChange} placeholder="URL ảnh..." />
+                {articleImagePreview && (
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <img src={articleImagePreview} alt="Preview" style={{ maxWidth: '100px', borderRadius: '8px' }} onError={() => setArticleImagePreview('')} />
+                  </div>
+                )}
+              </div>
+              <div className="form-group">
+                <label className="form-label">Nội dung bài viết (Hỗ trợ HTML)</label>
+                <textarea className="form-textarea" name="content" value={articleFormData.content} onChange={handleArticleInputChange} style={{ minHeight: '300px' }} placeholder="Sử dụng <h2>, <p>, <ul>, <b> để định dạng..."></textarea>
+              </div>
+              <div className="form-actions">
+                <button type="submit" className="btn-primary" style={{ flex: 1 }}>{isArticleEditing ? 'Cập nhật' : 'Thêm mới'}</button>
+                {isArticleEditing && <button type="button" className="btn-ghost" onClick={resetArticleForm}>Hủy</button>}
+              </div>
+            </form>
+          </div>
+
+          <div className="admin-list-panel">
+            <div className="list-panel-header">
+              <h2 className="panel-title"><BookOpen size={18} /> Danh sách bài viết</h2>
+            </div>
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Ảnh</th>
+                    <th>Tiêu đề</th>
+                    <th>Ngày tạo</th>
+                    <th style={{ textAlign: 'center' }}>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredArticles.map(article => (
+                    <tr key={article.id} className="admin-row">
+                      <td>
+                        <div className="admin-img-wrap" style={{ width: '60px', height: '40px' }}>
+                          <img src={article.thumbnail || 'https://via.placeholder.com/60x40?text=Doc'} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }} />
+                        </div>
+                      </td>
+                      <td style={{ fontWeight: 600 }}>{article.title}</td>
+                      <td style={{ fontSize: '0.85rem', color: 'var(--text-400)' }}>{new Date(article.created_at).toLocaleDateString('vi-VN')}</td>
+                      <td>
+                        <div className="action-cells">
+                          <button className="btn-edit" onClick={() => handleArticleEdit(article)}><Edit size={15} /></button>
+                          <button className="btn-delete" onClick={() => handleArticleDelete(article.id, article.title)}><Trash2 size={15} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

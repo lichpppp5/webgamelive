@@ -102,6 +102,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
           user_agent TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
+
+        // Create articles table for MMO Docs
+        db.run(`CREATE TABLE IF NOT EXISTS articles (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          content TEXT,
+          thumbnail TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
       }
     });
   }
@@ -300,6 +309,79 @@ app.delete('/api/products/:id', (req, res) => {
       return;
     }
     res.json({ message: 'Product deleted successfully' });
+  });
+});
+
+// ================= ARTICLES API =================
+
+// GET all articles
+app.get('/api/articles', (req, res) => {
+  db.all("SELECT id, title, thumbnail, created_at FROM articles ORDER BY created_at DESC", [], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows);
+  });
+});
+
+// GET single article
+app.get('/api/articles/:id', (req, res) => {
+  const { id } = req.params;
+  db.get("SELECT * FROM articles WHERE id = ?", [id], (err, row) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!row) {
+      res.status(404).json({ error: 'Article not found' });
+      return;
+    }
+    res.json(row);
+  });
+});
+
+// POST new article
+app.post('/api/articles', (req, res) => {
+  const { title, content, thumbnail } = req.body;
+  const id = 'doc' + Date.now();
+  
+  const stmt = db.prepare(`INSERT INTO articles (id, title, content, thumbnail) VALUES (?, ?, ?, ?)`);
+  stmt.run(id, title, content || '', thumbnail || '', function(err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ id, title, thumbnail });
+  });
+  stmt.finalize();
+});
+
+// PUT update article
+app.put('/api/articles/:id', (req, res) => {
+  const { id } = req.params;
+  const { title, content, thumbnail } = req.body;
+  
+  const stmt = db.prepare(`UPDATE articles SET title = ?, content = ?, thumbnail = ? WHERE id = ?`);
+  stmt.run(title, content || '', thumbnail || '', id, function(err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ message: 'Article updated successfully' });
+  });
+  stmt.finalize();
+});
+
+// DELETE article
+app.delete('/api/articles/:id', (req, res) => {
+  const { id } = req.params;
+  db.run("DELETE FROM articles WHERE id = ?", [id], function(err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ message: 'Article deleted successfully' });
   });
 });
 

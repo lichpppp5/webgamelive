@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Gamepad2, MonitorPlay, Cpu, Wrench, Sparkles, MessageCircle, Send, MessageSquare } from 'lucide-react';
+import { Gamepad2, MonitorPlay, Cpu, Wrench, Sparkles, MessageCircle, Send, MessageSquare, Layers } from 'lucide-react';
 import { categories } from '../data/mockData';
 import { useSettings } from '../context/AppContext';
 import ContactModal from './ContactModal';
@@ -10,7 +10,8 @@ const getCategoryIcon = (id) => {
   switch (id) {
     case 'all': return <Sparkles size={17} />;
     case 'tuong-tac': return <MonitorPlay size={17} />;
-    case 'tool-mmo': return <Wrench size={17} />;
+    case 'tools-mmo': return <Wrench size={17} />;
+    case 'tools-suu-tam': return <Layers size={17} />;
     case 'treo-afk': return <Cpu size={17} />;
     default: return <Gamepad2 size={17} />;
   }
