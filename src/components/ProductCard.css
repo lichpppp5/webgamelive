@@ -324,3 +324,20 @@ a.action-btn {
   border-color: var(--border-emphasis);
   transform: translateY(-1px);
 }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .product-info {
+    padding: 0.8rem;
+  }
+  .product-title {
+    font-size: 0.85rem;
+  }
+  .price-current {
+    font-size: 0.95rem;
+  }
+  .action-btn, a.action-btn {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.75rem;
+  }
+}

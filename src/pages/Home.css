@@ -158,6 +158,10 @@
 }
 
 @media (max-width: 600px) {
+  .home-page {
+    padding: 1rem 0 2rem;
+  }
+
   .product-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
