@@ -109,3 +109,26 @@
   aspect-ratio: 4/3;
   border-radius: var(--radius-xl);
 }
+
+@media (max-width: 768px) {
+  .docs-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .docs-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .docs-title {
+    font-size: 1.8rem;
+  }
+  .doc-card-content {
+    padding: 1rem;
+  }
+  .doc-card-title {
+    font-size: 1.1rem;
+  }
+}

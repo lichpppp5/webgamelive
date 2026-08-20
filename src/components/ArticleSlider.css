@@ -45,11 +45,20 @@
   color: var(--primary);
 }
 
+.article-slider-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  position: relative;
+  scrollbar-width: none;
+}
+
+.article-slider-container::-webkit-scrollbar {
+  display: none;
+}
+
 .marquee-container {
   overflow: hidden;
-  position: relative;
-  width: 100%;
-  padding-bottom: 0.5rem;
   /* Thêm hiệu ứng mờ ở hai mép để nhìn đẹp hơn */
   -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
   mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
