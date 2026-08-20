@@ -47,9 +47,30 @@ const ArticleSlider = () => {
                       {article.thumbnail ? (
                         <img src={article.thumbnail} alt={article.title} />
                       ) : (
-                        <div className="article-slide-placeholder">
-                          <BookOpen size={30} />
-                        </div>
+                        (() => {
+                          const bgColors = [
+                            'linear-gradient(135deg, rgba(0, 207, 251, 0.15), rgba(0, 207, 251, 0.02))',
+                            'linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.02))',
+                            'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.02))',
+                            'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(249, 115, 22, 0.02))',
+                            'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.02))'
+                          ];
+                          const textColors = [
+                            'var(--primary)',
+                            'var(--accent-purple)',
+                            'var(--success)',
+                            'var(--accent-orange)',
+                            'var(--danger)'
+                          ];
+                          const idx = article.id % bgColors.length;
+                          return (
+                            <div className="article-slide-placeholder" style={{ background: bgColors[idx] }}>
+                              <span className="placeholder-letter-sm" style={{ color: textColors[idx], textShadow: `0 0 15px ${textColors[idx]}` }}>
+                                {article.title ? article.title.charAt(0).toUpperCase() : <BookOpen size={30} />}
+                              </span>
+                            </div>
+                          );
+                        })()
                       )}
                     </div>
                     <div className="article-slide-content">
@@ -69,9 +90,30 @@ const ArticleSlider = () => {
                   {article.thumbnail ? (
                     <img src={article.thumbnail} alt={article.title} />
                   ) : (
-                    <div className="article-slide-placeholder">
-                      <BookOpen size={30} />
-                    </div>
+                    (() => {
+                      const bgColors = [
+                        'linear-gradient(135deg, rgba(0, 207, 251, 0.15), rgba(0, 207, 251, 0.02))',
+                        'linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.02))',
+                        'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.02))',
+                        'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(249, 115, 22, 0.02))',
+                        'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.02))'
+                      ];
+                      const textColors = [
+                        'var(--primary)',
+                        'var(--accent-purple)',
+                        'var(--success)',
+                        'var(--accent-orange)',
+                        'var(--danger)'
+                      ];
+                      const idx = article.id % bgColors.length;
+                      return (
+                        <div className="article-slide-placeholder" style={{ background: bgColors[idx] }}>
+                          <span className="placeholder-letter-sm" style={{ color: textColors[idx], textShadow: `0 0 15px ${textColors[idx]}` }}>
+                            {article.title ? article.title.charAt(0).toUpperCase() : <BookOpen size={30} />}
+                          </span>
+                        </div>
+                      );
+                    })()
                   )}
                 </div>
                 <div className="article-slide-content">
