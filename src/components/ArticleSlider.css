@@ -5,6 +5,8 @@
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 100%;
 }
 
 .article-slider-header {
