@@ -21,8 +21,7 @@ const Footer = () => {
             <span className="text-gradient" style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '1.5px' }}>TOOLLIVE</span>
           </Link>
           <p className="footer-desc">
-            Nền tảng cung cấp tool và game MMO chất lượng cao tại Việt Nam. 
-            Hỗ trợ cài đặt, vận hành tận tâm.
+            Nền tảng cung cấp tool và game MMO chất lượng cao. Hỗ trợ cài đặt, vận hành tận tâm.
           </p>
           <div className="footer-socials">
             <a href={contactSettings?.facebook || 'https://facebook.com'} target="_blank" rel="noreferrer" className="social-link" title="Facebook">
