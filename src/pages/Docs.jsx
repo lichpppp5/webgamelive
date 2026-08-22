@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Eye } from 'lucide-react';
 import './Docs.css';
 
 const Docs = () => {
@@ -78,9 +78,14 @@ const Docs = () => {
               </div>
               <div className="doc-card-content">
                 <h2 className="doc-card-title">{article.title}</h2>
-                <span className="doc-card-date">
-                  {new Date(article.created_at).toLocaleDateString('vi-VN')}
-                </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                  <span className="doc-card-date">
+                    {new Date(article.created_at).toLocaleDateString('vi-VN')}
+                  </span>
+                  <span className="doc-card-views" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: 'var(--text-400)' }}>
+                    <Eye size={14} /> {article.views || 0}
+                  </span>
+                </div>
               </div>
             </Link>
           ))}

@@ -109,8 +109,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
           title TEXT NOT NULL,
           content TEXT,
           thumbnail TEXT,
+          views INTEGER DEFAULT 0,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
+        )`, (err) => {
+          if (!err) {
+            db.run(`ALTER TABLE articles ADD COLUMN views INTEGER DEFAULT 0`, (alterErr) => {
+              // Ignore if column already exists
+            });
+          }
+        });
       }
     });
   }
@@ -316,12 +323,23 @@ app.delete('/api/products/:id', (req, res) => {
 
 // GET all articles
 app.get('/api/articles', (req, res) => {
-  db.all("SELECT id, title, thumbnail, created_at FROM articles ORDER BY created_at DESC", [], (err, rows) => {
+  db.all("SELECT id, title, thumbnail, views, created_at FROM articles ORDER BY created_at DESC", [], (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
     res.json(rows);
+  });
+});
+
+// POST increment article view count
+app.post('/api/articles/:id/view', (req, res) => {
+  const { id } = req.params;
+  db.run("UPDATE articles SET views = COALESCE(views, 0) + 1 WHERE id = ?", [id], function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ message: 'View count incremented' });
   });
 });
 

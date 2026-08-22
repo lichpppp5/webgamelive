@@ -853,6 +853,7 @@ const Admin = () => {
                   <tr>
                     <th>Ảnh</th>
                     <th>Tiêu đề</th>
+                    <th>Lượt đọc</th>
                     <th>Ngày tạo</th>
                     <th style={{ textAlign: 'center' }}>Thao tác</th>
                   </tr>
@@ -866,6 +867,7 @@ const Admin = () => {
                         </div>
                       </td>
                       <td style={{ fontWeight: 600 }}>{article.title}</td>
+                      <td style={{ color: 'var(--text-400)', fontSize: '0.9rem' }}>{article.views || 0}</td>
                       <td style={{ fontSize: '0.85rem', color: 'var(--text-400)' }}>{new Date(article.created_at).toLocaleDateString('vi-VN')}</td>
                       <td>
                         <div className="action-cells">

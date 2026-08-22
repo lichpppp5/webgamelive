@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Eye } from 'lucide-react';
 import './DocDetail.css';
 
 const DocDetail = () => {
@@ -9,6 +9,9 @@ const DocDetail = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Increment view count
+    fetch(`/api/articles/${id}/view`, { method: 'POST' }).catch(console.error);
+
     fetch(`/api/articles/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('Not found');
@@ -60,6 +63,10 @@ const DocDetail = () => {
             <span className="meta-item">
               <Clock size={14} />
               5 phút đọc
+            </span>
+            <span className="meta-item">
+              <Eye size={14} />
+              {article.views || 0} lượt đọc
             </span>
           </div>
         </header>
