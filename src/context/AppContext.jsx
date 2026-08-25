@@ -40,6 +40,7 @@ export const AppProvider = ({ children }) => {
     donateQR: '',
     donateName: '',
     donateBank: '',
+    donateAccount: '',
     donateContent: '',
     donateEnabled: 'true'
   });

@@ -34,7 +34,7 @@ const Admin = () => {
   });
   const [settingsForm, setSettingsForm] = useState({
     zalo: '', facebook: '', telegram: '', zaloQr: '', visitCount: '1250',
-    donateText: 'Nếu thấy hữu ích Donate tôi cốc cafe nha !', donateQR: '', donateName: '', donateBank: '', donateContent: '', donateEnabled: 'true'
+    donateText: 'Nếu thấy hữu ích Donate tôi cốc cafe nha !', donateQR: '', donateName: '', donateBank: '', donateAccount: '', donateContent: '', donateEnabled: 'true'
   });
 
   const [games, setGames] = useState([]);
@@ -597,6 +597,11 @@ const Admin = () => {
                 <label className="form-label">Tên Ngân hàng / Ví</label>
                 <input className="form-input" type="text" value={settingsForm.donateBank || ''} onChange={e => setSettingsForm({ ...settingsForm, donateBank: e.target.value })} placeholder="VD: MB Bank" />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Số tài khoản</label>
+              <input className="form-input" type="text" value={settingsForm.donateAccount || ''} onChange={e => setSettingsForm({ ...settingsForm, donateAccount: e.target.value })} placeholder="VD: 1903123456789" />
             </div>
 
             <div className="form-group">

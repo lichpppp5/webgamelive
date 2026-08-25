@@ -100,6 +100,12 @@ const Sidebar = ({ activeCategory, setActiveCategory, games }) => {
                     <strong className="donate-value">{contactSettings.donateBank}</strong>
                   </div>
                 )}
+                {contactSettings.donateAccount && (
+                  <div className="donate-row">
+                    <span className="donate-label">STK:</span>
+                    <strong className="donate-value">{contactSettings.donateAccount}</strong>
+                  </div>
+                )}
                 {contactSettings.donateName && (
                   <div className="donate-row">
                     <span className="donate-label">Tên:</span>
