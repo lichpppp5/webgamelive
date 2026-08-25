@@ -118,7 +118,7 @@ const Cart = () => {
               <div className="summary-divider" />
 
               <div className="summary-total-row">
-                <span>Tổng cộng</span>
+                <span>Mức đóng góp đề xuất</span>
                 <span className="summary-total-price">{cartTotal.toLocaleString('vi-VN')}đ</span>
               </div>
 
