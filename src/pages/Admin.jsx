@@ -526,7 +526,7 @@ const Admin = () => {
             {/* Maintenance Settings */}
             <div className="settings-section" style={{ border: '1px solid #ff4d4f44', backgroundColor: 'rgba(255, 77, 79, 0.02)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem' }}>
               <h3 className="settings-section-title" style={{ color: '#ff4d4f', margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Settings size={18} /> Chế độ bảo trì
+                <SettingsIcon size={18} /> Chế độ bảo trì
               </h3>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer' }}>
