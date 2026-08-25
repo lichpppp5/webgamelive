@@ -33,7 +33,8 @@ const Admin = () => {
     recentVisits: []
   });
   const [settingsForm, setSettingsForm] = useState({
-    zalo: '', facebook: '', telegram: '', zaloQr: '', visitCount: '1250'
+    zalo: '', facebook: '', telegram: '', zaloQr: '', visitCount: '1250',
+    donateText: 'Nếu thấy hữu ích Donate tôi cốc cafe nha !', donateQR: '', donateName: '', donateBank: '', donateContent: '', donateEnabled: 'true'
   });
 
   const [games, setGames] = useState([]);
@@ -170,6 +171,22 @@ const Admin = () => {
         if (data.location) {
           setSettingsForm(prev => ({ ...prev, zaloQr: data.location }));
           showToast('Đã tải lên Ảnh Mã QR Zalo!', 'success');
+        }
+      })
+      .catch(() => showToast('Lỗi tải ảnh QR!', 'error'));
+  };
+
+  const handleDonateQrUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('image', file);
+    fetch('/api/upload', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        if (data.location) {
+          setSettingsForm(prev => ({ ...prev, donateQR: data.location }));
+          showToast('Đã tải lên Ảnh Mã QR Donate!', 'success');
         }
       })
       .catch(() => showToast('Lỗi tải ảnh QR!', 'error'));
@@ -536,6 +553,57 @@ const Admin = () => {
               <label className="form-label">Số Lượt truy cập (Hiển thị &amp; Đếm)</label>
               <input className="form-input" type="number" value={settingsForm.visitCount || '1250'} onChange={e => setSettingsForm({ ...settingsForm, visitCount: e.target.value })} min="0" />
             </div>
+
+            <hr style={{ margin: '2rem 0', borderColor: 'var(--border-color)' }} />
+            <h3 style={{ marginBottom: '1.5rem', color: '#ff4d4f' }}>❤️ Cấu hình Donate</h3>
+            
+            <div className="form-group">
+              <label className="hot-toggle">
+                <input type="checkbox" checked={settingsForm.donateEnabled === 'true'} onChange={e => setSettingsForm({ ...settingsForm, donateEnabled: e.target.checked ? 'true' : 'false' })} />
+                <span className="toggle-track">
+                  <span className="toggle-thumb" />
+                </span>
+                <span className="toggle-label">Bật hiển thị bảng Donate ở Sidebar</span>
+              </label>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Dòng chữ hiển thị</label>
+              <input className="form-input" type="text" value={settingsForm.donateText || ''} onChange={e => setSettingsForm({ ...settingsForm, donateText: e.target.value })} placeholder="VD: Nếu thấy hữu ích Donate tôi cốc cafe nha !" />
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">Ảnh Mã QR Ngân hàng/Ví</label>
+              <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                <input className="form-input" type="text" value={settingsForm.donateQR || ''} onChange={e => setSettingsForm({ ...settingsForm, donateQR: e.target.value })} placeholder="URL ảnh QR hoặc bấm Tải QR..." style={{ flex: 1 }} />
+                <label className="btn-outline upload-btn" style={{ cursor: 'pointer' }}>
+                  <Upload size={16} /> Tải QR
+                  <input type="file" style={{ display: 'none' }} onChange={handleDonateQrUpload} />
+                </label>
+              </div>
+              {settingsForm.donateQR && (
+                <div style={{ marginTop: '0.6rem', width: '110px', height: '110px', border: '1px solid var(--border-subtle)', borderRadius: '10px', overflow: 'hidden', background: '#fff', padding: '5px' }}>
+                  <img src={settingsForm.donateQR} alt="Donate QR Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+              )}
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Tên người nhận</label>
+                <input className="form-input" type="text" value={settingsForm.donateName || ''} onChange={e => setSettingsForm({ ...settingsForm, donateName: e.target.value })} placeholder="VD: NGUYEN VAN A" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Tên Ngân hàng / Ví</label>
+                <input className="form-input" type="text" value={settingsForm.donateBank || ''} onChange={e => setSettingsForm({ ...settingsForm, donateBank: e.target.value })} placeholder="VD: MB Bank" />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Nội dung chuyển khoản mặc định</label>
+              <input className="form-input" type="text" value={settingsForm.donateContent || ''} onChange={e => setSettingsForm({ ...settingsForm, donateContent: e.target.value })} placeholder="VD: Ung ho webgame" />
+            </div>
+
             <div className="form-actions" style={{ marginTop: '2rem' }}>
               <button type="submit" className="btn-primary" style={{ padding: '1rem 2rem' }}>
                 <Save size={18} /> Lưu cấu hình

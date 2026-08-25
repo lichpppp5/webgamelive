@@ -35,7 +35,13 @@ export const AppProvider = ({ children }) => {
     zalo: 'https://zalo.me/',
     facebook: 'https://facebook.com',
     telegram: 'https://t.me',
-    visitCount: '1250'
+    visitCount: '1250',
+    donateText: 'Nếu thấy hữu ích Donate tôi cốc cafe nha !',
+    donateQR: '',
+    donateName: '',
+    donateBank: '',
+    donateContent: '',
+    donateEnabled: 'true'
   });
 
   useEffect(() => {

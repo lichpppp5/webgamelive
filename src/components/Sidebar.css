@@ -240,3 +240,60 @@
     flex-shrink: 0;
   }
 }
+
+/* Donate Section */
+.sidebar-donate-section {
+  padding: 10px 15px;
+}
+.donate-container {
+  background: rgba(255, 77, 79, 0.05);
+  border: 1px solid rgba(255, 77, 79, 0.2);
+  border-radius: var(--radius-md);
+  padding: 15px;
+  text-align: center;
+}
+.donate-text {
+  font-size: 0.9rem;
+  color: var(--text-200);
+  margin-bottom: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.donate-qr-wrap {
+  background: #fff;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  display: inline-block;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.donate-qr {
+  max-width: 140px;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+}
+.donate-info-box {
+  text-align: left;
+  background: rgba(0,0,0,0.15);
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.donate-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+.donate-row:last-child {
+  margin-bottom: 0;
+}
+.donate-label {
+  color: var(--text-300);
+}
+.donate-value {
+  color: var(--primary);
+  text-align: right;
+  word-break: break-all;
+}

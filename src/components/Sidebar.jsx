@@ -77,6 +77,48 @@ const Sidebar = ({ activeCategory, setActiveCategory, games }) => {
       {/* Divider */}
       <div className="sidebar-divider" />
 
+      {/* Donate Section */}
+      {contactSettings?.donateEnabled === 'true' && (
+        <>
+          <div className="sidebar-section sidebar-donate-section">
+            <h2 className="sidebar-title" style={{ fontSize: '0.78rem', color: '#ff4d4f' }}>
+              ❤️ DONATE
+            </h2>
+            <div className="donate-container">
+              <p className="donate-text">{contactSettings.donateText || 'Nếu thấy hữu ích Donate tôi cốc cafe nha !'}</p>
+              
+              {contactSettings.donateQR && (
+                <div className="donate-qr-wrap">
+                  <img src={contactSettings.donateQR} alt="Donate QR" className="donate-qr" />
+                </div>
+              )}
+              
+              <div className="donate-info-box">
+                {contactSettings.donateBank && (
+                  <div className="donate-row">
+                    <span className="donate-label">Ngân hàng:</span>
+                    <strong className="donate-value">{contactSettings.donateBank}</strong>
+                  </div>
+                )}
+                {contactSettings.donateName && (
+                  <div className="donate-row">
+                    <span className="donate-label">Tên:</span>
+                    <strong className="donate-value">{contactSettings.donateName}</strong>
+                  </div>
+                )}
+                {contactSettings.donateContent && (
+                  <div className="donate-row">
+                    <span className="donate-label">Nội dung CK:</span>
+                    <strong className="donate-value">{contactSettings.donateContent}</strong>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="sidebar-divider" />
+        </>
+      )}
+
       {/* Community */}
       <div className="sidebar-section sidebar-community-section">
         <h2 className="sidebar-title" style={{ fontSize: '0.78rem' }}>
