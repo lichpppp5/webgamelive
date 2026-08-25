@@ -4,6 +4,7 @@ import ProductCard from '../components/ProductCard';
 import Sidebar from '../components/Sidebar';
 import HeroBanner from '../components/HeroBanner';
 import ArticleSlider from '../components/ArticleSlider';
+import DisclaimerSection from '../components/DisclaimerSection';
 import { categories } from '../data/mockData';
 import { useSettings } from '../context/AppContext';
 import './Home.css';
@@ -179,6 +180,9 @@ const Home = () => {
 
             {/* Article Slider Section */}
             <ArticleSlider />
+
+            {/* Disclaimer Section */}
+            <DisclaimerSection />
 
           </div>
         </div>
