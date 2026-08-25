@@ -129,8 +129,11 @@ const Home = () => {
               </div>
 
               {contactSettings?.marqueeText && (
-                <div className="marquee-container">
-                  <div className="marquee-content">{contactSettings.marqueeText}</div>
+                <div className="topbar-marquee-container">
+                  <div className="topbar-marquee-track">
+                    <div className="topbar-marquee-content">{contactSettings.marqueeText}</div>
+                    <div className="topbar-marquee-content">{contactSettings.marqueeText}</div>
+                  </div>
                 </div>
               )}
 

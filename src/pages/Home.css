@@ -178,12 +178,12 @@
   }
 }
 
-/* ── Marquee ── */
-.marquee-container {
+/* ── Topbar Marquee ── */
+.topbar-marquee-container {
   flex: 1;
   overflow: hidden;
   position: relative;
-  height: 24px;
+  height: 28px;
   display: flex;
   align-items: center;
   margin: 0 1.5rem;
@@ -191,22 +191,27 @@
   -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
 }
 
-.marquee-content {
-  position: absolute;
-  white-space: nowrap;
-  font-weight: 500;
-  color: var(--primary);
-  font-size: 0.95rem;
-  text-shadow: 0 0 10px rgba(0, 207, 251, 0.4);
-  animation: marquee 25s linear infinite;
+.topbar-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: topbarMarqueeScroll 12s linear infinite;
   will-change: transform;
 }
 
-.marquee-container:hover .marquee-content {
+.topbar-marquee-content {
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 1.15rem; /* Cỡ chữ to hơn */
+  text-shadow: 0 0 10px rgba(0, 207, 251, 0.4);
+  padding-right: 150px; /* Tạo khoảng trống tương đương khoảng 2s chạy */
+}
+
+.topbar-marquee-container:hover .topbar-marquee-track {
   animation-play-state: paused;
 }
 
-@keyframes marquee {
-  0% { transform: translateX(100%); left: 100%; }
-  100% { transform: translateX(-100%); left: 0%; }
+@keyframes topbarMarqueeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
