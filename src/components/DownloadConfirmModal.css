@@ -4,7 +4,9 @@
   border-radius: var(--radius-lg);
   padding: 2.5rem;
   width: 90%;
-  max-width: 420px;
+  max-width: 750px;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05);
@@ -70,4 +72,12 @@
   .download-modal-content {
     padding: 1.75rem 1.5rem;
   }
+}
+
+.modal-disclaimer-wrapper .disclaimer-section {
+  margin-top: 0;
+  margin-bottom: 0;
+  box-shadow: none;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 20px;
 }
