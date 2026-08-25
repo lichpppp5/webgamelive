@@ -130,7 +130,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
 // POST record a visit
 app.post('/api/visit', (req, res) => {
   const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
-  const ip = rawIp.split(',')[0].trim();
+  let ip = rawIp.split(',')[0].trim();
+  // Mask IP for privacy (e.g., 192.168.1.xxx)
+  ip = ip.replace(/[\.\:][^\.\:]+$/, '.xxx');
   const userAgent = req.headers['user-agent'] || '';
 
   // Log detailed visit info

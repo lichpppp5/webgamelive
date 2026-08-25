@@ -51,16 +51,17 @@ const Footer = () => {
             <li><Link to="/?cat=tools-suu-tam">Tools Sưu Tầm</Link></li>
             <li><Link to="/?cat=treo-afk">Treo AFK</Link></li>
             <li><Link to="/docs">Tài Liệu MMO</Link></li>
-            <li><Link to="/cart">Giỏ hàng</Link></li>
+            <li><Link to="/cart">Danh sách tải</Link></li>
           </ul>
         </div>
 
         <div className="footer-col">
-          <h3 className="footer-col-title">Hỗ trợ</h3>
+          <h3 className="footer-col-title">Chính sách & Hỗ trợ</h3>
           <ul className="footer-links">
             <li><button type="button" onClick={() => setIsModalOpen(true)} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Hướng dẫn cài đặt</button></li>
-            <li><button type="button" onClick={() => setIsModalOpen(true)} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Chính sách bảo hành</button></li>
             <li><button type="button" onClick={() => setIsModalOpen(true)} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Liên hệ tư vấn</button></li>
+            <li><Link to="/privacy">Chính sách bảo mật</Link></li>
+            <li><Link to="/terms">Điều khoản sử dụng</Link></li>
           </ul>
         </div>
 
@@ -84,9 +85,14 @@ const Footer = () => {
       {/* Bottom bar */}
       <div className="footer-bottom">
         <div className="container footer-bottom-inner">
-          <p className="footer-copy">
-            © {year} <strong>TOOLLIVE</strong>. All rights reserved.
-          </p>
+          <div className="footer-bottom-left">
+            <p className="footer-copy">
+              © {year} <strong>TOOLLIVE</strong>. All rights reserved.
+            </p>
+            <p className="footer-disclaimer-text" style={{ fontSize: '0.8rem', color: 'var(--text-300)', marginTop: '5px', maxWidth: '600px' }}>
+              Nền tảng chia sẻ cộng đồng, cung cấp tài liệu và công cụ phần mềm mục đích học tập, nghiên cứu phi thương mại.
+            </p>
+          </div>
           <p className="footer-tagline">
             Chuyên cung cấp game &amp; tool MMO chất lượng cao | 👁️ <strong>{contactSettings?.visitCount ? parseInt(contactSettings.visitCount, 10).toLocaleString('vi-VN') : '1.250'}</strong> Lượt truy cập
           </p>

@@ -6,6 +6,8 @@ import Cart from './pages/Cart';
 import Admin from './pages/Admin';
 import Docs from './pages/Docs';
 import DocDetail from './pages/DocDetail';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         <Route path="admin-ad" element={<Admin />} />
         <Route path="docs" element={<Docs />} />
         <Route path="docs/:id" element={<DocDetail />} />
+        <Route path="privacy" element={<PrivacyPolicy />} />
+        <Route path="terms" element={<TermsOfService />} />
       </Route>
     </Routes>
   );

@@ -33,7 +33,7 @@ const Cart = () => {
       {cartItems.length === 0 ? (
         <div className="empty-cart">
           <div className="empty-cart-icon">🛒</div>
-          <h2>Giỏ hàng đang trống</h2>
+          <h2>Danh sách tải đang trống</h2>
           <p>Thêm sản phẩm vào giỏ để tiến hành mua hàng.</p>
           <Link to="/" className="btn-primary" style={{ marginTop: '1.5rem', padding: '0.9rem 2rem' }}>
             ← Tiếp tục mua sắm

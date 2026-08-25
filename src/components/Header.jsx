@@ -58,7 +58,7 @@ const Header = ({ searchQuery, setSearchQuery }) => {
           </button>
 
           {/* Cart */}
-          <Link to="/cart" className="icon-btn cart-btn" aria-label={`Giỏ hàng (${cartCount} sản phẩm)`}>
+          <Link to="/cart" className="icon-btn cart-btn" aria-label={`Danh sách tải (${cartCount} sản phẩm)`}>
             <ShoppingCart size={22} />
             {cartCount > 0 && (
               <span className="cart-badge animate-scaleIn">
