@@ -4,7 +4,7 @@ import { X, Download, MessageSquare } from 'lucide-react';
 import DisclaimerSection from './DisclaimerSection';
 import './DownloadConfirmModal.css';
 
-const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, productId, isFree, onContact, onDownloadSuccess }) => {
+const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, productId, isFree, onContact, onDownloadSuccess, onAgreedAndDownload }) => {
   const [isAgreed, setIsAgreed] = useState(false);
 
   if (!isOpen) return null;
@@ -72,17 +72,32 @@ const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, productId, isFree
         </div>
 
         <div className="download-modal-actions">
-          <a
-            href={downloadLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`btn-primary ${!isAgreed ? 'disabled' : ''}`}
-            onClick={handleDownloadClick}
-            style={{ opacity: isAgreed ? 1 : 0.5, cursor: isAgreed ? 'pointer' : 'not-allowed' }}
-          >
-            <Download size={18} />
-            Vẫn Tải xuống
-          </a>
+          {onAgreedAndDownload ? (
+            <button
+              className={`btn-primary ${!isAgreed ? 'disabled' : ''}`}
+              onClick={() => {
+                if (!isAgreed) return;
+                onAgreedAndDownload();
+                onClose();
+              }}
+              style={{ opacity: isAgreed ? 1 : 0.5, cursor: isAgreed ? 'pointer' : 'not-allowed' }}
+            >
+              <Download size={18} />
+              Đồng ý Tải xuống
+            </button>
+          ) : (
+            <a
+              href={downloadLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`btn-primary ${!isAgreed ? 'disabled' : ''}`}
+              onClick={handleDownloadClick}
+              style={{ opacity: isAgreed ? 1 : 0.5, cursor: isAgreed ? 'pointer' : 'not-allowed' }}
+            >
+              <Download size={18} />
+              Vẫn Tải xuống
+            </a>
+          )}
           <button
             className="btn-outline"
             onClick={() => {

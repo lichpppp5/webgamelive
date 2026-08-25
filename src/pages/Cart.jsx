@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import ContactModal from '../components/ContactModal';
+import DownloadConfirmModal from '../components/DownloadConfirmModal';
 import { useCart, useToast } from '../context/AppContext';
 import { useState } from 'react';
 import './Cart.css';
@@ -9,6 +10,7 @@ const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, cartTotal } = useCart();
   const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
   const handleRemove = (item) => {
     removeFromCart(item.id);
@@ -109,7 +111,7 @@ const Cart = () => {
 
               <button
                 className="btn-primary checkout-btn"
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => setIsTermsModalOpen(true)}
                 id="checkout-btn"
               >
                 Nhận Công Cụ &amp; Liên Hệ <ArrowRight size={18} />
@@ -128,6 +130,26 @@ const Cart = () => {
         onClose={() => setIsModalOpen(false)}
         cartItems={cartItems}
         totalAmount={cartTotal}
+      />
+
+      <DownloadConfirmModal
+        isOpen={isTermsModalOpen}
+        onClose={() => setIsTermsModalOpen(false)}
+        isFree={cartTotal === 0}
+        onAgreedAndDownload={() => {
+          cartItems.forEach((item, index) => {
+            setTimeout(() => {
+              if (item.downloadLink) {
+                window.open(item.downloadLink, '_blank');
+              }
+              if (item.id) {
+                fetch(`/api/products/${item.id}/download`, { method: 'POST' }).catch(() => {});
+              }
+            }, index * 800);
+          });
+          setIsModalOpen(true);
+        }}
+        onContact={() => setIsModalOpen(true)}
       />
     </div>
   );
