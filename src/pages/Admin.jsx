@@ -228,9 +228,9 @@ const Admin = () => {
       .then(() => {
         fetchGames();
         resetForm();
-        showToast(isEditing ? '✅ Cập nhật sản phẩm thành công!' : '✅ Thêm sản phẩm mới thành công!', 'success');
+        showToast(isEditing ? '✅ Cập nhật công cụ thành công!' : '✅ Thêm công cụ mới thành công!', 'success');
       })
-      .catch(() => showToast('Lỗi khi lưu sản phẩm!', 'error'));
+      .catch(() => showToast('Lỗi khi lưu công cụ!', 'error'));
   };
 
   const handleEdit = (game) => {
@@ -248,15 +248,15 @@ const Admin = () => {
   };
 
   const handleDelete = (id, title) => {
-    if (window.confirm(`Xóa sản phẩm "${title}"?`)) {
+    if (window.confirm(`Xóa công cụ "${title}"?`)) {
       fetch(`/api/products/${id}`, { method: 'DELETE' })
-        .then(() => { fetchGames(); showToast('Đã xóa sản phẩm!', 'info'); })
+        .then(() => { fetchGames(); showToast('Đã xóa công cụ!', 'info'); })
         .catch(() => showToast('Lỗi khi xóa!', 'error'));
     }
   };
 
   const handleResetAllDownloads = () => {
-    if (window.confirm('Bạn có chắc chắn muốn đặt lại TẤT CẢ lượt tải của toàn bộ sản phẩm về 0?')) {
+    if (window.confirm('Bạn có chắc chắn muốn đặt lại TẤT CẢ lượt tải của toàn bộ công cụ về 0?')) {
       fetch('/api/products/reset-downloads', { method: 'POST' })
         .then(res => res.json())
         .then(() => {
@@ -415,7 +415,7 @@ const Admin = () => {
       <div className="admin-header">
         <div>
           <h1 className="admin-page-title">Quản trị Hệ thống</h1>
-          <p className="admin-page-sub">Thiết lập chung và quản lý sản phẩm</p>
+          <p className="admin-page-sub">Thiết lập chung và quản lý công cụ</p>
         </div>
         <div className="admin-header-actions">
           <button className="btn-outline btn-logout" onClick={() => setIsAuthenticated(false)}>Đăng xuất</button>
@@ -429,7 +429,7 @@ const Admin = () => {
           onClick={() => setActiveTab('products')}
           style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'products' ? 'var(--primary)' : 'transparent', color: activeTab === 'products' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          <Package size={18} /> Quản lý Sản phẩm
+          <Package size={18} /> Quản lý Công cụ
         </button>
         <button 
           className={`admin-tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
@@ -626,7 +626,7 @@ const Admin = () => {
         <>
           {/* Stats */}
           <div className="admin-stats">
-            <StatCard icon={<Package size={22} />} label="Tổng sản phẩm" value={games.length} color="var(--primary)" />
+            <StatCard icon={<Package size={22} />} label="Tổng công cụ" value={games.length} color="var(--primary)" />
             <StatCard icon={<Flame size={22} />} label="Đang HOT" value={hotCount} color="#ff6b6b" />
             <StatCard icon={<Upload size={22} />} label="Tổng lượt tải" value={games.reduce((s, g) => s + (g.downloads || 0), 0).toLocaleString()} color="var(--secondary)" />
             <StatCard icon={<Eye size={22} />} label="Lượt truy cập" value={parseInt(contactSettings.visitCount || '1250', 10).toLocaleString()} color="#00cffb" />
@@ -638,13 +638,13 @@ const Admin = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2 className="panel-title" style={{ margin: 0 }}>
                   {isEditing ? (
-                    <><Edit size={18} /> Sửa Sản Phẩm</>
+                    <><Edit size={18} /> Sửa Công Cụ</>
                   ) : (
-                    <><Plus size={18} /> Thêm Sản Phẩm</>
+                    <><Plus size={18} /> Thêm Công Cụ</>
                   )}
                 </h2>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <button type="button" className="btn-outline" onClick={handleResetAllDownloads} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', color: '#ff4d4f', borderColor: '#ff4d4f44' }} title="Đặt lại tất cả số lượt tải sản phẩm về 0">
+                  <button type="button" className="btn-outline" onClick={handleResetAllDownloads} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', color: '#ff4d4f', borderColor: '#ff4d4f44' }} title="Đặt lại tất cả số lượt tải công cụ về 0">
                     <RotateCcw size={14} /> Đặt lại tất cả lượt tải về 0
                   </button>
                   <button type="button" className="btn-outline" onClick={resetForm} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
@@ -655,7 +655,7 @@ const Admin = () => {
 
           <form onSubmit={handleSubmit} className="product-form">
             <div className="form-group">
-              <label className="form-label">Tên sản phẩm *</label>
+              <label className="form-label">Tên công cụ *</label>
               <input className="form-input" type="text" name="title" value={formData.title} onChange={handleInputChange} placeholder="VD: Tool Auto Farm..." required />
             </div>
 
@@ -674,11 +674,11 @@ const Admin = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Giá bán (VNĐ)</label>
+                <label className="form-label">Mức đóng góp (VNĐ)</label>
                 <input className="form-input" type="number" name="price" value={formData.price} onChange={handleInputChange} min="0" />
               </div>
               <div className="form-group">
-                <label className="form-label">Giá cũ (VNĐ)</label>
+                <label className="form-label">Mức cũ (VNĐ)</label>
                 <input className="form-input" type="number" name="oldPrice" value={formData.oldPrice} onChange={handleInputChange} min="0" />
               </div>
             </div>
@@ -759,7 +759,7 @@ const Admin = () => {
                 className="form-textarea"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Nhập mô tả sản phẩm... Hỗ trợ <b>in đậm</b>, <br>, <img>, ..."
+                placeholder="Nhập mô tả công cụ... Hỗ trợ <b>in đậm</b>, <br>, <img>, ..."
                 style={{ minHeight: '200px' }}
               />
             </div>
@@ -779,7 +779,7 @@ const Admin = () => {
                 <span className="toggle-track">
                   <span className="toggle-thumb" />
                 </span>
-                <span className="toggle-label">Sản phẩm Miễn phí 🎁</span>
+                <span className="toggle-label">Công cụ Miễn phí 🎁</span>
               </label>
             </div>
 
@@ -824,7 +824,7 @@ const Admin = () => {
             </div>
           ) : filteredGames.length === 0 ? (
             <div className="admin-empty">
-              <span>🔍</span> Không tìm thấy sản phẩm nào
+              <span>🔍</span> Không tìm thấy công cụ nào
             </div>
           ) : (
             <div className="admin-table-wrap">
@@ -832,7 +832,7 @@ const Admin = () => {
                 <thead>
                   <tr>
                     <th>Ảnh</th>
-                    <th>Tên sản phẩm</th>
+                    <th>Tên công cụ</th>
                     <th>Giá</th>
                     <th>Danh mục</th>
                     <th style={{ textAlign: 'center' }}>Thao tác</th>

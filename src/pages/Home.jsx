@@ -25,8 +25,8 @@ const SkeletonCard = () => (
 const SORT_OPTIONS = [
   { value: 'newest', label: '🆕 Mới nhất' },
   { value: 'downloads', label: '🔥 Lượt tải nhiều nhất' },
-  { value: 'price-asc', label: '💰 Giá tăng dần' },
-  { value: 'price-desc', label: '💎 Giá giảm dần' },
+  { value: 'price-asc', label: '💰 Mức đóng góp tăng dần' },
+  { value: 'price-desc', label: '💎 Mức đóng góp giảm dần' },
 ];
 
 const Home = () => {
@@ -91,7 +91,7 @@ const Home = () => {
     return result;
   }, [games, activeCategory, searchQuery, sortBy]);
 
-  // Sản phẩm HOT — dùng cho slideshow HeroBanner
+  // Công cụ HOT — dùng cho slideshow HeroBanner
   const hotGames = useMemo(() => games.filter(g => g.isHot), [games]);
 
   return (
@@ -123,7 +123,7 @@ const Home = () => {
                       </span>
                     )}
                     <span className="result-count">
-                      <strong style={{ color: 'var(--primary)' }}>{filteredAndSorted.length}</strong> sản phẩm
+                      <strong style={{ color: 'var(--primary)' }}>{filteredAndSorted.length}</strong> công cụ
                     </span>
                   </>
                 )}
@@ -144,7 +144,7 @@ const Home = () => {
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value)}
                   id="sort-select"
-                  aria-label="Sắp xếp sản phẩm"
+                  aria-label="Sắp xếp công cụ"
                 >
                   {SORT_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -169,11 +169,11 @@ const Home = () => {
             ) : (
               <div className="empty-state">
                 <div className="empty-icon">🔍</div>
-                <h3>Không tìm thấy sản phẩm</h3>
+                <h3>Không tìm thấy công cụ</h3>
                 <p>
                   {searchQuery
                     ? `Không có kết quả cho "${searchQuery}". Thử từ khóa khác nhé!`
-                    : 'Danh mục này chưa có sản phẩm nào.'}
+                    : 'Danh mục này chưa có công cụ nào.'}
                 </p>
               </div>
             )}

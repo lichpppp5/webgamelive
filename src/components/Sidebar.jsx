@@ -45,14 +45,14 @@ const Sidebar = ({ activeCategory, setActiveCategory, games }) => {
                   className={`category-item ${isActive ? 'active' : ''}`}
                   onClick={() => setActiveCategory(cat.id)}
                   aria-current={isActive ? 'page' : undefined}
-                  aria-label={`${cat.name} (${count} sản phẩm)`}
+                  aria-label={`${cat.name} (${count} công cụ)`}
                 >
                   {isActive && <span className="active-indicator" aria-hidden="true" />}
                   <span className="category-icon" aria-hidden="true">
                     {getCategoryIcon(cat.id)}
                   </span>
                   <span className="category-name">{cat.name}</span>
-                  <span className="category-count" aria-label={`${count} sản phẩm`}>
+                  <span className="category-count" aria-label={`${count} công cụ`}>
                     {count}
                   </span>
                 </button>

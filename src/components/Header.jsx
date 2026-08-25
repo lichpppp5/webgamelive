@@ -36,7 +36,7 @@ const Header = ({ searchQuery, setSearchQuery }) => {
               value={searchQuery || ''}
               onChange={handleSearchChange}
               id="header-search-input"
-              aria-label="Tìm kiếm sản phẩm"
+              aria-label="Tìm kiếm công cụ"
             />
             {searchQuery && (
               <button className="search-clear-btn" onClick={clearSearch} aria-label="Xóa tìm kiếm">
@@ -58,7 +58,7 @@ const Header = ({ searchQuery, setSearchQuery }) => {
           </button>
 
           {/* Cart */}
-          <Link to="/cart" className="icon-btn cart-btn" aria-label={`Danh sách tải (${cartCount} sản phẩm)`}>
+          <Link to="/cart" className="icon-btn cart-btn" aria-label={`Danh sách tải (${cartCount} công cụ)`}>
             <ShoppingCart size={22} />
             {cartCount > 0 && (
               <span className="cart-badge animate-scaleIn">

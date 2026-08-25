@@ -132,7 +132,7 @@ const ContactModal = ({ isOpen, onClose, productTitle, cartItems, totalAmount })
                 <Phone size={22} />
               </div>
               <div>
-                <h2 className="modal-title">Liên hệ mua hàng</h2>
+                <h2 className="modal-title">Liên hệ nhận công cụ</h2>
                 <p className="modal-subtitle">Chọn kênh bên dưới để được hỗ trợ nhanh nhất</p>
               </div>
             </div>
@@ -140,14 +140,14 @@ const ContactModal = ({ isOpen, onClose, productTitle, cartItems, totalAmount })
             {/* Product / Cart info */}
             {productTitle && (
               <div className="modal-product-info">
-                <span className="modal-product-label">Sản phẩm:</span>
+                <span className="modal-product-label">Công cụ:</span>
                 <span className="modal-product-name">{productTitle}</span>
               </div>
             )}
 
             {cartItems && cartItems.length > 0 && (
               <div className="modal-product-info">
-                <span className="modal-product-label">{cartItems.length} sản phẩm —</span>
+                <span className="modal-product-label">{cartItems.length} công cụ —</span>
                 <span className="modal-product-name">
                   Tổng: {totalAmount?.toLocaleString('vi-VN')}đ
                 </span>

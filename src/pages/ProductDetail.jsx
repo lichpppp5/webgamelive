@@ -46,7 +46,7 @@ const ProductDetail = () => {
         await navigator.share({ title: product?.title, url });
       } else {
         await navigator.clipboard.writeText(url);
-        showToast('Đã sao chép link sản phẩm!', 'info');
+        showToast('Đã sao chép link công cụ!', 'info');
       }
     } catch { /* user cancelled */ }
   };
@@ -78,7 +78,7 @@ const ProductDetail = () => {
     return (
       <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>
         <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>😕</div>
-        <h2 style={{ marginBottom: '1rem' }}>Không tìm thấy sản phẩm!</h2>
+        <h2 style={{ marginBottom: '1rem' }}>Không tìm thấy công cụ!</h2>
         <Link to="/" className="btn-primary">← Về trang chủ</Link>
       </div>
     );
@@ -189,7 +189,7 @@ const ProductDetail = () => {
             {/* Description */}
             {product.description && (
               <div className="description-section">
-                <h3 className="desc-heading">Mô tả sản phẩm</h3>
+                <h3 className="desc-heading">Mô tả công cụ</h3>
                 <div
                   className="description ql-editor-content"
                   dangerouslySetInnerHTML={{ __html: product.description }}

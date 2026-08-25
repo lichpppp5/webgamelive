@@ -26,7 +26,7 @@ const Cart = () => {
         <ShoppingBag size={28} />
         <h1 className="cart-title">Danh Sách Tải Về</h1>
         {cartItems.length > 0 && (
-          <span className="cart-header-count">{cartItems.length} sản phẩm</span>
+          <span className="cart-header-count">{cartItems.length} công cụ</span>
         )}
       </div>
 
@@ -89,7 +89,7 @@ const Cart = () => {
                   <button
                     className="remove-btn"
                     onClick={() => handleRemove(item)}
-                    aria-label="Xóa sản phẩm"
+                    aria-label="Xóa công cụ"
                   >
                     <Trash2 size={16} />
                   </button>

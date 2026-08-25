@@ -44,7 +44,7 @@ const Footer = () => {
 
         {/* Links */}
         <div className="footer-col">
-          <h3 className="footer-col-title">Sản phẩm</h3>
+          <h3 className="footer-col-title">Công cụ</h3>
           <ul className="footer-links">
             <li><Link to="/?cat=tuong-tac">Game Tương Tác</Link></li>
             <li><Link to="/?cat=tools-mmo">Tools MMO</Link></li>

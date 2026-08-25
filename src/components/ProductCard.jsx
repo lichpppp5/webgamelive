@@ -36,7 +36,7 @@ const ProductCard = ({ product }) => {
         await navigator.share({ title: product.title, url });
       } else {
         await navigator.clipboard.writeText(url);
-        showToast('Đã sao chép link sản phẩm!', 'info');
+        showToast('Đã sao chép link công cụ!', 'info');
       }
     } catch {
       // user cancelled share
@@ -98,7 +98,7 @@ const ProductCard = ({ product }) => {
                 {/* Badges */}
                 <div className="product-badges">
                   {product.isHot && (
-                    <span className="badge badge-hot" aria-label="Sản phẩm hot">🔥 HOT</span>
+                    <span className="badge badge-hot" aria-label="Công cụ hot">🔥 HOT</span>
                   )}
                   {discountPct > 0 && (
                     <span className="badge badge-sale">-{discountPct}%</span>
@@ -109,7 +109,7 @@ const ProductCard = ({ product }) => {
                 <button
                   className="share-btn"
                   onClick={handleShare}
-                  aria-label="Chia sẻ sản phẩm"
+                  aria-label="Chia sẻ công cụ"
                 >
                   <Share2 size={14} />
                 </button>

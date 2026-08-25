@@ -43,7 +43,7 @@ const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, productId, isFree
 
         <div className="download-modal-body">
           <p className="download-warning-text">
-            Vui lòng đọc kỹ Điều khoản & Miễn trừ trách nhiệm trước khi tải xuống. Liên hệ thanh toán và nhận key kích hoạt sau khi tải xuống. Xin cảm ơn !
+            Vui lòng đọc kỹ Điều khoản & Miễn trừ trách nhiệm trước khi tải xuống. Liên hệ nhận key kích hoạt sau khi tải xuống. Xin cảm ơn !
           </p>
           
           <div className="modal-disclaimer-wrapper">

@@ -85,7 +85,7 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0 }) => {
             <span className="stat-num text-gradient">
               {totalProducts > 0 ? `${totalProducts}+` : '0+'}
             </span>
-            <span className="stat-label">Sản phẩm</span>
+            <span className="stat-label">Công cụ</span>
           </div>
           <div className="stat-divider" />
           <div className="stat">
