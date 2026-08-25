@@ -8,14 +8,18 @@
   backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
-  padding: 1.5rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0;
-  position: sticky;
-  top: calc(var(--header-height) + 1.5rem);
-  max-height: calc(100vh - var(--header-height) - 3rem);
-  overflow-y: auto;
+  height: fit-content;
+}
+
+@media (min-height: 850px) {
+  .sidebar {
+    position: sticky;
+    top: calc(var(--header-height) + 1.5rem);
+  }
 }
 
 .sidebar::-webkit-scrollbar { width: 3px; }
