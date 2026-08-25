@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
@@ -8,8 +8,20 @@ import Docs from './pages/Docs';
 import DocDetail from './pages/DocDetail';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import Maintenance from './pages/Maintenance';
+import { useSettings } from './context/AppContext';
 
 function App() {
+  const { contactSettings } = useSettings();
+  const location = useLocation();
+
+  const isMaintenanceMode = contactSettings?.maintenanceMode === 'true';
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  if (isMaintenanceMode && !isAdminRoute) {
+    return <Maintenance />;
+  }
+
   return (
     <Routes>
       <Route path="/" element={<Layout />}>

@@ -43,7 +43,8 @@ export const AppProvider = ({ children }) => {
     donateAccount: '',
     donateContent: '',
     donateEnabled: 'true',
-    marqueeText: 'Chào mừng bạn đến với Webgame Live! Chúc bạn một ngày tốt lành. Liên hệ ngay để được hỗ trợ tốt nhất.'
+    marqueeText: 'Chào mừng bạn đến với Webgame Live! Chúc bạn một ngày tốt lành. Liên hệ ngay để được hỗ trợ tốt nhất.',
+    maintenanceMode: 'false'
   });
 
   useEffect(() => {

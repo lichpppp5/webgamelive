@@ -33,8 +33,8 @@ const Admin = () => {
     recentVisits: []
   });
   const [settingsForm, setSettingsForm] = useState({
-    zalo: '', facebook: '', telegram: '', zaloQr: '', visitCount: '1250',
-    donateText: 'Nếu thấy hữu ích Donate tôi cốc cafe nha !', donateQR: '', donateName: '', donateBank: '', donateAccount: '', donateContent: '', donateEnabled: 'true'
+    zalo: '', facebook: '', telegram: '', visitCount: '1250', marqueeText: '',
+    donateText: 'Nếu thấy hữu ích Donate tôi cốc cafe nha !', donateQR: '', donateName: '', donateBank: '', donateAccount: '', donateContent: '', donateEnabled: 'true', maintenanceMode: 'false'
   });
 
   const [games, setGames] = useState([]);
@@ -522,6 +522,21 @@ const Admin = () => {
             Cấu hình Liên hệ & Tư vấn
           </h2>
           <form onSubmit={handleSettingsSubmit}>
+            
+            {/* Maintenance Settings */}
+            <div className="settings-section" style={{ border: '1px solid #ff4d4f44', backgroundColor: 'rgba(255, 77, 79, 0.02)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem' }}>
+              <h3 className="settings-section-title" style={{ color: '#ff4d4f', margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Settings size={18} /> Chế độ bảo trì
+              </h3>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={settingsForm.maintenanceMode === 'true'} onChange={e => setSettingsForm({ ...settingsForm, maintenanceMode: e.target.checked ? 'true' : 'false' })} />
+                  <span className="slider round"></span>
+                  <span className="toggle-label" style={{ fontWeight: 'bold' }}>Bật chế độ Bảo Trì (chỉ Admin mới có thể truy cập web)</span>
+                </label>
+              </div>
+            </div>
+
             <div className="form-group">
               <label className="form-label">Dòng chữ chạy ngang (Marquee)</label>
               <input className="form-input" type="text" value={settingsForm.marqueeText || ''} onChange={e => setSettingsForm({ ...settingsForm, marqueeText: e.target.value })} placeholder="VD: Chào mừng bạn đến với hệ thống..." />
