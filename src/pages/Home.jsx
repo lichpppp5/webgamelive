@@ -5,6 +5,7 @@ import Sidebar from '../components/Sidebar';
 import HeroBanner from '../components/HeroBanner';
 import ArticleSlider from '../components/ArticleSlider';
 import { categories } from '../data/mockData';
+import { useSettings } from '../context/AppContext';
 import './Home.css';
 
 // Skeleton loading card
@@ -29,6 +30,7 @@ const SORT_OPTIONS = [
 
 const Home = () => {
   const outletCtx = useOutletContext();
+  const { contactSettings } = useSettings();
   const searchQuery = outletCtx?.searchQuery || '';
 
   const [activeCategory, setActiveCategory] = useState('all');
@@ -125,6 +127,12 @@ const Home = () => {
                   </>
                 )}
               </div>
+
+              {contactSettings?.marqueeText && (
+                <div className="marquee-container">
+                  <div className="marquee-content">{contactSettings.marqueeText}</div>
+                </div>
+              )}
 
               <div className="top-bar-actions">
                 <select

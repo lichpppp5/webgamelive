@@ -177,3 +177,36 @@
     gap: 0.75rem;
   }
 }
+
+/* ── Marquee ── */
+.marquee-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  margin: 0 1.5rem;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.marquee-content {
+  position: absolute;
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--primary);
+  font-size: 0.95rem;
+  text-shadow: 0 0 10px rgba(0, 207, 251, 0.4);
+  animation: marquee 25s linear infinite;
+  will-change: transform;
+}
+
+.marquee-container:hover .marquee-content {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); left: 100%; }
+  100% { transform: translateX(-100%); left: 0%; }
+}

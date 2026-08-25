@@ -523,6 +523,10 @@ const Admin = () => {
           </h2>
           <form onSubmit={handleSettingsSubmit}>
             <div className="form-group">
+              <label className="form-label">Dòng chữ chạy ngang (Marquee)</label>
+              <input className="form-input" type="text" value={settingsForm.marqueeText || ''} onChange={e => setSettingsForm({ ...settingsForm, marqueeText: e.target.value })} placeholder="VD: Chào mừng bạn đến với hệ thống..." />
+            </div>
+            <div className="form-group">
               <label className="form-label">Link hoặc Số điện thoại Zalo</label>
               <input className="form-input" type="text" value={settingsForm.zalo} onChange={e => setSettingsForm({ ...settingsForm, zalo: e.target.value })} required />
             </div>

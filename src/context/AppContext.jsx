@@ -42,7 +42,8 @@ export const AppProvider = ({ children }) => {
     donateBank: '',
     donateAccount: '',
     donateContent: '',
-    donateEnabled: 'true'
+    donateEnabled: 'true',
+    marqueeText: 'Chào mừng bạn đến với Webgame Live! Chúc bạn một ngày tốt lành. Liên hệ ngay để được hỗ trợ tốt nhất.'
   });
 
   useEffect(() => {
