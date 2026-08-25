@@ -4,7 +4,7 @@ import { X, Download, MessageSquare } from 'lucide-react';
 import DisclaimerSection from './DisclaimerSection';
 import './DownloadConfirmModal.css';
 
-const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, productId, onContact, onDownloadSuccess }) => {
+const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, productId, isFree, onContact, onDownloadSuccess }) => {
   const [isAgreed, setIsAgreed] = useState(false);
 
   if (!isOpen) return null;
@@ -61,6 +61,14 @@ const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, productId, onCont
               <span style={{ fontSize: '0.95rem', color: 'var(--text-100)' }}>Tôi đã đọc và đồng ý với Điều khoản & Miễn trừ trách nhiệm</span>
             </label>
           </div>
+
+          {isFree && (
+            <div style={{ textAlign: 'center', marginTop: '10px', marginBottom: '20px' }}>
+              <h3 style={{ color: '#ff4d4f', fontSize: '1.2rem', fontWeight: 'bold', margin: 0, textShadow: '0 2px 4px rgba(255, 77, 79, 0.3)' }}>
+                🎁 DONATE CHO TÔI NHÉ ! 🎁
+              </h3>
+            </div>
+          )}
         </div>
 
         <div className="download-modal-actions">

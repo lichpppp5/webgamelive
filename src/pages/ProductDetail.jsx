@@ -172,9 +172,11 @@ const ProductDetail = () => {
             {/* Price */}
             <div className="price-section">
               <span className="price-current">
-                {product.price > 0
-                  ? product.price.toLocaleString('vi-VN') + 'đ'
-                  : 'Liên hệ báo giá'}
+                {product.isFree
+                  ? 'Miễn phí'
+                  : product.price > 0
+                    ? product.price.toLocaleString('vi-VN') + 'đ'
+                    : 'Liên hệ báo giá'}
               </span>
               {product.oldPrice > 0 && (
                 <>
@@ -197,7 +199,7 @@ const ProductDetail = () => {
 
             {/* Action Buttons */}
             <div className="action-buttons">
-              {product.downloadLink ? (
+              {(product.downloadLink || product.isFree) ? (
                 <>
                   <button
                     className="btn-primary btn-action-main"
@@ -262,6 +264,7 @@ const ProductDetail = () => {
         onClose={() => setIsDownloadConfirmOpen(false)}
         downloadLink={product.downloadLink}
         productId={product.id}
+        isFree={product.isFree}
         onContact={() => setIsModalOpen(true)}
         onDownloadSuccess={(newCount) => setDownloadCount(newCount)}
       />

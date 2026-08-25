@@ -59,6 +59,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
       category TEXT,
       downloads INTEGER DEFAULT 0,
       isHot BOOLEAN DEFAULT 0,
+      isFree BOOLEAN DEFAULT 0,
       downloadLink TEXT DEFAULT ''
     )`, (err) => {
       if (err) {
@@ -69,6 +70,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
           if (alterErr && !alterErr.message.includes('duplicate column')) {
             // Column already exists or other error — ignore silently
           }
+        });
+        db.run(`ALTER TABLE products ADD COLUMN isFree BOOLEAN DEFAULT 0`, (alterErr) => {
+          // ignore error if exists
         });
 
         // Product seeding removed for production
@@ -274,30 +278,31 @@ app.get('/api/products/:id', (req, res) => {
 
 // POST new product
 app.post('/api/products', (req, res) => {
-  const { title, description, price, oldPrice, image, category, downloads, isHot, downloadLink } = req.body;
-  // Simple ID generation
+  const { title, description, price, oldPrice, image, category, isHot, isFree, downloadLink } = req.body;
   const id = 'g' + Date.now();
   
-  const stmt = db.prepare(`INSERT INTO products (id, title, description, price, oldPrice, image, category, downloads, isHot, downloadLink) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+  const stmt = db.prepare(`INSERT INTO products (id, title, description, price, oldPrice, image, category, downloads, isHot, isFree, downloadLink) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
   
-  stmt.run(id, title, description || '', price || 0, oldPrice || 0, image || '', category || 'Tất cả', downloads || 0, isHot ? 1 : 0, downloadLink || '', function(err) {
+  stmt.run(id, title, description || '', price || 0, oldPrice || 0, image || '', category || 'Tất cả', 0, isHot ? 1 : 0, isFree ? 1 : 0, downloadLink || '', function(err) {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json({ id, title, price, oldPrice, image, category, downloads, isHot, downloadLink: downloadLink || '' });
+    res.json({ id, title, price, oldPrice, image, category, downloads: 0, isHot: isHot ? 1 : 0, isFree: isFree ? 1 : 0, downloadLink: downloadLink || '' });
   });
   stmt.finalize();
 });
 
 // PUT update product
 app.put('/api/products/:id', (req, res) => {
-  const { id } = req.params;
-  const { title, description, price, oldPrice, image, category, downloads, isHot, downloadLink } = req.body;
-  
-  const stmt = db.prepare(`UPDATE products SET title = ?, description = ?, price = ?, oldPrice = ?, image = ?, category = ?, downloads = ?, isHot = ?, downloadLink = ? WHERE id = ?`);
-  
-  stmt.run(title, description || '', price, oldPrice, image, category, downloads, isHot ? 1 : 0, downloadLink || '', id, function(err) {
+  const { title, description, price, oldPrice, image, category, isHot, isFree, downloads, downloadLink } = req.body;
+  const id = req.params.id;
+
+  db.run(
+    `UPDATE products 
+     SET title = ?, description = ?, price = ?, oldPrice = ?, image = ?, category = ?, isHot = ?, isFree = ?, downloads = ?, downloadLink = ?
+     WHERE id = ?`,
+    [title, description || '', price || 0, oldPrice || 0, image || '', category || 'Tất cả', isHot ? 1 : 0, isFree ? 1 : 0, downloads || 0, downloadLink || '', id], function(err) {
     if (err) {
       res.status(500).json({ error: err.message });
       return;

@@ -135,9 +135,11 @@ const ProductCard = ({ product }) => {
           {/* Price */}
           <div className="product-price">
             <span className="price-current">
-              {product.price > 0
-                ? product.price.toLocaleString('vi-VN') + 'đ'
-                : <span className="price-free">Liên hệ</span>
+              {product.isFree
+                ? <span className="price-free">Miễn phí</span>
+                : product.price > 0
+                  ? product.price.toLocaleString('vi-VN') + 'đ'
+                  : <span className="price-free">Liên hệ</span>
               }
             </span>
             {product.oldPrice > 0 && (
@@ -147,7 +149,7 @@ const ProductCard = ({ product }) => {
 
           {/* Actions */}
           <div className="product-actions">
-            {product.downloadLink ? (
+            {(product.downloadLink || product.isFree) ? (
               <button
                 className="action-btn btn-download"
                 onClick={() => setIsDownloadConfirmOpen(true)}
@@ -191,6 +193,7 @@ const ProductCard = ({ product }) => {
         onClose={() => setIsDownloadConfirmOpen(false)}
         downloadLink={product.downloadLink}
         productId={product.id}
+        isFree={product.isFree}
         onContact={() => setIsModalOpen(true)}
         onDownloadSuccess={(newCount) => setDownloadCount(newCount)}
       />

@@ -48,7 +48,7 @@ const Admin = () => {
   const [currentId, setCurrentId] = useState(null);
   const [formData, setFormData] = useState({
     title: '', category: CATEGORIES[0], price: 0, oldPrice: 0,
-    image: '', downloads: 0, isHot: false, description: '', downloadLink: ''
+    image: '', downloads: 0, isHot: false, isFree: false, description: '', downloadLink: ''
   });
 
   const [articles, setArticles] = useState([]);
@@ -240,7 +240,7 @@ const Admin = () => {
       title: game.title, category: game.category,
       price: game.price, oldPrice: game.oldPrice,
       image: game.image, downloads: game.downloads,
-      isHot: game.isHot, description: game.description || '',
+      isHot: game.isHot, isFree: game.isFree, description: game.description || '',
       downloadLink: game.downloadLink || ''
     });
     setImagePreview(game.image || '');
@@ -269,7 +269,7 @@ const Admin = () => {
 
   const resetForm = () => {
     setIsEditing(false); setCurrentId(null);
-    setFormData({ title: '', category: CATEGORIES[0], price: 0, oldPrice: 0, image: '', downloads: 0, isHot: false, description: '', downloadLink: '' });
+    setFormData({ title: '', category: CATEGORIES[0], price: 0, oldPrice: 0, image: '', downloads: 0, isHot: false, isFree: false, description: '', downloadLink: '' });
     setImagePreview('');
   };
 
@@ -764,14 +764,24 @@ const Admin = () => {
               />
             </div>
 
-            {/* Hot toggle */}
-            <label className="hot-toggle">
-              <input type="checkbox" name="isHot" checked={formData.isHot} onChange={handleInputChange} />
-              <span className="toggle-track">
-                <span className="toggle-thumb" />
-              </span>
-              <span className="toggle-label">Đánh dấu HOT 🔥</span>
-            </label>
+            {/* Checkboxes */}
+            <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.5rem' }}>
+              <label className="hot-toggle">
+                <input type="checkbox" name="isHot" checked={formData.isHot} onChange={handleInputChange} />
+                <span className="toggle-track">
+                  <span className="toggle-thumb" />
+                </span>
+                <span className="toggle-label">Đánh dấu HOT 🔥</span>
+              </label>
+
+              <label className="hot-toggle">
+                <input type="checkbox" name="isFree" checked={formData.isFree} onChange={handleInputChange} />
+                <span className="toggle-track">
+                  <span className="toggle-thumb" />
+                </span>
+                <span className="toggle-label">Sản phẩm Miễn phí 🎁</span>
+              </label>
+            </div>
 
             <div className="form-actions">
               <button type="submit" className="btn-primary" style={{ flex: 1 }} id="save-product-btn">
