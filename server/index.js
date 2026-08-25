@@ -309,7 +309,6 @@ app.put('/api/products/:id', (req, res) => {
     }
     res.json({ message: 'Product updated successfully' });
   });
-  stmt.finalize();
 });
 
 // DELETE product
