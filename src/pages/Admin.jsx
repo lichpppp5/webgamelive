@@ -779,7 +779,7 @@ const Admin = () => {
                 <span className="toggle-track">
                   <span className="toggle-thumb" />
                 </span>
-                <span className="toggle-label">Công cụ Miễn phí 🎁</span>
+                <span className="toggle-label">Không yêu cầu đóng góp 🎁</span>
               </label>
             </div>
 

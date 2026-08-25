@@ -68,7 +68,7 @@ const Footer = () => {
         {/* CTA */}
         <div className="footer-col footer-cta-col">
           <h3 className="footer-col-title">Cần tư vấn?</h3>
-          <p className="footer-cta-desc">Liên hệ ngay để được hỗ trợ miễn phí và nhận ưu đãi tốt nhất.</p>
+          <p className="footer-cta-desc">Mọi yêu cầu cần hỗ trợ, hãy liên hệ với chúng tôi.</p>
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}

@@ -75,7 +75,7 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0 }) => {
             onClick={() => setIsModalOpen(true)} 
             className="btn-outline hero-btn-outline"
           >
-            Tư vấn miễn phí
+            Tư vấn hỗ trợ
           </button>
         </div>
 
