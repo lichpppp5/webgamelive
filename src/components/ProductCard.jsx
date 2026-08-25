@@ -70,9 +70,7 @@ const ProductCard = ({ product }) => {
                       playsInline
                       onError={() => setImgError(true)}
                     />
-                    <div className="tiktok-badge">
-                      <Play size={10} fill="currentColor" /> TikTok Video
-                    </div>
+
                   </>
                 ) : (
                   <img
