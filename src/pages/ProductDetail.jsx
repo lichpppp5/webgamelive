@@ -36,7 +36,7 @@ const ProductDetail = () => {
   const handleAddToCart = () => {
     if (!product) return;
     addToCart(product);
-    showToast(`Đã thêm "${product.title}" vào giỏ hàng!`, 'success');
+    showToast(`Đã thêm "${product.title}" vào danh sách tải!`, 'success');
   };
 
   const handleShare = async () => {
@@ -232,7 +232,7 @@ const ProductDetail = () => {
                 className="btn-action-cart" style={{ flex: '0 0 auto' }}
                 onClick={handleAddToCart}
                 id={`detail-cart-btn-${product.id}`}
-                title="Thêm vào giỏ hàng"
+                title="Thêm vào danh sách tải"
               >
                 <ShoppingCart size={20} />
               </button>

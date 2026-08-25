@@ -24,7 +24,7 @@ const ProductCard = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product);
-    showToast(`Đã thêm "${product.title}" vào giỏ hàng!`, 'success');
+    showToast(`Đã thêm "${product.title}" vào danh sách tải!`, 'success');
   };
 
   const handleShare = async (e) => {
@@ -174,7 +174,7 @@ const ProductCard = ({ product }) => {
               className="action-btn btn-cart"
               onClick={handleAddToCart}
               id={`cart-btn-${product.id}`}
-              aria-label={`Thêm ${product.title} vào giỏ hàng`}
+              aria-label={`Thêm ${product.title} vào danh sách tải`}
             >
               <ShoppingCart size={15} />
             </button>
