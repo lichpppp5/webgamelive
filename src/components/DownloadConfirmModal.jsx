@@ -43,7 +43,7 @@ const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, productId, isFree
 
         <div className="download-modal-body">
           <p className="download-warning-text">
-            Vui lòng đọc kỹ Điều khoản & Miễn trừ trách nhiệm trước khi tải xuống. Liên hệ nhận key kích hoạt sau khi tải xuống. Xin cảm ơn !
+            Vui lòng đọc kỹ Điều khoản & Miễn trừ trách nhiệm trước khi tải xuống. Xin cảm ơn !
           </p>
           
           <div className="modal-disclaimer-wrapper">
@@ -62,7 +62,7 @@ const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, productId, isFree
             </label>
           </div>
 
-          {isFree && (
+          {Boolean(isFree) && (
             <div style={{ textAlign: 'center', marginTop: '10px', marginBottom: '20px' }}>
               <h3 style={{ color: '#ff4d4f', fontSize: '1.2rem', fontWeight: 'bold', margin: 0, textShadow: '0 2px 4px rgba(255, 77, 79, 0.3)' }}>
                 🎁 DONATE CHO TÔI NHÉ ! 🎁
@@ -91,7 +91,7 @@ const DownloadConfirmModal = ({ isOpen, onClose, downloadLink, productId, isFree
             }}
           >
             <MessageSquare size={18} />
-            Liên hệ nhận Key
+            Liên hệ hỗ trợ cài đặt, cấu hình
           </button>
         </div>
       </div>

@@ -59,7 +59,7 @@ const Cart = () => {
                     <h3 className="cart-item-title">{item.title}</h3>
                   </Link>
                   <span className="cart-item-price">
-                    {item.price > 0 ? item.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ'}
+                    {item.price > 0 ? item.price.toLocaleString('vi-VN') + 'đ': null}
                   </span>
                 </div>
 

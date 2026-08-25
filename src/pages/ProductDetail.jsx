@@ -172,11 +172,9 @@ const ProductDetail = () => {
             {/* Price */}
             <div className="price-section">
               <span className="price-current">
-                {product.isFree
-                  ? 'Miễn phí'
-                  : product.price > 0
-                    ? product.price.toLocaleString('vi-VN') + 'đ'
-                    : 'Liên hệ báo giá'}
+                {product.price > 0 && !product.isFree
+                  ? product.price.toLocaleString('vi-VN') + 'đ'
+                  : null}
               </span>
               {product.oldPrice > 0 && (
                 <>

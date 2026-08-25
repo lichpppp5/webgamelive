@@ -135,11 +135,9 @@ const ProductCard = ({ product }) => {
           {/* Price */}
           <div className="product-price">
             <span className="price-current">
-              {product.isFree
-                ? <span className="price-free">Miễn phí</span>
-                : product.price > 0
-                  ? product.price.toLocaleString('vi-VN') + 'đ'
-                  : <span className="price-free">Liên hệ</span>
+              {product.price > 0 && !product.isFree
+                ? product.price.toLocaleString('vi-VN') + 'đ'
+                : null
               }
             </span>
             {product.oldPrice > 0 && (
