@@ -64,26 +64,8 @@ const Cart = () => {
                 </div>
 
                 <div className="cart-item-controls">
-                  <div className="qty-control">
-                    <button
-                      className="qty-btn"
-                      onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                      aria-label="Giảm số lượng"
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className="qty-value">{item.quantity}</span>
-                    <button
-                      className="qty-btn"
-                      onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                      aria-label="Tăng số lượng"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-
                   <div className="cart-item-subtotal">
-                    {(item.price * item.quantity).toLocaleString('vi-VN')}đ
+                    {item.price > 0 ? (item.price * item.quantity).toLocaleString('vi-VN') + 'đ' : null}
                   </div>
 
                   <button
@@ -108,9 +90,8 @@ const Cart = () => {
                   <div key={item.id} className="summary-line">
                     <span className="summary-item-name">
                       {item.title}
-                      <span className="summary-qty">×{item.quantity}</span>
                     </span>
-                    <span>{(item.price * item.quantity).toLocaleString('vi-VN')}đ</span>
+                    <span>{item.price > 0 ? (item.price * item.quantity).toLocaleString('vi-VN') + 'đ' : ''}</span>
                   </div>
                 ))}
               </div>
@@ -119,7 +100,9 @@ const Cart = () => {
 
               <div className="summary-total-row">
                 <span>Mức đóng góp đề xuất</span>
-                <span className="summary-total-price">{cartTotal.toLocaleString('vi-VN')}đ</span>
+                <span className="summary-total-price">
+                  {cartTotal > 0 ? cartTotal.toLocaleString('vi-VN') + 'đ' : 'Tùy tâm'}
+                </span>
               </div>
 
               <p className="summary-note">Đóng góp đã bao gồm hỗ trợ kỹ thuật và cài đặt.</p>

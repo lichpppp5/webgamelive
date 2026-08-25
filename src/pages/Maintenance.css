@@ -49,15 +49,27 @@
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); }
-  50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(0, 240, 255, 0); }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 15px rgba(0, 240, 255, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 240, 255, 0);
+  }
 }
 
 @media (max-width: 768px) {
   .maintenance-title {
     font-size: 2rem;
   }
+
   .maintenance-text {
     font-size: 1.1rem;
   }
