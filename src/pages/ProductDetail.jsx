@@ -213,7 +213,7 @@ const ProductDetail = () => {
                     id={`detail-contact-btn-${product.id}`}
                   >
                     <MessageSquare size={18} />
-                    Liên hệ tư vấn
+                    Liên hệ hỗ trợ cấu hình, cài đặt
                   </button>
                 </>
               ) : (

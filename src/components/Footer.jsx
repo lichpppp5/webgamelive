@@ -59,7 +59,7 @@ const Footer = () => {
           <h3 className="footer-col-title">Chính sách & Hỗ trợ</h3>
           <ul className="footer-links">
             <li><button type="button" onClick={() => setIsModalOpen(true)} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Hướng dẫn cài đặt</button></li>
-            <li><button type="button" onClick={() => setIsModalOpen(true)} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Liên hệ tư vấn</button></li>
+            <li><button type="button" onClick={() => setIsModalOpen(true)} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Liên hệ hỗ trợ cấu hình, cài đặt</button></li>
             <li><Link to="/privacy">Chính sách bảo mật</Link></li>
             <li><Link to="/terms">Điều khoản sử dụng</Link></li>
           </ul>
