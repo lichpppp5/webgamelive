@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import Sidebar from '../components/Sidebar';
 import HeroBanner from '../components/HeroBanner';
 import ArticleSlider from '../components/ArticleSlider';
 import DisclaimerSection from '../components/DisclaimerSection';
+import SoftwareShowcase from '../components/SoftwareShowcase';
 import { categories } from '../data/mockData';
 import { useSettings } from '../context/AppContext';
 import './Home.css';
@@ -29,15 +30,45 @@ const SORT_OPTIONS = [
   { value: 'price-desc', label: '💎 Mức đóng góp giảm dần' },
 ];
 
-const Home = () => {
+const Home = ({ defaultCategory = 'all' }) => {
   const outletCtx = useOutletContext();
   const { contactSettings } = useSettings();
+  const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = outletCtx?.searchQuery || '';
 
-  const [activeCategory, setActiveCategory] = useState('all');
+  const initialCat = searchParams.get('category') || defaultCategory;
+  const [activeCategory, setActiveCategory] = useState(initialCat);
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState('newest');
+
+  // Software showcase data
+  const [softwareList, setSoftwareList] = useState([]);
+  const [softwareLoading, setSoftwareLoading] = useState(true);
+
+  const fetchSoftware = () => {
+    fetch('/api/software')
+      .then(res => res.json())
+      .then(data => {
+        setSoftwareList(data || []);
+        setSoftwareLoading(false);
+      })
+      .catch(err => {
+        console.error('Lỗi khi tải phần mềm:', err);
+        setSoftwareLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchSoftware();
+  }, []);
+
+  useEffect(() => {
+    const cat = searchParams.get('category');
+    if (cat && cat !== activeCategory) {
+      setActiveCategory(cat);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetch('/api/products')
@@ -105,77 +136,94 @@ const Home = () => {
         <div className="dashboard-layout">
           <Sidebar
             activeCategory={activeCategory}
-            setActiveCategory={setActiveCategory}
+            setActiveCategory={(catId) => {
+              setActiveCategory(catId);
+              if (catId === 'phan-mem') {
+                const section = document.getElementById('product-section');
+                if (section) section.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
             games={games}
+            softwareCount={softwareList.length}
           />
 
           <div className="main-content-area">
-            {/* Top Bar */}
-            <div className="top-bar">
-              <div className="result-info">
-                {loading ? (
-                  <div className="skeleton" style={{ height: '16px', width: '160px', borderRadius: '4px' }} />
-                ) : (
-                  <>
-                    {searchQuery && (
-                      <span className="search-tag">
-                        🔍 "{searchQuery}"
-                      </span>
+            {activeCategory === 'phan-mem' ? (
+              <SoftwareShowcase 
+                softwareList={softwareList}
+                loading={softwareLoading}
+                onReload={fetchSoftware}
+              />
+            ) : (
+              <>
+                {/* Top Bar */}
+                <div className="top-bar">
+                  <div className="result-info">
+                    {loading ? (
+                      <div className="skeleton" style={{ height: '16px', width: '160px', borderRadius: '4px' }} />
+                    ) : (
+                      <>
+                        {searchQuery && (
+                          <span className="search-tag">
+                            🔍 "{searchQuery}"
+                          </span>
+                        )}
+                        <span className="result-count">
+                          <strong style={{ color: 'var(--primary)' }}>{filteredAndSorted.length}</strong> công cụ
+                        </span>
+                      </>
                     )}
-                    <span className="result-count">
-                      <strong style={{ color: 'var(--primary)' }}>{filteredAndSorted.length}</strong> công cụ
-                    </span>
-                  </>
-                )}
-              </div>
+                  </div>
 
-              {contactSettings?.marqueeText && (
-                <div className="topbar-marquee-container">
-                  <div className="topbar-marquee-track">
-                    <div className="topbar-marquee-content">{contactSettings.marqueeText}</div>
-                    <div className="topbar-marquee-content">{contactSettings.marqueeText}</div>
+                  {contactSettings?.marqueeText && (
+                    <div className="topbar-marquee-container">
+                      <div className="topbar-marquee-track">
+                        <div className="topbar-marquee-content">{contactSettings.marqueeText}</div>
+                        <div className="topbar-marquee-content">{contactSettings.marqueeText}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="top-bar-actions">
+                    <select
+                      className="sort-select"
+                      value={sortBy}
+                      onChange={e => setSortBy(e.target.value)}
+                      id="sort-select"
+                      aria-label="Sắp xếp công cụ"
+                    >
+                      {SORT_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
-              )}
 
-              <div className="top-bar-actions">
-                <select
-                  className="sort-select"
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value)}
-                  id="sort-select"
-                  aria-label="Sắp xếp công cụ"
-                >
-                  {SORT_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Product Grid */}
-            {loading ? (
-              <div className="product-grid">
-                {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
-              </div>
-            ) : filteredAndSorted.length > 0 ? (
-              <div className="product-grid">
-                {filteredAndSorted.map((game, i) => (
-                  <div key={game.id} className="card-enter" style={{ animationDelay: `${i * 0.05}s` }}>
-                    <ProductCard product={game} />
+                {/* Product Grid */}
+                {loading ? (
+                  <div className="product-grid">
+                    {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <div className="empty-icon">🔍</div>
-                <h3>Không tìm thấy công cụ</h3>
-                <p>
-                  {searchQuery
-                    ? `Không có kết quả cho "${searchQuery}". Thử từ khóa khác nhé!`
-                    : 'Danh mục này chưa có công cụ nào.'}
-                </p>
-              </div>
+                ) : filteredAndSorted.length > 0 ? (
+                  <div className="product-grid">
+                    {filteredAndSorted.map((game, i) => (
+                      <div key={game.id} className="card-enter" style={{ animationDelay: `${i * 0.05}s` }}>
+                        <ProductCard product={game} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <div className="empty-icon">🔍</div>
+                    <h3>Không tìm thấy công cụ</h3>
+                    <p>
+                      {searchQuery
+                        ? `Không có kết quả cho "${searchQuery}". Thử từ khóa khác nhé!`
+                        : 'Danh mục này chưa có công cụ nào.'}
+                    </p>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Article Slider Section */}

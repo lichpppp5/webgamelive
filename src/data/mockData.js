@@ -5,5 +5,6 @@ export const categories = [
   { id: 'tuong-tac', name: 'Tương tác' },
   { id: 'tools-mmo', name: 'Tools MMO' },
   { id: 'tools-suu-tam', name: 'Tools Sưu Tầm' },
-  { id: 'treo-afk', name: 'Treo AFK' }
+  { id: 'treo-afk', name: 'Treo AFK' },
+  { id: 'phan-mem', name: 'Phần Mềm' }
 ];

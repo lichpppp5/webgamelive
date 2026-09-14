@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Gamepad2, MonitorPlay, Cpu, Wrench, Sparkles, MessageCircle, Send, MessageSquare, Layers, BookOpen } from 'lucide-react';
+import { Gamepad2, MonitorPlay, Cpu, Wrench, Sparkles, MessageCircle, Send, MessageSquare, Layers, BookOpen, AppWindow } from 'lucide-react';
 import { categories } from '../data/mockData';
 import { useSettings } from '../context/AppContext';
 import ContactModal from './ContactModal';
@@ -13,17 +13,19 @@ const getCategoryIcon = (id) => {
     case 'tools-mmo': return <Wrench size={17} />;
     case 'tools-suu-tam': return <Layers size={17} />;
     case 'treo-afk': return <Cpu size={17} />;
+    case 'phan-mem': return <AppWindow size={17} />;
     default: return <Gamepad2 size={17} />;
   }
 };
 
-const getCategoryCount = (name, games) => {
+const getCategoryCount = (name, games, softwareCount = 0) => {
+  if (name === 'Phần Mềm') return softwareCount;
   if (!games) return 0;
   if (name === 'Tất cả') return games.length;
   return games.filter(g => g.category === name).length;
 };
 
-const Sidebar = ({ activeCategory, setActiveCategory, games }) => {
+const Sidebar = ({ activeCategory, setActiveCategory, games, softwareCount = 0 }) => {
   const { contactSettings } = useSettings();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -37,7 +39,7 @@ const Sidebar = ({ activeCategory, setActiveCategory, games }) => {
         </h2>
         <ul className="category-list" role="list">
           {categories.map(cat => {
-            const count = getCategoryCount(cat.name, games);
+            const count = getCategoryCount(cat.name, games, softwareCount);
             const isActive = activeCategory === cat.id;
             return (
               <li key={cat.id} role="listitem">

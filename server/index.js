@@ -122,6 +122,77 @@ const db = new sqlite3.Database(dbPath, (err) => {
             });
           }
         });
+
+        // Create software table for Software Showcase
+        db.run(`CREATE TABLE IF NOT EXISTS software (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          tagline TEXT DEFAULT '',
+          description TEXT DEFAULT '',
+          media TEXT DEFAULT '',
+          mediaType TEXT DEFAULT 'image',
+          version TEXT DEFAULT 'v1.0',
+          platform TEXT DEFAULT 'Windows 10/11 (64-bit)',
+          price INTEGER DEFAULT 0,
+          badge TEXT DEFAULT '',
+          downloadLink TEXT DEFAULT '',
+          downloads INTEGER DEFAULT 0,
+          features TEXT DEFAULT '',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`, (err) => {
+          if (!err) {
+            db.get("SELECT count(*) as count FROM software", (err, row) => {
+              if (row && row.count === 0) {
+                console.log('Seeding initial software...');
+                const seedStmt = db.prepare(`INSERT INTO software (id, title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads, features) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+                const sampleDesc = `<h3>Giới thiệu Tổng quan</h3>
+<p><strong>Phần Mềm Quản Lý & Tự Động Hóa MMO Pro</strong> là giải pháp toàn diện được phát triển riêng cho cộng đồng kiếm tiền online (MMO), marketer và các team vận hành nuôi tài khoản số lượng lớn.</p>
+
+<h3>Các Tính Năng Nổi Bật</h3>
+<ul>
+  <li><strong>Điều khiển đa luồng cực nhanh:</strong> Tối ưu hiệu năng CPU và RAM, vận hành đồng thời hàng trăm cửa sổ mượt mà không giật lag.</li>
+  <li><strong>Hệ thống Fake Fingerprint thông minh:</strong> Thay đổi Canvas, WebGL, AudioContext, WebRTC, Geolocation chống phát hiện bởi các thuật toán quét tài khoản.</li>
+  <li><strong>Tích hợp Proxy đa dạng:</strong> Quản lý xoay IP tự động qua TMProxy, TinProxy, ShopLike, Dcom 4G và Proxy tĩnh IPv4/IPv6.</li>
+  <li><strong>Kịch bản kéo thả tự động:</strong> Tự động lướt feed, xem video, tương tác bài viết, đăng nhập hàng loạt với độ trễ ngẫu nhiên mô phỏng người thật 100%.</li>
+  <li><strong>Quản lý cơ sở dữ liệu tập trung:</strong> Sao lưu dữ liệu an toàn, xuất nhập cookie/token dễ dàng chỉ với một cú nhấp chuột.</li>
+</ul>
+
+<h3>Yêu Cầu Hệ Thống</h3>
+<ul>
+  <li><strong>Hệ điều hành:</strong> Windows 10 / 11 (64-bit) hoặc Windows Server 2019/2022.</li>
+  <li><strong>Vi xử lý (CPU):</strong> Intel Core i5 / AMD Ryzen 5 trở lên (Khuyến nghị 6 nhân 12 luồng).</li>
+  <li><strong>Bộ nhớ (RAM):</strong> Tối thiểu 8GB (Đề xuất 16GB - 32GB nếu chạy trên 50 luồng).</li>
+  <li><strong>Ổ cứng:</strong> Tối thiểu 2GB dung lượng trống chuẩn SSD.</li>
+</ul>`;
+
+                const sampleFeatures = JSON.stringify([
+                  "Điều khiển đa luồng tốc độ cao",
+                  "Chống quét Fingerprint độc quyền",
+                  "Tự động xoay Proxy đa dịch vụ",
+                  "Kịch bản mô phỏng người thật 100%",
+                  "Tiết kiệm 80% thời gian vận hành"
+                ]);
+
+                seedStmt.run(
+                  'sw-mmo-pro',
+                  'Phần Mềm Quản Lý & Tự Động Hóa MMO All-In-One Pro',
+                  'Hệ sinh thái tự động hóa tương tác, quản lý hàng nghìn profile và tối ưu hóa quy trình kiếm tiền trực tuyến',
+                  sampleDesc,
+                  'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80',
+                  'image',
+                  'v3.8.2',
+                  'Windows 10/11 (64-bit) / VPS',
+                  0,
+                  'Khuyên Dùng - Mới Nhất',
+                  '#',
+                  185,
+                  sampleFeatures
+                );
+                seedStmt.finalize();
+              }
+            });
+          }
+        });
       }
     });
   }
@@ -406,6 +477,122 @@ app.delete('/api/articles/:id', (req, res) => {
       return;
     }
     res.json({ message: 'Article deleted successfully' });
+  });
+});
+
+// ================= SOFTWARE API =================
+
+// GET all software
+app.get('/api/software', (req, res) => {
+  db.all("SELECT * FROM software ORDER BY created_at DESC", [], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows);
+  });
+});
+
+// GET single software
+app.get('/api/software/:id', (req, res) => {
+  const { id } = req.params;
+  db.get("SELECT * FROM software WHERE id = ?", [id], (err, row) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!row) {
+      res.status(404).json({ error: 'Software not found' });
+      return;
+    }
+    res.json(row);
+  });
+});
+
+// POST new software
+app.post('/api/software', (req, res) => {
+  const { title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, features } = req.body;
+  const id = 'sw' + Date.now();
+
+  const stmt = db.prepare(`INSERT INTO software (id, title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads, features) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+  stmt.run(
+    id,
+    title || 'Phần mềm mới',
+    tagline || '',
+    description || '',
+    media || '',
+    mediaType || 'image',
+    version || 'v1.0',
+    platform || 'Windows 10/11 (64-bit)',
+    price || 0,
+    badge || '',
+    downloadLink || '',
+    0,
+    typeof features === 'string' ? features : JSON.stringify(features || []),
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ id, title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads: 0, features });
+    }
+  );
+  stmt.finalize();
+});
+
+// PUT update software
+app.put('/api/software/:id', (req, res) => {
+  const { id } = req.params;
+  const { title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads, features } = req.body;
+
+  const stmt = db.prepare(`UPDATE software SET title = ?, tagline = ?, description = ?, media = ?, mediaType = ?, version = ?, platform = ?, price = ?, badge = ?, downloadLink = ?, downloads = COALESCE(?, downloads), features = ? WHERE id = ?`);
+  stmt.run(
+    title,
+    tagline || '',
+    description || '',
+    media || '',
+    mediaType || 'image',
+    version || 'v1.0',
+    platform || 'Windows 10/11 (64-bit)',
+    price || 0,
+    badge || '',
+    downloadLink || '',
+    downloads !== undefined ? downloads : null,
+    typeof features === 'string' ? features : JSON.stringify(features || []),
+    id,
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ message: 'Software updated successfully' });
+    }
+  );
+  stmt.finalize();
+});
+
+// DELETE software
+app.delete('/api/software/:id', (req, res) => {
+  const { id } = req.params;
+  db.run("DELETE FROM software WHERE id = ?", [id], function(err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ message: 'Software deleted successfully' });
+  });
+});
+
+// POST increment software download count
+app.post('/api/software/:id/download', (req, res) => {
+  const { id } = req.params;
+  db.run("UPDATE software SET downloads = COALESCE(downloads, 0) + 1 WHERE id = ?", [id], function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    db.get("SELECT downloads FROM software WHERE id = ?", [id], (err2, row) => {
+      res.json({ downloads: row ? row.downloads : 1 });
+    });
   });
 });
 

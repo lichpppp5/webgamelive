@@ -26,6 +26,8 @@ function App() {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
+        <Route path="software" element={<Home defaultCategory="phan-mem" />} />
+        <Route path="phan-mem" element={<Home defaultCategory="phan-mem" />} />
         <Route path="product/:id" element={<ProductDetail />} />
         <Route path="cart" element={<Cart />} />
         <Route path="admin" element={<Admin />} />

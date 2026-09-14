@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon, BarChart2, Globe, Clock, RotateCcw, BookOpen } from 'lucide-react';
+import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon, BarChart2, Globe, Clock, RotateCcw, BookOpen, AppWindow, Video } from 'lucide-react';
 import { useToast, useSettings } from '../context/AppContext';
 import './Admin.css';
 
-const CATEGORIES = ['Tương tác', 'Tools MMO', 'Tools Sưu Tầm', 'Treo AFK'];
+const CATEGORIES = ['Tương tác', 'Tools MMO', 'Tools Sưu Tầm', 'Treo AFK', 'Phần Mềm'];
 
 const StatCard = ({ icon, label, value, color }) => (
   <div className="stat-card" style={{ '--stat-color': color }}>
@@ -58,6 +58,26 @@ const Admin = () => {
   const [articleFormData, setArticleFormData] = useState({ title: '', content: '', thumbnail: '' });
   const [articleImagePreview, setArticleImagePreview] = useState('');
 
+  // Software State
+  const [softwareList, setSoftwareList] = useState([]);
+  const [softwareSearch, setSoftwareSearch] = useState('');
+  const [isSoftwareEditing, setIsSoftwareEditing] = useState(false);
+  const [currentSoftwareId, setCurrentSoftwareId] = useState(null);
+  const [softwareMediaPreview, setSoftwareMediaPreview] = useState('');
+  const [softwareFormData, setSoftwareFormData] = useState({
+    title: '',
+    tagline: '',
+    description: '',
+    media: '',
+    mediaType: 'image',
+    version: 'v1.0',
+    platform: 'Windows 10/11 (64-bit)',
+    price: 0,
+    badge: 'Khuyên Dùng',
+    downloadLink: '',
+    features: ''
+  });
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginLoading(true);
@@ -65,6 +85,7 @@ const Admin = () => {
     if (username === 'admin' && password === 'Chrlghk123#') {
       setIsAuthenticated(true);
       fetchGames();
+      fetchSoftware();
     } else {
       setLoginShake(true);
       showToast('Sai tên đăng nhập hoặc mật khẩu!', 'error');
@@ -117,6 +138,169 @@ const Admin = () => {
       .then(res => res.json())
       .then(data => setArticles(data))
       .catch(err => console.error(err));
+  };
+
+  const fetchSoftware = () => {
+    fetch('/api/software')
+      .then(res => res.json())
+      .then(data => setSoftwareList(data || []))
+      .catch(err => console.error(err));
+  };
+
+  const handleSoftwareInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const newVal = type === 'checkbox' ? checked : value;
+    setSoftwareFormData(prev => ({ ...prev, [name]: newVal }));
+    if (name === 'media') {
+      setSoftwareMediaPreview(value);
+      const isVideo = value.endsWith('.mp4') || value.endsWith('.webm') || value.includes('youtube') || value.includes('youtu.be');
+      if (isVideo) {
+        setSoftwareFormData(prev => ({ ...prev, mediaType: 'video' }));
+      }
+    }
+  };
+
+  const handleSoftwareMediaUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('image', file);
+    fetch('/api/upload', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        if (data.location) {
+          const isVideo = data.location.endsWith('.mp4') || data.location.endsWith('.webm');
+          setSoftwareFormData(prev => ({ 
+            ...prev, 
+            media: data.location,
+            mediaType: isVideo ? 'video' : 'image'
+          }));
+          setSoftwareMediaPreview(data.location);
+          showToast(isVideo ? 'Đã tải lên Video demo phần mềm!' : 'Đã tải lên Ảnh giới thiệu phần mềm!', 'success');
+        }
+      })
+      .catch(() => showToast('Lỗi khi tải file media!', 'error'));
+  };
+
+  const handleSoftwareInsertMediaToDesc = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('image', file);
+    fetch('/api/upload', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        if (data.location) {
+          const isVideo = data.location.endsWith('.mp4') || data.location.endsWith('.webm');
+          const tag = isVideo
+            ? `\n<video src="${data.location}" controls autoPlay loop muted playsInline style="max-width:100%; border-radius:8px; margin: 10px 0;"></video>\n`
+            : `\n<img src="${data.location}" alt="Minh họa tính năng" style="max-width:100%; border-radius:8px; margin: 10px 0;" />\n`;
+          setSoftwareFormData(prev => ({
+            ...prev,
+            description: (prev.description || '') + tag
+          }));
+          showToast(isVideo ? 'Đã chèn Video vào bài giới thiệu!' : 'Đã chèn Ảnh vào bài giới thiệu!', 'success');
+        }
+      })
+      .catch(() => showToast('Lỗi khi tải media!', 'error'));
+  };
+
+  const handleInsertSoftwareSnippet = (snippet) => {
+    setSoftwareFormData(prev => ({
+      ...prev,
+      description: (prev.description || '') + snippet
+    }));
+  };
+
+  const resetSoftwareForm = () => {
+    setIsSoftwareEditing(false);
+    setCurrentSoftwareId(null);
+    setSoftwareMediaPreview('');
+    setSoftwareFormData({
+      title: '',
+      tagline: '',
+      description: '',
+      media: '',
+      mediaType: 'image',
+      version: 'v1.0',
+      platform: 'Windows 10/11 (64-bit)',
+      price: 0,
+      badge: 'Khuyên Dùng',
+      downloadLink: '',
+      features: ''
+    });
+  };
+
+  const handleSoftwareSubmit = (e) => {
+    e.preventDefault();
+    const url = isSoftwareEditing ? `/api/software/${currentSoftwareId}` : '/api/software';
+    const method = isSoftwareEditing ? 'PUT' : 'POST';
+
+    let featuresArray = softwareFormData.features;
+    if (typeof softwareFormData.features === 'string') {
+      featuresArray = softwareFormData.features
+        .split('\n')
+        .map(f => f.trim())
+        .filter(Boolean);
+    }
+
+    fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...softwareFormData,
+        price: Number(softwareFormData.price) || 0,
+        features: JSON.stringify(featuresArray)
+      })
+    })
+      .then(res => res.json())
+      .then(() => {
+        fetchSoftware();
+        resetSoftwareForm();
+        showToast(isSoftwareEditing ? '✅ Đã cập nhật thông tin phần mềm!' : '✅ Đã thêm sản phẩm phần mềm mới!', 'success');
+      })
+      .catch(() => showToast('Lỗi khi lưu phần mềm!', 'error'));
+  };
+
+  const handleSoftwareEdit = (sw) => {
+    setIsSoftwareEditing(true);
+    setCurrentSoftwareId(sw.id);
+    let parsedFeatures = sw.features || '';
+    try {
+      if (Array.isArray(JSON.parse(sw.features))) {
+        parsedFeatures = JSON.parse(sw.features).join('\n');
+      }
+    } catch {
+      // ignore
+    }
+    setSoftwareFormData({
+      title: sw.title || '',
+      tagline: sw.tagline || '',
+      description: sw.description || '',
+      media: sw.media || '',
+      mediaType: sw.mediaType || 'image',
+      version: sw.version || 'v1.0',
+      platform: sw.platform || 'Windows 10/11 (64-bit)',
+      price: sw.price || 0,
+      badge: sw.badge || '',
+      downloadLink: sw.downloadLink || '',
+      features: parsedFeatures
+    });
+    setSoftwareMediaPreview(sw.media || '');
+    if (formTopRef.current) {
+      formTopRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleSoftwareDelete = (id, title) => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa phần mềm "${title}"?`)) {
+      fetch(`/api/software/${id}`, { method: 'DELETE' })
+        .then(() => {
+          fetchSoftware();
+          showToast('Đã xóa phần mềm thành công!', 'info');
+        })
+        .catch(() => showToast('Lỗi khi xóa phần mềm!', 'error'));
+    }
   };
 
   const handleInputChange = (e) => {
@@ -338,6 +522,11 @@ const Admin = () => {
     a.title?.toLowerCase().includes(articleSearch.toLowerCase())
   );
 
+  const filteredSoftware = softwareList.filter(s =>
+    s.title?.toLowerCase().includes(softwareSearch.toLowerCase()) ||
+    s.tagline?.toLowerCase().includes(softwareSearch.toLowerCase())
+  );
+
   const hotCount = games.filter(g => g.isHot).length;
 
   // ── LOGIN SCREEN ──
@@ -430,6 +619,13 @@ const Admin = () => {
           style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'products' ? 'var(--primary)' : 'transparent', color: activeTab === 'products' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <Package size={18} /> Quản lý Công cụ
+        </button>
+        <button 
+          className={`admin-tab-btn ${activeTab === 'software' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('software'); fetchSoftware(); }}
+          style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'software' ? 'var(--primary)' : 'transparent', color: activeTab === 'software' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <AppWindow size={18} /> Quản lý Phần Mềm
         </button>
         <button 
           className={`admin-tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
@@ -979,6 +1175,304 @@ const Admin = () => {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'software' && (
+        <div className="admin-content" ref={formTopRef}>
+          {/* Form Panel */}
+          <div className="admin-form-panel">
+            <h2 className="panel-title" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AppWindow size={22} color="var(--primary)" />
+              {isSoftwareEditing ? 'Chỉnh Sửa Sản Phẩm Phần Mềm' : 'Thêm Sản Phẩm Phần Mềm Mới'}
+            </h2>
+            <form onSubmit={handleSoftwareSubmit} className="product-form">
+              <div className="form-group">
+                <label className="form-label">Tên Phần Mềm *</label>
+                <input 
+                  className="form-input" 
+                  type="text" 
+                  name="title" 
+                  value={softwareFormData.title} 
+                  onChange={handleSoftwareInputChange} 
+                  placeholder="Ví dụ: Phần Mềm Nuôi Nick & Tự Động Hóa MMO All-In-One" 
+                  required 
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Slogan / Mô Tả Ngắn Tóm Tắt</label>
+                <input 
+                  className="form-input" 
+                  type="text" 
+                  name="tagline" 
+                  value={softwareFormData.tagline} 
+                  onChange={handleSoftwareInputChange} 
+                  placeholder="Ví dụ: Hệ thống tự động hóa đa luồng, chống quét fingerprint thông minh" 
+                />
+              </div>
+
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Phiên Bản (Version)</label>
+                  <input 
+                    className="form-input" 
+                    type="text" 
+                    name="version" 
+                    value={softwareFormData.version} 
+                    onChange={handleSoftwareInputChange} 
+                    placeholder="vd: v3.8.0" 
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Hệ Điều Hành Hỗ Trợ</label>
+                  <input 
+                    className="form-input" 
+                    type="text" 
+                    name="platform" 
+                    value={softwareFormData.platform} 
+                    onChange={handleSoftwareInputChange} 
+                    placeholder="vd: Windows 10/11 (64-bit) / VPS" 
+                  />
+                </div>
+              </div>
+
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Huy Hiệu (Badge)</label>
+                  <input 
+                    className="form-input" 
+                    type="text" 
+                    name="badge" 
+                    value={softwareFormData.badge} 
+                    onChange={handleSoftwareInputChange} 
+                    placeholder="vd: Khuyên Dùng - Mới Nhất, HOT, Bản Quyền..." 
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Mức Phí (0 = Miễn phí)</label>
+                  <input 
+                    className="form-input" 
+                    type="number" 
+                    name="price" 
+                    value={softwareFormData.price} 
+                    onChange={handleSoftwareInputChange} 
+                    placeholder="0" 
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Link Tải Phần Mềm (Google Drive / Fshare / Trực tiếp)</label>
+                <input 
+                  className="form-input" 
+                  type="text" 
+                  name="downloadLink" 
+                  value={softwareFormData.downloadLink} 
+                  onChange={handleSoftwareInputChange} 
+                  placeholder="https://drive.google.com/... hoặc link tải trực tiếp" 
+                />
+              </div>
+
+              {/* Media: Video or Image */}
+              <div className="form-group">
+                <label className="form-label">
+                  Media Giới Thiệu (Video hoặc Ảnh)
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-400)', marginLeft: '8px' }}>
+                    (Hỗ trợ file video .mp4/.webm hoặc link YouTube hoặc ảnh banner)
+                  </span>
+                </label>
+                <div className="image-upload-row" style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                  <input 
+                    className="form-input" 
+                    type="text" 
+                    name="media" 
+                    value={softwareFormData.media} 
+                    onChange={handleSoftwareInputChange} 
+                    placeholder="Dán link Video / Ảnh hoặc link YouTube hoặc bấm Tải lên..." 
+                    style={{ flex: 1 }} 
+                  />
+                  <label className="btn-outline upload-btn" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Upload size={16} /> Tải file lên
+                    <input type="file" accept="video/mp4,video/webm,image/*" style={{ display: 'none' }} onChange={handleSoftwareMediaUpload} />
+                  </label>
+                </div>
+
+                {/* Media Preview */}
+                {softwareMediaPreview && (
+                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-300)', marginBottom: '0.5rem' }}>Xem trước Media:</div>
+                    {(softwareFormData.mediaType === 'video' || softwareMediaPreview.endsWith('.mp4') || softwareMediaPreview.endsWith('.webm')) ? (
+                      <video src={softwareMediaPreview} controls autoPlay muted loop playsInline style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '6px' }} />
+                    ) : (softwareMediaPreview.includes('youtube') || softwareMediaPreview.includes('youtu.be')) ? (
+                      <p style={{ color: 'var(--primary)', margin: 0, fontSize: '0.85rem' }}>▶️ Nhúng video YouTube hợp lệ</p>
+                    ) : (
+                      <img src={softwareMediaPreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain', borderRadius: '6px' }} onError={() => setSoftwareMediaPreview('')} />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Chỗ để viết bài giới thiệu chi tiết phần mềm */}
+              <div className="form-group">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <label className="form-label" style={{ margin: 0 }}>
+                    Khu Vực Soạn Thảo Bài Giới Thiệu Phần Mềm (Hỗ trợ HTML & Định Dạng)
+                  </label>
+                  <label className="btn-outline" style={{ cursor: 'pointer', fontSize: '0.78rem', padding: '0.25rem 0.6rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Upload size={13} /> Chèn Ảnh / Video vào bài
+                    <input type="file" accept="video/mp4,video/webm,image/*" style={{ display: 'none' }} onChange={handleSoftwareInsertMediaToDesc} />
+                  </label>
+                </div>
+
+                {/* Fast Snippet Buttons */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                  <button type="button" className="btn-ghost" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }} onClick={() => handleInsertSoftwareSnippet('\n<h3>Tiêu đề mục mới</h3>\n')}>
+                    + Tiêu đề (h3)
+                  </button>
+                  <button type="button" className="btn-ghost" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }} onClick={() => handleInsertSoftwareSnippet('<strong>chữ in đậm</strong>')}>
+                    + In đậm (strong)
+                  </button>
+                  <button type="button" className="btn-ghost" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }} onClick={() => handleInsertSoftwareSnippet('\n<ul>\n  <li>Tính năng nổi bật 1</li>\n  <li>Tính năng nổi bật 2</li>\n</ul>\n')}>
+                    + Danh sách (ul)
+                  </button>
+                  <button type="button" className="btn-ghost" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }} onClick={() => handleInsertSoftwareSnippet('\n<h3>Yêu Cầu Cấu Hình</h3>\n<ul>\n  <li><strong>HĐH:</strong> Windows 10/11 64-bit</li>\n  <li><strong>RAM:</strong> 8GB trở lên</li>\n  <li><strong>CPU:</strong> Core i5 hoặc tương đương</li>\n</ul>\n')}>
+                    + Khung Cấu Hình
+                  </button>
+                </div>
+
+                <textarea 
+                  className="form-textarea" 
+                  name="description" 
+                  value={softwareFormData.description} 
+                  onChange={handleSoftwareInputChange} 
+                  style={{ minHeight: '340px', fontFamily: 'monospace', fontSize: '0.9rem', lineHeight: '1.6' }} 
+                  placeholder="Viết bài giới thiệu chi tiết về sản phẩm phần mềm, hướng dẫn cài đặt, tính năng giải pháp..."
+                />
+              </div>
+
+              {/* Features list */}
+              <div className="form-group">
+                <label className="form-label">
+                  Các Đặc Điểm Nổi Bật (Mỗi dòng một tính năng ngắn gọn hiển thị dạng thẻ)
+                </label>
+                <textarea 
+                  className="form-textarea" 
+                  name="features" 
+                  value={softwareFormData.features} 
+                  onChange={handleSoftwareInputChange} 
+                  rows={4}
+                  placeholder="Điều khiển đa luồng tốc độ cao&#10;Chống quét Fingerprint độc quyền&#10;Tự động xoay Proxy đa dịch vụ"
+                />
+              </div>
+
+              <div className="form-actions" style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button type="submit" className="btn-primary" style={{ flex: 1, padding: '0.8rem' }}>
+                  {isSoftwareEditing ? 'Cập Nhật Phần Mềm' : 'Lưu & Thêm Phần Mềm'}
+                </button>
+                {isSoftwareEditing && (
+                  <button type="button" className="btn-ghost" onClick={resetSoftwareForm} style={{ padding: '0.8rem 1.25rem' }}>
+                    Hủy Bỏ
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* List Panel */}
+          <div className="admin-list-panel">
+            <div className="list-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <h2 className="panel-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AppWindow size={18} color="var(--primary)" />
+                Danh Sách Sản Phẩm Phần Mềm ({filteredSoftware.length})
+              </h2>
+              <div className="search-box" style={{ width: '220px' }}>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="Tìm tên phần mềm..." 
+                  value={softwareSearch} 
+                  onChange={(e) => setSoftwareSearch(e.target.value)} 
+                  style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }} 
+                />
+              </div>
+            </div>
+
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Media</th>
+                    <th>Tên Phần Mềm</th>
+                    <th>Phiên Bản</th>
+                    <th>Mức Phí</th>
+                    <th>Lượt Tải</th>
+                    <th style={{ textAlign: 'center' }}>Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSoftware.length > 0 ? (
+                    filteredSoftware.map(sw => (
+                      <tr key={sw.id} className="admin-row">
+                        <td>
+                          <div className="admin-img-wrap" style={{ width: '65px', height: '42px', background: '#000', borderRadius: '4px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {sw.media ? (
+                              (sw.mediaType === 'video' || sw.media.endsWith('.mp4') || sw.media.endsWith('.webm')) ? (
+                                <video src={sw.media} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                <img src={sw.media} alt={sw.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              )
+                            ) : (
+                              <AppWindow size={20} color="var(--text-400)" />
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          <strong style={{ color: 'var(--text-100)', display: 'block', fontSize: '0.92rem' }}>{sw.title}</strong>
+                          {sw.tagline && <span style={{ fontSize: '0.78rem', color: 'var(--text-400)', display: 'block', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sw.tagline}</span>}
+                        </td>
+                        <td>
+                          <span style={{ background: 'rgba(0, 207, 251, 0.1)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>
+                            {sw.version || 'v1.0'}
+                          </span>
+                        </td>
+                        <td>
+                          {sw.price > 0 ? (
+                            <span style={{ fontWeight: 600, color: 'var(--text-100)', fontSize: '0.88rem' }}>
+                              {sw.price.toLocaleString('vi-VN')} đ
+                            </span>
+                          ) : (
+                            <span style={{ color: 'var(--secondary)', fontSize: '0.82rem', fontWeight: 700 }}>
+                              Miễn Phí
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ color: 'var(--text-300)', fontSize: '0.88rem' }}>
+                          🔥 {sw.downloads || 0}
+                        </td>
+                        <td>
+                          <div className="action-cells" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                            <button className="btn-edit" onClick={() => handleSoftwareEdit(sw)} title="Chỉnh sửa phần mềm">
+                              <Edit size={15} />
+                            </button>
+                            <button className="btn-delete" onClick={() => handleSoftwareDelete(sw.id, sw.title)} title="Xóa phần mềm">
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-400)' }}>
+                        Chưa có sản phẩm phần mềm nào. Hãy thêm sản phẩm đầu tiên!
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
