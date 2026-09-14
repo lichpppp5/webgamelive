@@ -21,6 +21,8 @@ import ContactModal from './ContactModal';
 import { useSettings } from '../context/AppContext';
 import './HeroBanner.css';
 
+const SLIDE_INTERVAL = 4500;
+
 const DEFAULT_FALLBACK_SLIDES = [
   {
     id: 'game-bar-dj',
