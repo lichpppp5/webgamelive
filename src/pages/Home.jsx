@@ -1,11 +1,31 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useOutletContext, useSearchParams } from 'react-router-dom';
+import { useOutletContext, useSearchParams, useNavigate } from 'react-router-dom';
+import { 
+  Sparkles, 
+  Flame, 
+  Layers, 
+  Wrench, 
+  Gamepad2, 
+  Cpu, 
+  AppWindow, 
+  Clock, 
+  ShieldCheck, 
+  Zap, 
+  RefreshCw, 
+  Headphones, 
+  ArrowRight, 
+  MessageSquare, 
+  CheckCircle2, 
+  Star, 
+  Download,
+  Filter
+} from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import Sidebar from '../components/Sidebar';
 import HeroBanner from '../components/HeroBanner';
 import ArticleSlider from '../components/ArticleSlider';
 import DisclaimerSection from '../components/DisclaimerSection';
 import SoftwareShowcase from '../components/SoftwareShowcase';
+import ContactModal from '../components/ContactModal';
 import { categories } from '../data/mockData';
 import { useSettings } from '../context/AppContext';
 import './Home.css';
@@ -13,12 +33,12 @@ import './Home.css';
 // Skeleton loading card
 const SkeletonCard = () => (
   <div className="skeleton-card">
-    <div className="skeleton" style={{ aspectRatio: '1/1', width: '100%', borderRadius: 0 }} />
-    <div className="skeleton-info">
+    <div className="skeleton" style={{ aspectRatio: '16/10', width: '100%', borderRadius: '12px' }} />
+    <div className="skeleton-info" style={{ padding: '1rem' }}>
       <div className="skeleton" style={{ height: '12px', width: '60px', borderRadius: '4px' }} />
-      <div className="skeleton" style={{ height: '16px', width: '90%', borderRadius: '4px' }} />
-      <div className="skeleton" style={{ height: '14px', width: '70%', borderRadius: '4px' }} />
-      <div className="skeleton" style={{ height: '36px', width: '100%', borderRadius: '8px', marginTop: '0.5rem' }} />
+      <div className="skeleton" style={{ height: '18px', width: '90%', borderRadius: '4px', marginTop: '8px' }} />
+      <div className="skeleton" style={{ height: '14px', width: '70%', borderRadius: '4px', marginTop: '6px' }} />
+      <div className="skeleton" style={{ height: '38px', width: '100%', borderRadius: '8px', marginTop: '1rem' }} />
     </div>
   </div>
 );
@@ -34,6 +54,7 @@ const Home = ({ defaultCategory = 'all' }) => {
   const outletCtx = useOutletContext();
   const { contactSettings } = useSettings();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const searchQuery = outletCtx?.searchQuery || '';
 
   const initialCat = searchParams.get('category') || defaultCategory;
@@ -41,6 +62,7 @@ const Home = ({ defaultCategory = 'all' }) => {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState('newest');
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   // Software showcase data
   const [softwareList, setSoftwareList] = useState([]);
@@ -83,13 +105,25 @@ const Home = ({ defaultCategory = 'all' }) => {
       });
   }, []);
 
+  const handleCategoryChange = (catId) => {
+    setActiveCategory(catId);
+    setSearchParams(catId === 'all' ? {} : { category: catId });
+    const section = document.getElementById('product-section');
+    if (section) section.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const filteredAndSorted = useMemo(() => {
     let result = [...games];
 
     // Category filter
-    if (activeCategory !== 'all') {
+    if (activeCategory !== 'all' && activeCategory !== 'phan-mem') {
       const catName = categories.find(c => c.id === activeCategory)?.name;
-      result = result.filter(g => g.category === catName);
+      result = result.filter(g => {
+        if (activeCategory === 'tools-tien-ich') {
+          return g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO';
+        }
+        return g.category === catName;
+      });
     }
 
     // Search filter
@@ -115,126 +149,388 @@ const Home = ({ defaultCategory = 'all' }) => {
         break;
       case 'newest':
       default:
-        // Keep natural order (latest added first from API)
         break;
     }
 
     return result;
   }, [games, activeCategory, searchQuery, sortBy]);
 
-  // Công cụ HOT — dùng cho slideshow HeroBanner
+  // Flagship Hot items for Spotlight
   const hotGames = useMemo(() => games.filter(g => g.isHot), [games]);
+  const spotlightItems = useMemo(() => {
+    if (hotGames.length >= 3) return hotGames.slice(0, 3);
+    return games.slice(0, 3);
+  }, [hotGames, games]);
+
+  // Helper icons for categories
+  const getCategoryIcon = (id) => {
+    switch (id) {
+      case 'all': return <Layers size={16} />;
+      case 'phan-mem': return <AppWindow size={16} />;
+      case 'tuong-tac': return <Gamepad2 size={16} />;
+      case 'tools-tien-ich': return <Wrench size={16} />;
+      case 'tools-suu-tam': return <Cpu size={16} />;
+      case 'treo-afk': return <Clock size={16} />;
+      default: return <Sparkles size={16} />;
+    }
+  };
+
+  const getCategoryCount = (id) => {
+    if (id === 'all') return games.length;
+    if (id === 'phan-mem') return softwareList.length;
+    if (id === 'tools-tien-ich') {
+      return games.filter(g => g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO').length;
+    }
+    const catName = categories.find(c => c.id === id)?.name;
+    return games.filter(g => g.category === catName).length;
+  };
 
   return (
-    <div className="home-page page-enter">
-      {/* Hero Banner Section (Full Width / Wide) */}
-      <div className="hero-section-wrapper">
-        <HeroBanner hotGames={hotGames} totalProducts={games.length} />
-      </div>
+    <div className="home-showcase-page page-enter">
+      {/* 1. Hero Showcase Section */}
+      <HeroBanner 
+        hotGames={hotGames} 
+        totalProducts={games.length + softwareList.length} 
+        onSelectCategory={handleCategoryChange}
+      />
 
-      <div className="container" id="product-section">
-        <div className="dashboard-layout">
-          <Sidebar
-            activeCategory={activeCategory}
-            setActiveCategory={(catId) => {
-              setActiveCategory(catId);
-              if (catId === 'phan-mem') {
-                const section = document.getElementById('product-section');
-                if (section) section.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-            games={games}
-            softwareCount={softwareList.length}
-          />
+      {/* 2. Featured Spotlight / Bento Grid (Flagship Showcase) */}
+      {spotlightItems.length > 0 && activeCategory === 'all' && !searchQuery && (
+        <section className="spotlight-showcase-section container">
+          <div className="section-head-center">
+            <div className="section-pill-tag">
+              <Flame size={14} className="icon-pulse" />
+              <span>SẢN PHẨM &amp; PHẦN MỀM TIÊU BIỂU</span>
+            </div>
+            <h2 className="section-title">Giải Pháp Đột Phá Được Ưa Chuộng Nhất</h2>
+            <p className="section-desc">
+              Những công cụ và phần mềm tiện ích có lượng tải cao nhất, được kiểm duyệt độ ổn định và mang lại giá trị thực tế vượt trội.
+            </p>
+          </div>
 
-          <div className="main-content-area">
-            {activeCategory === 'phan-mem' ? (
-              <SoftwareShowcase 
-                softwareList={softwareList}
-                loading={softwareLoading}
-                onReload={fetchSoftware}
-              />
-            ) : (
-              <>
-                {/* Top Bar */}
-                <div className="top-bar">
-                  <div className="result-info">
-                    {loading ? (
-                      <div className="skeleton" style={{ height: '16px', width: '160px', borderRadius: '4px' }} />
-                    ) : (
-                      <>
-                        {searchQuery && (
-                          <span className="search-tag">
-                            🔍 "{searchQuery}"
-                          </span>
-                        )}
-                        <span className="result-count">
-                          <strong style={{ color: 'var(--primary)' }}>{filteredAndSorted.length}</strong> công cụ
-                        </span>
-                      </>
-                    )}
+          <div className="bento-grid">
+            {/* Bento Card 1: Primary Spotlight (Wide) */}
+            {spotlightItems[0] && (
+              <div 
+                className="bento-card bento-primary"
+                onClick={() => navigate(`/product/${spotlightItems[0].id}`)}
+              >
+                <div className="bento-content">
+                  <div className="bento-badge-row">
+                    <span className="bento-tag flame">🔥 ĐƯỢC CHỌN NHIỀU NHẤT</span>
+                    <span className="bento-category">{spotlightItems[0].category}</span>
                   </div>
-
-                  {contactSettings?.marqueeText && (
-                    <div className="topbar-marquee-container">
-                      <div className="topbar-marquee-track">
-                        <div className="topbar-marquee-content">{contactSettings.marqueeText}</div>
-                        <div className="topbar-marquee-content">{contactSettings.marqueeText}</div>
-                      </div>
+                  <h3 className="bento-title">{spotlightItems[0].title}</h3>
+                  <p className="bento-desc">
+                    {spotlightItems[0].description?.replace(/<[^>]*>?/gm, '').slice(0, 110)}...
+                  </p>
+                  <div className="bento-features-mini">
+                    <div className="mini-feat">
+                      <CheckCircle2 size={14} />
+                      <span>Hiệu năng mượt mà 100%</span>
                     </div>
-                  )}
-
-                  <div className="top-bar-actions">
-                    <select
-                      className="sort-select"
-                      value={sortBy}
-                      onChange={e => setSortBy(e.target.value)}
-                      id="sort-select"
-                      aria-label="Sắp xếp công cụ"
-                    >
-                      {SORT_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
+                    <div className="mini-feat">
+                      <CheckCircle2 size={14} />
+                      <span>Hỗ trợ cài đặt từ xa 24/7</span>
+                    </div>
+                  </div>
+                  <div className="bento-action-row">
+                    <button type="button" className="btn-bento-primary">
+                      <span>Xem Chi Tiết Ngay</span>
+                      <ArrowRight size={16} />
+                    </button>
+                    <span className="bento-downloads">
+                      <Download size={14} />
+                      {(spotlightItems[0].downloads || 850).toLocaleString()} lượt tải
+                    </span>
                   </div>
                 </div>
-
-                {/* Product Grid */}
-                {loading ? (
-                  <div className="product-grid">
-                    {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
-                  </div>
-                ) : filteredAndSorted.length > 0 ? (
-                  <div className="product-grid">
-                    {filteredAndSorted.map((game, i) => (
-                      <div key={game.id} className="card-enter" style={{ animationDelay: `${i * 0.05}s` }}>
-                        <ProductCard product={game} />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="empty-state">
-                    <div className="empty-icon">🔍</div>
-                    <h3>Không tìm thấy công cụ</h3>
-                    <p>
-                      {searchQuery
-                        ? `Không có kết quả cho "${searchQuery}". Thử từ khóa khác nhé!`
-                        : 'Danh mục này chưa có công cụ nào.'}
-                    </p>
-                  </div>
-                )}
-              </>
+                <div className="bento-media-wrap">
+                  <img 
+                    src={spotlightItems[0].image} 
+                    alt={spotlightItems[0].title} 
+                    className="bento-img"
+                  />
+                  <div className="bento-glow-overlay" />
+                </div>
+              </div>
             )}
 
-            {/* Article Slider Section */}
-            <ArticleSlider />
+            {/* Bento Card 2 */}
+            {spotlightItems[1] && (
+              <div 
+                className="bento-card bento-secondary"
+                onClick={() => navigate(`/product/${spotlightItems[1].id}`)}
+              >
+                <div className="bento-media-top">
+                  <img 
+                    src={spotlightItems[1].image} 
+                    alt={spotlightItems[1].title} 
+                    className="bento-img"
+                  />
+                  <span className="bento-tag cyan">⚡ Tối Ưu Tốc Độ</span>
+                </div>
+                <div className="bento-content-compact">
+                  <span className="bento-category">{spotlightItems[1].category}</span>
+                  <h4 className="bento-sub-title">{spotlightItems[1].title}</h4>
+                  <div className="bento-compact-footer">
+                    <span className="rating-pill">⭐ 4.9</span>
+                    <span className="bento-link-text">Khám phá →</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
-            {/* Disclaimer Section */}
-            <DisclaimerSection />
+            {/* Bento Card 3 */}
+            {spotlightItems[2] && (
+              <div 
+                className="bento-card bento-secondary"
+                onClick={() => navigate(`/product/${spotlightItems[2].id}`)}
+              >
+                <div className="bento-media-top">
+                  <img 
+                    src={spotlightItems[2].image} 
+                    alt={spotlightItems[2].title} 
+                    className="bento-img"
+                  />
+                  <span className="bento-tag green">🛡️ An Toàn &amp; Ổn Định</span>
+                </div>
+                <div className="bento-content-compact">
+                  <span className="bento-category">{spotlightItems[2].category}</span>
+                  <h4 className="bento-sub-title">{spotlightItems[2].title}</h4>
+                  <div className="bento-compact-footer">
+                    <span className="rating-pill">⭐ 4.8</span>
+                    <span className="bento-link-text">Khám phá →</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
+      {/* 3. Catalog Section with Modern Pill Tabs */}
+      <section className="catalog-showcase-section container" id="product-section">
+        <div className="catalog-section-header">
+          <div className="catalog-header-left">
+            <div className="section-pill-tag">
+              <Filter size={14} />
+              <span>DANH MỤC TRỰC TUYẾN</span>
+            </div>
+            <h2 className="catalog-title">Kho Sản Phẩm &amp; Bộ Sưu Tập Công Cụ</h2>
+          </div>
+
+          {contactSettings?.marqueeText && (
+            <div className="catalog-marquee-badge">
+              <span className="marquee-dot" />
+              <div className="marquee-text-scroll">
+                <span>{contactSettings.marqueeText}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Modern Pill Tabs Category Filter */}
+        <div className="category-pills-bar">
+          {categories.map(cat => {
+            const isActive = activeCategory === cat.id;
+            const count = getCategoryCount(cat.id);
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                className={`cat-pill-btn ${isActive ? 'active' : ''}`}
+                onClick={() => handleCategoryChange(cat.id)}
+              >
+                <span className="cat-pill-icon">{getCategoryIcon(cat.id)}</span>
+                <span className="cat-pill-name">{cat.name}</span>
+                {cat.id === 'phan-mem' && <span className="cat-hot-pill">Hot</span>}
+                <span className="cat-pill-count">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* View Switcher: Software Showcase or Product Grid */}
+        {activeCategory === 'phan-mem' ? (
+          <div className="software-view-wrapper">
+            <SoftwareShowcase 
+              softwareList={softwareList}
+              loading={softwareLoading}
+              onReload={fetchSoftware}
+            />
+          </div>
+        ) : (
+          <div className="catalog-content-wrapper">
+            {/* Filter Sub-Bar */}
+            <div className="catalog-sub-bar">
+              <div className="catalog-results-count">
+                {searchQuery ? (
+                  <span className="search-query-tag">
+                    🔍 Kết quả cho: <strong>"{searchQuery}"</strong>
+                  </span>
+                ) : (
+                  <span>
+                    Đang hiển thị <strong>{filteredAndSorted.length}</strong> công cụ
+                  </span>
+                )}
+              </div>
+
+              <div className="catalog-sort-wrap">
+                <select
+                  className="catalog-sort-select"
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value)}
+                  id="sort-select"
+                  aria-label="Sắp xếp danh sách"
+                >
+                  {SORT_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Product Grid */}
+            {loading ? (
+              <div className="product-showcase-grid">
+                {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
+              </div>
+            ) : filteredAndSorted.length > 0 ? (
+              <div className="product-showcase-grid">
+                {filteredAndSorted.map((game, i) => (
+                  <div key={game.id} className="card-enter" style={{ animationDelay: `${i * 0.04}s` }}>
+                    <ProductCard product={game} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-catalog-state">
+                <div className="empty-icon">🔍</div>
+                <h3>Chưa tìm thấy công cụ phù hợp</h3>
+                <p>
+                  {searchQuery
+                    ? `Không có kết quả nào khớp với "${searchQuery}". Hãy thử tìm với từ khóa khác.`
+                    : 'Danh mục này hiện chưa có công cụ nào.'}
+                </p>
+                <button 
+                  type="button" 
+                  className="btn-primary" 
+                  onClick={() => handleCategoryChange('all')}
+                  style={{ marginTop: '1rem' }}
+                >
+                  Xem tất cả công cụ
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* 4. Why Choose Us (Ưu Điểm Vượt Trội - 4 Trụ Cột) */}
+      <section className="features-showcase-section container" id="features-section">
+        <div className="section-head-center">
+          <div className="section-pill-tag">
+            <ShieldCheck size={14} />
+            <span>UY TÍN &amp; CHẤT LƯỢNG HÀNG ĐẦU</span>
+          </div>
+          <h2 className="section-title">Tại Sao Khách Hàng Lựa Chọn TOOL LIVE?</h2>
+          <p className="section-desc">
+            Chúng tôi cam kết mang tới những giải pháp tối ưu nhất, vận hành bền bỉ và đồng hành hỗ trợ kỹ thuật lâu dài.
+          </p>
+        </div>
+
+        <div className="features-four-grid">
+          <div className="feature-modern-card">
+            <div className="feat-icon-bubble cyan">
+              <Zap size={24} />
+            </div>
+            <h3 className="feat-card-title">Hiệu Năng Cực Đại</h3>
+            <p className="feat-card-desc">
+              Kiến trúc thuật toán đa luồng tối ưu, vận hành ổn định 24/7 mà không làm ngốn CPU hay dung lượng bộ nhớ RAM máy tính.
+            </p>
+          </div>
+
+          <div className="feature-modern-card">
+            <div className="feat-icon-bubble green">
+              <ShieldCheck size={24} />
+            </div>
+            <h3 className="feat-card-title">An Toàn Tuyệt Đối</h3>
+            <p className="feat-card-desc">
+              Mọi công cụ và phần mềm đều được quét kiểm tra mã độc qua VirusTotal trước khi đăng tải, nói không với backdoor.
+            </p>
+          </div>
+
+          <div className="feature-modern-card">
+            <div className="feat-icon-bubble purple">
+              <RefreshCw size={24} />
+            </div>
+            <h3 className="feat-card-title">Cập Nhật Trọn Đời</h3>
+            <p className="feat-card-desc">
+              Đội ngũ liên tục bảo trì, khắc phục lỗi thuật toán và bổ sung tính năng mới thường xuyên theo sự biến động của thị trường.
+            </p>
+          </div>
+
+          <div className="feature-modern-card">
+            <div className="feat-icon-bubble orange">
+              <Headphones size={24} />
+            </div>
+            <h3 className="feat-card-title">Hỗ Trợ Kỹ Thuật 24/7</h3>
+            <p className="feat-card-desc">
+              Kỹ thuật viên nhiệt tình hỗ trợ cài đặt, cấu hình trực tiếp qua Ultraview / Zalo / Telegram bất kể ngày đêm.
+            </p>
           </div>
         </div>
+      </section>
+
+      {/* 5. Custom Tool Request CTA Banner */}
+      <section className="cta-banner-section container">
+        <div className="cta-banner-card">
+          <div className="cta-banner-content">
+            <span className="cta-tag">🚀 DỊCH VỤ LẬP TRÌNH CHUYÊN NGHIỆP</span>
+            <h2 className="cta-heading">Cần Phát Triển Tool, Game Hoặc Phần Mềm Theo Yêu Cầu Riêng?</h2>
+            <p className="cta-paragraph">
+              Bạn có ý tưởng độc đáo hoặc quy trình làm việc phức tạp cần tự động hóa? Đội ngũ lập trình viên chuyên nghiệp của chúng tôi sẵn sàng xây dựng giải pháp riêng biệt tối ưu theo đúng nhu cầu của bạn.
+            </p>
+            <div className="cta-btn-group">
+              <button 
+                type="button" 
+                className="btn-cta-white" 
+                onClick={() => setIsContactModalOpen(true)}
+              >
+                <MessageSquare size={17} />
+                <span>Liên Hệ Đặt Hàng Ngay</span>
+              </button>
+              <button 
+                type="button" 
+                className="btn-cta-glass" 
+                onClick={() => handleCategoryChange('phan-mem')}
+              >
+                <span>Xem Demo Phần Mềm</span>
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+          <div className="cta-banner-glow" />
+        </div>
+      </section>
+
+      {/* 6. Articles & Documentation Slider */}
+      <div className="container">
+        <ArticleSlider />
       </div>
+
+      {/* 7. Disclaimer Section */}
+      <div className="container">
+        <DisclaimerSection />
+      </div>
+
+      {/* Contact Support Modal */}
+      <ContactModal 
+        isOpen={isContactModalOpen} 
+        onClose={() => setIsContactModalOpen(false)} 
+        productTitle="Yêu cầu lập trình công cụ / phần mềm theo yêu cầu"
+      />
     </div>
   );
 };
