@@ -569,6 +569,43 @@
   cursor: pointer;
 }
 
+/* View Mode Toggle for Software */
+.catalog-view-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-800);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 4px;
+}
+
+.view-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-300);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-mode-btn:hover {
+  color: var(--text-100);
+}
+
+.view-mode-btn.active {
+  background: var(--primary);
+  color: #000000;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 242, 254, 0.25);
+}
+
 /* Product Showcase Grid */
 .product-showcase-grid {
   display: grid;

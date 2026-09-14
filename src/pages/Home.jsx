@@ -19,7 +19,9 @@ import {
   Star, 
   Download,
   Filter,
-  Laptop
+  Laptop,
+  LayoutGrid,
+  Monitor
 } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import HeroBanner from '../components/HeroBanner';
@@ -44,17 +46,26 @@ const SkeletonCard = () => (
   </div>
 );
 
+// Helper to extract YouTube thumbnail
+const getYouTubeThumbnail = (url) => {
+  if (!url) return null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : null;
+};
+
 // Bulletproof media card with fallback for spotlight items
 const SpotlightMediaCard = ({ src, tag, badgeClass = 'cyan' }) => {
   const [hasError, setHasError] = useState(false);
-  const isVideo = src && (src.endsWith('.mp4') || src.endsWith('.webm'));
+  const ytThumb = getYouTubeThumbnail(src);
+  const isVideo = !ytThumb && src && (src.endsWith('.mp4') || src.endsWith('.webm'));
+  const finalSrc = ytThumb || src;
 
   return (
     <div className="spotlight-media-wrap">
-      {!hasError && src ? (
+      {!hasError && finalSrc ? (
         isVideo ? (
           <video
-            src={src}
+            src={finalSrc}
             autoPlay
             loop
             muted
@@ -64,7 +75,7 @@ const SpotlightMediaCard = ({ src, tag, badgeClass = 'cyan' }) => {
           />
         ) : (
           <img
-            src={src}
+            src={finalSrc}
             alt=""
             className="spotlight-img"
             onError={() => setHasError(true)}
@@ -109,6 +120,7 @@ const Home = ({ defaultCategory = 'all' }) => {
   // Software showcase data
   const [softwareList, setSoftwareList] = useState([]);
   const [softwareLoading, setSoftwareLoading] = useState(true);
+  const [softwareViewMode, setSoftwareViewMode] = useState('grid'); // 'grid' | 'showcase'
 
   const fetchSoftware = () => {
     fetch('/api/software')
@@ -154,15 +166,46 @@ const Home = ({ defaultCategory = 'all' }) => {
     if (section) section.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Combine products and software into a unified catalog
+  const allCatalogItems = useMemo(() => {
+    const list = [...games];
+
+    (softwareList || []).forEach(sw => {
+      if (!list.some(g => g.id === sw.id)) {
+        list.push({
+          id: sw.id,
+          title: sw.title,
+          description: sw.tagline || sw.description,
+          price: sw.price || 0,
+          oldPrice: 0,
+          image: sw.media || '',
+          category: 'Phần Mềm',
+          downloads: sw.downloads || 0,
+          isHot: Boolean(sw.badge?.includes('Hot') || sw.badge?.includes('Khuyên') || sw.badge?.includes('Đề Xuất') || sw.badge?.includes('Trend')),
+          isFree: sw.price === 0,
+          downloadLink: sw.downloadLink || '',
+          version: sw.version || 'v1.0',
+          platform: sw.platform || 'Windows 10/11 (64-bit)',
+          isSoftware: true
+        });
+      }
+    });
+
+    return list;
+  }, [games, softwareList]);
+
   const filteredAndSorted = useMemo(() => {
-    let result = [...games];
+    let result = [...allCatalogItems];
 
     // Category filter
-    if (activeCategory !== 'all' && activeCategory !== 'phan-mem') {
+    if (activeCategory !== 'all') {
       const catName = categories.find(c => c.id === activeCategory)?.name;
       result = result.filter(g => {
         if (activeCategory === 'tools-tien-ich') {
           return g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO';
+        }
+        if (activeCategory === 'phan-mem') {
+          return g.category === 'Phần Mềm' || g.category?.toLowerCase() === 'phần mềm' || g.category === 'phan-mem' || g.isSoftware;
         }
         return g.category === catName;
       });
@@ -195,14 +238,14 @@ const Home = ({ defaultCategory = 'all' }) => {
     }
 
     return result;
-  }, [games, activeCategory, searchQuery, sortBy]);
+  }, [allCatalogItems, activeCategory, searchQuery, sortBy]);
 
-  // Flagship Hot items for Spotlight
-  const hotGames = useMemo(() => games.filter(g => g.isHot), [games]);
+  // Flagship Hot items for Spotlight (includes hot software)
+  const hotGames = useMemo(() => allCatalogItems.filter(g => g.isHot), [allCatalogItems]);
   const spotlightItems = useMemo(() => {
     if (hotGames.length >= 3) return hotGames.slice(0, 3);
-    return games.slice(0, 3);
-  }, [hotGames, games]);
+    return allCatalogItems.slice(0, 3);
+  }, [hotGames, allCatalogItems]);
 
   // Helper icons for categories
   const getCategoryIcon = (id) => {
@@ -218,13 +261,15 @@ const Home = ({ defaultCategory = 'all' }) => {
   };
 
   const getCategoryCount = (id) => {
-    if (id === 'all') return games.length;
-    if (id === 'phan-mem') return softwareList.length;
+    if (id === 'all') return allCatalogItems.length;
+    if (id === 'phan-mem') {
+      return allCatalogItems.filter(g => g.category === 'Phần Mềm' || g.category?.toLowerCase() === 'phần mềm' || g.category === 'phan-mem' || g.isSoftware).length;
+    }
     if (id === 'tools-tien-ich') {
-      return games.filter(g => g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO').length;
+      return allCatalogItems.filter(g => g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO').length;
     }
     const catName = categories.find(c => c.id === id)?.name;
-    return games.filter(g => g.category === catName).length;
+    return allCatalogItems.filter(g => g.category === catName).length;
   };
 
   return (
@@ -232,9 +277,9 @@ const Home = ({ defaultCategory = 'all' }) => {
       {/* 1. Hero Showcase Section */}
       <HeroBanner 
         hotGames={hotGames} 
-        allProducts={games}
+        allProducts={allCatalogItems}
         softwareList={softwareList}
-        totalProducts={games.length + softwareList.length} 
+        totalProducts={allCatalogItems.length} 
         onSelectCategory={handleCategoryChange}
       />
 
@@ -416,48 +461,73 @@ const Home = ({ defaultCategory = 'all' }) => {
           })}
         </div>
 
-        {/* View Switcher: Software Showcase or Product Grid */}
-        {activeCategory === 'phan-mem' ? (
-          <div className="software-view-wrapper">
-            <SoftwareShowcase 
-              softwareList={softwareList}
-              loading={softwareLoading}
-              onReload={fetchSoftware}
-            />
-          </div>
-        ) : (
-          <div className="catalog-content-wrapper">
-            {/* Filter Sub-Bar */}
-            <div className="catalog-sub-bar">
-              <div className="catalog-results-count">
-                {searchQuery ? (
-                  <span className="search-query-tag">
-                    🔍 Kết quả cho: <strong>"{searchQuery}"</strong>
-                  </span>
-                ) : (
-                  <span>
-                    Đang hiển thị <strong>{filteredAndSorted.length}</strong> công cụ
-                  </span>
-                )}
-              </div>
-
-              <div className="catalog-sort-wrap">
-                <select
-                  className="catalog-sort-select"
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value)}
-                  id="sort-select"
-                  aria-label="Sắp xếp danh sách"
-                >
-                  {SORT_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
+        {/* Catalog Content Area: Always renders grid for tools, games, and software */}
+        <div className="catalog-content-wrapper">
+          {/* Filter Sub-Bar */}
+          <div className="catalog-sub-bar">
+            <div className="catalog-results-count">
+              {searchQuery ? (
+                <span className="search-query-tag">
+                  🔍 Kết quả cho: <strong>"{searchQuery}"</strong>
+                </span>
+              ) : (
+                <span>
+                  Đang hiển thị <strong>{filteredAndSorted.length}</strong> {activeCategory === 'phan-mem' ? 'phần mềm' : 'sản phẩm'}
+                </span>
+              )}
             </div>
 
-            {/* Product Grid */}
-            {loading ? (
+            {/* View Mode Switcher for Software Tab (Grid vs Interactive Showcase Player) */}
+            {activeCategory === 'phan-mem' && softwareList.length > 0 && (
+              <div className="catalog-view-toggle">
+                <button
+                  type="button"
+                  className={`view-mode-btn ${softwareViewMode === 'grid' ? 'active' : ''}`}
+                  onClick={() => setSoftwareViewMode('grid')}
+                  title="Hiển thị dạng thẻ lưới như tools & game"
+                >
+                  <LayoutGrid size={14} />
+                  <span>Dạng Lưới</span>
+                </button>
+                <button
+                  type="button"
+                  className={`view-mode-btn ${softwareViewMode === 'showcase' ? 'active' : ''}`}
+                  onClick={() => setSoftwareViewMode('showcase')}
+                  title="Chế độ trình chiếu đa phương tiện"
+                >
+                  <Monitor size={14} />
+                  <span>Trình Chiếu</span>
+                </button>
+              </div>
+            )}
+
+            <div className="catalog-sort-wrap">
+              <select
+                className="catalog-sort-select"
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                id="sort-select"
+                aria-label="Sắp xếp danh sách"
+              >
+                {SORT_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* If user switched to multimedia showcase mode on phan-mem tab */}
+          {activeCategory === 'phan-mem' && softwareViewMode === 'showcase' ? (
+            <div className="software-view-wrapper">
+              <SoftwareShowcase 
+                softwareList={softwareList}
+                loading={softwareLoading}
+                onReload={fetchSoftware}
+              />
+            </div>
+          ) : (
+            /* Product Grid: Shows tools, game, and software as rich interactive cards */
+            loading ? (
               <div className="product-showcase-grid">
                 {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
               </div>
@@ -472,11 +542,13 @@ const Home = ({ defaultCategory = 'all' }) => {
             ) : (
               <div className="empty-catalog-state">
                 <div className="empty-icon">🔍</div>
-                <h3>Chưa tìm thấy công cụ phù hợp</h3>
+                <h3>Chưa tìm thấy {activeCategory === 'phan-mem' ? 'phần mềm' : 'công cụ'} phù hợp</h3>
                 <p>
                   {searchQuery
                     ? `Không có kết quả nào khớp với "${searchQuery}". Hãy thử tìm với từ khóa khác.`
-                    : 'Danh mục này hiện chưa có công cụ nào.'}
+                    : activeCategory === 'phan-mem'
+                      ? 'Danh mục phần mềm hiện chưa có sản phẩm nào. Bạn có thể thêm trong trang Quản Trị.'
+                      : 'Danh mục này hiện chưa có công cụ nào.'}
                 </p>
                 <button 
                   type="button" 
@@ -484,12 +556,12 @@ const Home = ({ defaultCategory = 'all' }) => {
                   onClick={() => handleCategoryChange('all')}
                   style={{ marginTop: '1rem' }}
                 >
-                  Xem tất cả công cụ
+                  Xem tất cả sản phẩm
                 </button>
               </div>
-            )}
-          </div>
-        )}
+            )
+          )}
+        </div>
       </section>
 
       {/* 4. Why Choose Us (Ưu Điểm Vượt Trội - 4 Trụ Cột) */}

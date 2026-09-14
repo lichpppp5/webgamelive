@@ -53,28 +53,29 @@ const ProductCard = ({ product }) => {
         {/* Image */}
         <Link to={`/product/${product.id}`} className="product-image-link" tabIndex={-1}>
           {(() => {
-            const isVideo = product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm'));
+            const ytMatch = product.image ? product.image.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/) : null;
+            const ytThumb = ytMatch ? `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg` : null;
+            const isVideo = !ytThumb && product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm'));
+            const imageSrc = ytThumb || product.image;
+
             return (
               <div className={`product-image ${isVideo ? 'video-mode' : ''}`}>
-                {imgError ? (
+                {imgError || !imageSrc ? (
                   <div className="img-fallback">
                     <Download size={32} />
                   </div>
                 ) : isVideo ? (
-                  <>
-                    <video
-                      src={product.image}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      onError={() => setImgError(true)}
-                    />
-
-                  </>
+                  <video
+                    src={product.image}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    onError={() => setImgError(true)}
+                  />
                 ) : (
                   <img
-                    src={product.image}
+                    src={imageSrc}
                     alt={product.title}
                     loading="lazy"
                     onError={() => setImgError(true)}

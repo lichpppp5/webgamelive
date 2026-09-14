@@ -108,7 +108,9 @@ const ProductDetail = () => {
 
   const cleanTitle = product.title?.replace(/\bMMO\b/gi, 'Tiện Ích').replace(/\(MMO\)/gi, '').trim();
 
-  const isVideo = product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm'));
+  const ytMatch = product.image ? product.image.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/) : null;
+  const ytEmbedUrl = ytMatch ? `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0` : null;
+  const isVideo = !ytEmbedUrl && product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm'));
 
   return (
     <div className="product-detail-page container page-enter">
@@ -169,7 +171,16 @@ const ProductDetail = () => {
           {/* Media Viewport */}
           <div className="media-stage-viewport">
             {!imgError && product.image ? (
-              isVideo ? (
+              ytEmbedUrl ? (
+                <iframe
+                  src={ytEmbedUrl}
+                  title={cleanTitle}
+                  className="stage-video"
+                  style={{ border: 'none', width: '100%', height: '100%', minHeight: '400px' }}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : isVideo ? (
                 <video
                   src={product.image}
                   className="stage-video"

@@ -252,7 +252,7 @@ app.get('/api/products', (req, res) => {
   });
 });
 
-// POST increment product download count
+// POST increment product download count (supports both products and software)
 app.post('/api/products/:id/download', (req, res) => {
   const productId = req.params.id;
   db.run(
@@ -262,12 +262,31 @@ app.post('/api/products/:id/download', (req, res) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      db.get("SELECT downloads FROM products WHERE id = ?", [productId], (err2, row) => {
-        if (err2 || !row) {
-          return res.json({ downloads: 1 });
-        }
-        res.json({ downloads: row.downloads });
-      });
+      if (this.changes > 0) {
+        db.get("SELECT downloads FROM products WHERE id = ?", [productId], (err2, row) => {
+          if (err2 || !row) {
+            return res.json({ downloads: 1 });
+          }
+          res.json({ downloads: row.downloads });
+        });
+      } else {
+        // Fallback: Check software table
+        db.run(
+          "UPDATE software SET downloads = downloads + 1 WHERE id = ?",
+          [productId],
+          function(swErr) {
+            if (swErr) {
+              return res.status(500).json({ error: swErr.message });
+            }
+            db.get("SELECT downloads FROM software WHERE id = ?", [productId], (swErr2, swRow) => {
+              if (swErr2 || !swRow) {
+                return res.json({ downloads: 1 });
+              }
+              res.json({ downloads: swRow.downloads });
+            });
+          }
+        );
+      }
     }
   );
 });
@@ -282,20 +301,41 @@ app.post('/api/products/reset-downloads', (req, res) => {
   });
 });
 
-// GET single product
+// GET single product (supports both products and software)
 app.get('/api/products/:id', (req, res) => {
   const { id } = req.params;
   db.get("SELECT * FROM products WHERE id = ?", [id], (err, row) => {
     if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+      return res.status(500).json({ error: err.message });
     }
-    if (!row) {
-      res.status(404).json({ error: 'Product not found' });
-      return;
+    if (row) {
+      row.isHot = row.isHot === 1;
+      return res.json(row);
     }
-    row.isHot = row.isHot === 1;
-    res.json(row);
+    // Fallback: Check software table
+    db.get("SELECT * FROM software WHERE id = ?", [id], (swErr, swRow) => {
+      if (swErr) {
+        return res.status(500).json({ error: swErr.message });
+      }
+      if (!swRow) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      res.json({
+        id: swRow.id,
+        title: swRow.title,
+        description: swRow.description || swRow.tagline,
+        price: swRow.price || 0,
+        oldPrice: 0,
+        image: swRow.media || '',
+        category: 'Phần Mềm',
+        downloads: swRow.downloads || 0,
+        isHot: true,
+        isFree: swRow.price === 0,
+        downloadLink: swRow.downloadLink || '',
+        version: swRow.version,
+        platform: swRow.platform
+      });
+    });
   });
 });
 
