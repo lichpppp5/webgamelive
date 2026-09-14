@@ -45,7 +45,7 @@ const DEFAULT_FALLBACK_SLIDES = [
     category: 'Tools Tiện Ích',
     tagline: 'Kịch bản kéo thả thông minh, mô phỏng thao tác người dùng chuẩn 100%',
     image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80',
-    badge: '⭐ Tiện Ích Đỉnh Cao',
+    badge: '⭐ Tiện Ích Chuyên Nghiệp',
     version: 'v4.0 Pro',
     platform: 'Windows / VPS',
     rating: 5.0,
@@ -244,7 +244,7 @@ const HeroBanner = ({ hotGames = [], allProducts = [], softwareList = [], totalP
           </div>
 
           <h1 className="hero-main-title">
-            Kho Công Cụ, Game Tương Tác &amp; <span className="text-gradient">Phần Mềm</span> Đỉnh Cao
+            Kho Công Cụ, Game Tương Tác &amp; <span className="text-gradient">Phần Mềm</span> Chuyên Nghiệp
           </h1>
 
           <p className="hero-sub-description">
