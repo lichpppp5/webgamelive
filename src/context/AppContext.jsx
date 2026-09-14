@@ -18,6 +18,15 @@ export const useToast = () => {
   return ctx;
 };
 
+// ─── THEME CONTEXT ─────────────────────────────────────────────
+const ThemeContext = createContext(null);
+
+export const useTheme = () => {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error('useTheme must be used inside AppProvider');
+  return ctx;
+};
+
 // ─── SETTINGS CONTEXT ─────────────────────────────────────────
 const SettingsContext = createContext(null);
 
@@ -29,6 +38,19 @@ export const useSettings = () => {
 
 // ─── COMBINED PROVIDER ────────────────────────────────────────
 export const AppProvider = ({ children }) => {
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('app-theme') || 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('app-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  }, []);
+
   const [cartItems, setCartItems] = useState([]);
   const [toasts, setToasts] = useState([]);
   const [contactSettings, setContactSettings] = useState({
@@ -130,19 +152,21 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   return (
-    <SettingsContext.Provider value={{ contactSettings, refreshSettings }}>
-      <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal }}>
-        <ToastContext.Provider value={{ showToast }}>
-          {children}
-          {/* Toast Container */}
-          <div className="toast-container">
-            {toasts.map(toast => (
-              <ToastItem key={toast.id} toast={toast} onRemove={removeToast} />
-            ))}
-          </div>
-        </ToastContext.Provider>
-      </CartContext.Provider>
-    </SettingsContext.Provider>
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+      <SettingsContext.Provider value={{ contactSettings, refreshSettings }}>
+        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal }}>
+          <ToastContext.Provider value={{ showToast }}>
+            {children}
+            {/* Toast Container */}
+            <div className="toast-container">
+              {toasts.map(toast => (
+                <ToastItem key={toast.id} toast={toast} onRemove={removeToast} />
+              ))}
+            </div>
+          </ToastContext.Provider>
+        </CartContext.Provider>
+      </SettingsContext.Provider>
+    </ThemeContext.Provider>
   );
 };
 

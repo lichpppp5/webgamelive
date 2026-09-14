@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Search, X, Zap } from 'lucide-react';
-import { useCart } from '../context/AppContext';
+import { ShoppingCart, Search, X, Zap, Sun, Moon } from 'lucide-react';
+import { useCart, useTheme } from '../context/AppContext';
 import './Header.css';
 
 const Header = ({ searchQuery, setSearchQuery }) => {
   const { cartCount } = useCart();
+  const { theme, toggleTheme } = useTheme();
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -48,6 +49,17 @@ const Header = ({ searchQuery, setSearchQuery }) => {
 
         {/* Right Actions */}
         <div className="header-actions">
+          {/* Theme Toggle Sáng / Tối */}
+          <button
+            className="icon-btn theme-toggle-btn"
+            onClick={toggleTheme}
+            title={theme === 'light' ? 'Chuyển sang Giao diện Tối' : 'Chuyển sang Giao diện Sáng'}
+            aria-label="Đổi giao diện Sáng / Tối"
+            id="theme-toggle-button"
+          >
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
+
           {/* Mobile Search Toggle */}
           <button
             className="icon-btn mobile-search-btn"
