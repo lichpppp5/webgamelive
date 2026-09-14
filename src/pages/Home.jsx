@@ -18,7 +18,8 @@ import {
   CheckCircle2, 
   Star, 
   Download,
-  Filter
+  Filter,
+  Laptop
 } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import HeroBanner from '../components/HeroBanner';
@@ -234,6 +235,69 @@ const Home = ({ defaultCategory = 'all' }) => {
         totalProducts={games.length + softwareList.length} 
         onSelectCategory={handleCategoryChange}
       />
+
+      {/* 1.5 Tech Ecosystem & Guarantee Trust Bar */}
+      <section className="tech-ecosystem-bar container" aria-label="Hệ sinh thái & Tiêu chuẩn phần mềm">
+        <div className="ecosystem-inner">
+          <div className="eco-item">
+            <div className="eco-icon-wrap cyan">
+              <Laptop size={18} />
+            </div>
+            <div className="eco-text">
+              <span className="eco-title">Tương Thích Mọi Windows</span>
+              <span className="eco-sub">Win 10 &amp; 11 64-bit mượt mà</span>
+            </div>
+          </div>
+
+          <div className="eco-divider" />
+
+          <div className="eco-item">
+            <div className="eco-icon-wrap green">
+              <Zap size={18} />
+            </div>
+            <div className="eco-text">
+              <span className="eco-title">Đa Luồng &amp; Tiết Kiệm RAM</span>
+              <span className="eco-sub">Vận hành êm ái, tối ưu tài nguyên</span>
+            </div>
+          </div>
+
+          <div className="eco-divider" />
+
+          <div className="eco-item">
+            <div className="eco-icon-wrap blue">
+              <ShieldCheck size={18} />
+            </div>
+            <div className="eco-text">
+              <span className="eco-title">Kiểm Định VirusTotal</span>
+              <span className="eco-sub">100% Sạch mã độc, an toàn tuyệt đối</span>
+            </div>
+          </div>
+
+          <div className="eco-divider" />
+
+          <div className="eco-item">
+            <div className="eco-icon-wrap purple">
+              <RefreshCw size={18} />
+            </div>
+            <div className="eco-text">
+              <span className="eco-title">Tự Động Cập Nhật</span>
+              <span className="eco-sub">Bắt kịp thuật toán &amp; phiên bản mới</span>
+            </div>
+          </div>
+
+          <div className="eco-divider" />
+
+          <div className="eco-item">
+            <div className="eco-icon-wrap orange">
+              <Headphones size={18} />
+            </div>
+            <div className="eco-text">
+              <span className="eco-title">Kỹ Thuật Hỗ Trợ 24/7</span>
+              <span className="eco-sub">Cài đặt trực tiếp qua Ultraview</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* 2. Featured Spotlight Cards (Flagship Showcase) */}
       {spotlightItems.length > 0 && activeCategory === 'all' && !searchQuery && (
