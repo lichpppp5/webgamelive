@@ -23,83 +23,7 @@ import './HeroBanner.css';
 
 const SLIDE_INTERVAL = 4500;
 
-// Curated 4 Category Showcases for the App Window
-const CATEGORY_TABS = [
-  { 
-    id: 'phan-mem', 
-    label: 'Phần Mềm Hot', 
-    catName: 'Phần Mềm',
-    defaultItem: {
-      id: 'sw-auto-pro',
-      title: 'Phần Mềm Quản Lý & Tự Động Hóa All-In-One Pro',
-      category: 'Phần Mềm',
-      tagline: 'Hệ thống tự động hóa đa luồng, Fake Fingerprint thông minh, tích hợp xoay Proxy',
-      image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1000&q=80',
-      badge: '🔥 Đề Xuất Số 1',
-      version: 'v3.8.2',
-      platform: 'Windows 10/11 (64-bit)',
-      rating: 4.9,
-      downloads: 2480,
-      link: '/?category=phan-mem'
-    }
-  },
-  { 
-    id: 'tuong-tac', 
-    label: 'Game Tương Tác', 
-    catName: 'Tương tác',
-    defaultItem: {
-      id: 'game-bar-dj',
-      title: 'Game Bar DJ Tương Tác Livestream',
-      category: 'Game Tương Tác',
-      tagline: 'Âm thanh sống động, hiệu ứng trực quan kết nối phòng chat tự động mượt mà',
-      image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      badge: '⚡ Hot Trend',
-      version: 'v2.1 VN',
-      platform: 'Web / Desktop',
-      rating: 4.8,
-      downloads: 1850,
-      link: '/product/game-bar-dj'
-    }
-  },
-  { 
-    id: 'tools-tien-ich', 
-    label: 'Tools Tiện Ích', 
-    catName: 'Tools Tiện Ích',
-    defaultItem: {
-      id: 'tool-tien-ich-pro',
-      title: 'Bộ Tool Tiện Ích Tối Ưu Hóa & Tương Tác Đa Kênh',
-      category: 'Tools Tiện Ích',
-      tagline: 'Kịch bản kéo thả thông minh, mô phỏng thao tác người dùng chuẩn 100%',
-      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80',
-      badge: '⭐ Tiện Ích Đỉnh Cao',
-      version: 'v4.0 Pro',
-      platform: 'Windows / VPS',
-      rating: 5.0,
-      downloads: 3200,
-      link: '/product/tool-tien-ich-pro'
-    }
-  },
-  { 
-    id: 'treo-afk', 
-    label: 'Treo AFK', 
-    catName: 'Treo AFK',
-    defaultItem: {
-      id: 'tool-afk-keeper',
-      title: 'Tool Giữ Kết Nối & Tự Động Treo AFK 24/7',
-      category: 'Treo AFK',
-      tagline: 'Tiết kiệm 90% tài nguyên CPU/RAM, chống ngắt kết nối tự động an toàn',
-      image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1000&q=80',
-      badge: '🕒 Ổn Định 24/7',
-      version: 'v1.5',
-      platform: 'Windows / Web',
-      rating: 4.9,
-      downloads: 1420,
-      link: '/product/tool-afk-keeper'
-    }
-  }
-];
-
-const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
+const HeroBanner = ({ hotGames = [], allProducts = [], softwareList = [], totalProducts = 0, onSelectCategory }) => {
   const { contactSettings } = useSettings();
   const navigate = useNavigate();
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -107,40 +31,108 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  // Construct the 4 distinct showcase slides matching the 4 tabs
+  // Pool of available products (combining hot games and all products)
+  const pool = useMemo(() => {
+    const combined = [...hotGames];
+    allProducts.forEach(p => {
+      if (!combined.some(c => c.id === p.id)) {
+        combined.push(p);
+      }
+    });
+    return combined;
+  }, [hotGames, allProducts]);
+
+  // Construct dynamic showcase slides exclusively from REAL items in database
   const slides = useMemo(() => {
-    return CATEGORY_TABS.map(tab => {
-      // Find matching item from hotGames
-      const matched = hotGames.find(g => {
-        if (tab.id === 'tools-tien-ich') {
+    const list = [];
+
+    // 1. If user has real software in softwareList, add it first!
+    if (softwareList && softwareList.length > 0) {
+      softwareList.slice(0, 2).forEach(sw => {
+        list.push({
+          id: sw.id,
+          tabLabel: 'Phần Mềm',
+          title: sw.title,
+          category: 'Phần Mềm',
+          tagline: sw.tagline || sw.description?.replace(/<[^>]*>?/gm, '').slice(0, 80) || 'Phần mềm tiện ích máy tính chất lượng cao',
+          image: sw.media || '',
+          mediaType: sw.mediaType || 'image',
+          badge: sw.badge || '🔥 Phần Mềm Hot',
+          version: sw.version || 'v1.0',
+          platform: sw.platform || 'Windows 10/11 (64-bit)',
+          rating: 4.9,
+          downloads: sw.downloads || 0,
+          link: '/?category=phan-mem'
+        });
+      });
+    }
+
+    // 2. Add real products by category from pool
+    const targetCats = [
+      { cat: 'Tương tác', label: 'Game Tương Tác' },
+      { cat: 'Tools Tiện Ích', label: 'Tools Tiện Ích' },
+      { cat: 'Treo AFK', label: 'Treo AFK' },
+      { cat: 'Tools Sưu Tầm', label: 'Tools Sưu Tầm' },
+    ];
+
+    targetCats.forEach(({ cat, label }) => {
+      const match = pool.find(g => {
+        if (cat === 'Tools Tiện Ích') {
           return g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO';
         }
-        return g.category === tab.catName;
+        return g.category === cat;
       });
 
-      if (matched) {
-        const cleanCat = matched.category === 'Tools MMO' ? 'Tools Tiện Ích' : matched.category;
-        const cleanTitle = matched.title?.replace(/\bMMO\b/gi, 'Tiện Ích').replace(/\(MMO\)/gi, '').trim();
-        const cleanDesc = matched.description?.replace(/<[^>]*>?/gm, '').replace(/\bMMO\b/gi, 'tiện ích').slice(0, 75);
+      if (match && !list.some(item => item.id === match.id)) {
+        const cleanCat = match.category === 'Tools MMO' ? 'Tools Tiện Ích' : match.category;
+        const cleanTitle = match.title?.replace(/\bMMO\b/gi, 'Tiện Ích').replace(/\(MMO\)/gi, '').trim();
+        const cleanDesc = match.description?.replace(/<[^>]*>?/gm, '').replace(/\bMMO\b/gi, 'tiện ích').slice(0, 80);
 
-        return {
-          id: matched.id,
+        list.push({
+          id: match.id,
+          tabLabel: label,
           title: cleanTitle,
           category: cleanCat,
-          tagline: cleanDesc ? cleanDesc + '...' : tab.defaultItem.tagline,
-          image: matched.image || tab.defaultItem.image,
-          badge: matched.isHot ? '🔥 Sản Phẩm HOT' : 'Mới Nhất',
-          version: 'v' + (matched.version || '2.5'),
+          tagline: cleanDesc ? cleanDesc + '...' : 'Công cụ tiện ích chất lượng cao, vận hành bền bỉ',
+          image: match.image,
+          badge: match.isHot ? '🔥 Sản Phẩm HOT' : 'Mới Nhất',
+          version: 'v' + (match.version || '2.0'),
           platform: 'Windows / Web',
           rating: 4.9,
-          downloads: matched.downloads || 950,
-          link: `/product/${matched.id}`
-        };
+          downloads: match.downloads || 0,
+          link: `/product/${match.id}`
+        });
       }
-
-      return tab.defaultItem;
     });
-  }, [hotGames]);
+
+    // 3. If list has fewer than 2 items, fill with remaining pool items
+    if (list.length < 3) {
+      pool.forEach(p => {
+        if (list.length < 4 && !list.some(item => item.id === p.id)) {
+          const cleanCat = p.category === 'Tools MMO' ? 'Tools Tiện Ích' : p.category;
+          const cleanTitle = p.title?.replace(/\bMMO\b/gi, 'Tiện Ích').replace(/\(MMO\)/gi, '').trim();
+          const cleanDesc = p.description?.replace(/<[^>]*>?/gm, '').replace(/\bMMO\b/gi, 'tiện ích').slice(0, 80);
+
+          list.push({
+            id: p.id,
+            tabLabel: cleanCat || 'Nổi Bật',
+            title: cleanTitle,
+            category: cleanCat || 'Tools Tiện Ích',
+            tagline: cleanDesc ? cleanDesc + '...' : 'Công cụ tiện ích hỗ trợ tối ưu hiệu suất',
+            image: p.image,
+            badge: '🔥 Tiêu Biểu',
+            version: 'v1.0',
+            platform: 'Windows / Web',
+            rating: 4.9,
+            downloads: p.downloads || 0,
+            link: `/product/${p.id}`
+          });
+        }
+      });
+    }
+
+    return list;
+  }, [pool, softwareList]);
 
   // Reset img error when slide changes
   useEffect(() => {
@@ -279,99 +271,110 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
               </div>
             </div>
 
-            {/* Exactly 4 Clean Category Tabs (NO Duplicates, NO MMO) */}
+            {/* Dynamic Real Category Tabs */}
             <div className="window-tab-bar">
-              {CATEGORY_TABS.map((tab, idx) => (
+              {slides.map((slide, idx) => (
                 <button
-                  key={tab.id}
+                  key={slide.id || idx}
                   type="button"
                   className={`win-tab-btn ${currentIdx === idx ? 'active' : ''}`}
                   onClick={() => goTo(idx)}
                 >
-                  <span>{tab.label}</span>
+                  <span>{slide.tabLabel}</span>
                   {idx === currentIdx && <span className="tab-indicator" />}
                 </button>
               ))}
             </div>
 
             {/* Main Showcase Viewport */}
-            <div 
-              className={`window-viewport ${isTransitioning ? 'fading' : ''}`}
-              onClick={() => handleSlideClick(currentSlide)}
-            >
-              <div className="viewport-image-wrap">
-                {!imgError && currentSlide.image ? (
-                  isVideo ? (
-                    <video
-                      src={currentSlide.image}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="viewport-img"
-                      onError={() => setImgError(true)}
-                    />
+            {currentSlide ? (
+              <div 
+                className={`window-viewport ${isTransitioning ? 'fading' : ''}`}
+                onClick={() => handleSlideClick(currentSlide)}
+              >
+                <div className="viewport-image-wrap">
+                  {!imgError && currentSlide.image ? (
+                    isVideo ? (
+                      <video
+                        src={currentSlide.image}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="viewport-img"
+                        onError={() => setImgError(true)}
+                      />
+                    ) : (
+                      <img
+                        src={currentSlide.image}
+                        alt=""
+                        className="viewport-img"
+                        loading="eager"
+                        onError={() => setImgError(true)}
+                      />
+                    )
                   ) : (
-                    <img
-                      src={currentSlide.image}
-                      alt=""
-                      className="viewport-img"
-                      loading="eager"
-                      onError={() => setImgError(true)}
-                    />
-                  )
-                ) : (
-                  <div className="viewport-fallback-graphic">
-                    <div className="fallback-aura" />
-                    <div className="fallback-icon">
-                      {currentIdx === 0 && <AppWindow size={36} />}
-                      {currentIdx === 1 && <Gamepad2 size={36} />}
-                      {currentIdx === 2 && <Wrench size={36} />}
-                      {currentIdx === 3 && <Clock size={36} />}
+                    <div className="viewport-fallback-graphic">
+                      <div className="fallback-aura" />
+                      <div className="fallback-icon">
+                        {currentIdx === 0 && <AppWindow size={36} />}
+                        {currentIdx === 1 && <Gamepad2 size={36} />}
+                        {currentIdx === 2 && <Wrench size={36} />}
+                        {currentIdx === 3 && <Clock size={36} />}
+                      </div>
+                      <span className="fallback-text">{currentSlide.title}</span>
                     </div>
-                    <span className="fallback-text">{currentSlide.title}</span>
+                  )}
+                  <div className="viewport-gradient-overlay" />
+                  <span className="viewport-badge-tag">{currentSlide.badge}</span>
+                  <div className="viewport-platform-tag">{currentSlide.platform}</div>
+                </div>
+
+                <div className="viewport-info-panel">
+                  <div className="viewport-meta-row">
+                    <span className="viewport-cat">{currentSlide.category}</span>
+                    <span className="viewport-rating">
+                      <Star size={13} fill="currentColor" />
+                      <span>{currentSlide.rating || 4.9}</span>
+                      <span className="review-count">({(currentSlide.downloads || 0).toLocaleString()}+ tải)</span>
+                    </span>
                   </div>
-                )}
-                <div className="viewport-gradient-overlay" />
-                <span className="viewport-badge-tag">{currentSlide.badge}</span>
-                <div className="viewport-platform-tag">{currentSlide.platform}</div>
-              </div>
 
-              <div className="viewport-info-panel">
-                <div className="viewport-meta-row">
-                  <span className="viewport-cat">{currentSlide.category}</span>
-                  <span className="viewport-rating">
-                    <Star size={13} fill="currentColor" />
-                    <span>{currentSlide.rating || 4.9}</span>
-                    <span className="review-count">({(currentSlide.downloads || 900).toLocaleString()}+ tải)</span>
-                  </span>
-                </div>
+                  <h3 className="viewport-title">{currentSlide.title}</h3>
+                  <p className="viewport-tagline">{currentSlide.tagline}</p>
 
-                <h3 className="viewport-title">{currentSlide.title}</h3>
-                <p className="viewport-tagline">{currentSlide.tagline}</p>
-
-                <div className="viewport-footer-action">
-                  <span className="view-detail-link">
-                    <span>Xem Chi Tiết Sản Phẩm</span>
-                    <ChevronRight size={16} />
-                  </span>
-                  <span className="quick-ver">{currentSlide.version}</span>
+                  <div className="viewport-footer-action">
+                    <span className="view-detail-link">
+                      <span>Xem Chi Tiết Sản Phẩm</span>
+                      <ChevronRight size={16} />
+                    </span>
+                    <span className="quick-ver">{currentSlide.version}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="window-viewport empty-viewport">
+                <div className="empty-catalog-state" style={{ padding: '3rem 1.5rem' }}>
+                  <Zap size={32} color="var(--primary)" />
+                  <p style={{ marginTop: '0.75rem', color: 'var(--text-300)' }}>Hệ thống công cụ &amp; tiện ích sẵn sàng vận hành.</p>
+                </div>
+              </div>
+            )}
 
-            {/* Exactly 4 Slide Navigation Dots */}
-            <div className="window-dots-nav">
-              {CATEGORY_TABS.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={`win-nav-dot ${i === currentIdx ? 'active' : ''}`}
-                  onClick={(e) => { e.stopPropagation(); goTo(i); }}
-                  aria-label={`Chuyển tới slide ${i + 1}`}
-                />
-              ))}
-            </div>
+            {/* Slide Navigation Dots */}
+            {slides.length > 1 && (
+              <div className="window-dots-nav">
+                {slides.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`win-nav-dot ${i === currentIdx ? 'active' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); goTo(i); }}
+                    aria-label={`Chuyển tới slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Floating Glass Widget: Bottom Left */}

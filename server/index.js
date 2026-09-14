@@ -137,60 +137,10 @@ const db = new sqlite3.Database(dbPath, (err) => {
           badge TEXT DEFAULT '',
           downloadLink TEXT DEFAULT '',
           downloads INTEGER DEFAULT 0,
-          features TEXT DEFAULT '',
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`, (err) => {
-          if (!err) {
-            db.get("SELECT count(*) as count FROM software", (err, row) => {
-              if (row && row.count === 0) {
-                console.log('Seeding initial software...');
-                const seedStmt = db.prepare(`INSERT INTO software (id, title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads, features) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-                const sampleDesc = `<h3>Giới thiệu Tổng quan</h3>
-<p><strong>Phần Mềm Quản Lý & Tự Động Hóa Chuyên Nghiệp Pro</strong> là giải pháp toàn diện được phát triển dành cho cá trị viên, marketer và các team vận hành nuôi tài khoản, tự động hoá quy trình số lượng lớn.</p>
-
-<h3>Các Tính Năng Nổi Bật</h3>
-<ul>
-  <li><strong>Điều khiển đa luồng cực nhanh:</strong> Tối ưu hiệu năng CPU và RAM, vận hành đồng thời hàng trăm cửa sổ mượt mà không giật lag.</li>
-  <li><strong>Hệ thống Fake Fingerprint thông minh:</strong> Thay đổi Canvas, WebGL, AudioContext, WebRTC, Geolocation chống phát hiện bởi các thuật toán quét tài khoản.</li>
-  <li><strong>Tích hợp Proxy đa dạng:</strong> Quản lý xoay IP tự động qua TMProxy, TinProxy, ShopLike, Dcom 4G và Proxy tĩnh IPv4/IPv6.</li>
-  <li><strong>Kịch bản kéo thả tự động:</strong> Tự động lướt feed, xem video, tương tác bài viết, đăng nhập hàng loạt với độ trễ ngẫu nhiên mô phỏng người thật 100%.</li>
-  <li><strong>Quản lý cơ sở dữ liệu tập trung:</strong> Sao lưu dữ liệu an toàn, xuất nhập cookie/token dễ dàng chỉ với một cú nhấp chuột.</li>
-</ul>
-
-<h3>Yêu Cầu Hệ Thống</h3>
-<ul>
-  <li><strong>Hệ điều hành:</strong> Windows 10 / 11 (64-bit) hoặc Windows Server 2019/2022.</li>
-  <li><strong>Vi xử lý (CPU):</strong> Intel Core i5 / AMD Ryzen 5 trở lên (Khuyến nghị 6 nhân 12 luồng).</li>
-  <li><strong>Bộ nhớ (RAM):</strong> Tối thiểu 8GB (Đề xuất 16GB - 32GB nếu chạy trên 50 luồng).</li>
-  <li><strong>Ổ cứng:</strong> Tối thiểu 2GB dung lượng trống chuẩn SSD.</li>
-</ul>`;
-
-                const sampleFeatures = JSON.stringify([
-                  "Điều khiển đa luồng tốc độ cao",
-                  "Chống quét Fingerprint độc quyền",
-                  "Tự động xoay Proxy đa dịch vụ",
-                  "Kịch bản mô phỏng người thật 100%",
-                  "Tiết kiệm 80% thời gian vận hành"
-                ]);
-
-                seedStmt.run(
-                  'sw-auto-pro',
-                  'Phần Mềm Quản Lý & Tự Động Hóa All-In-One Pro',
-                  'Hệ sinh thái tự động hóa tương tác, quản lý hàng nghìn profile và tối ưu hóa hiệu suất làm việc trực tuyến',
-                  sampleDesc,
-                  'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80',
-                  'image',
-                  'v3.8.2',
-                  'Windows 10/11 (64-bit) / VPS',
-                  0,
-                  'Khuyên Dùng - Mới Nhất',
-                  '#',
-                  185,
-                  sampleFeatures
-                );
-                seedStmt.finalize();
-              }
-            });
+          if (err) {
+            console.error('Error creating software table:', err);
           }
         });
       }

@@ -232,6 +232,8 @@ const Home = ({ defaultCategory = 'all' }) => {
       {/* 1. Hero Showcase Section */}
       <HeroBanner 
         hotGames={hotGames} 
+        allProducts={games}
+        softwareList={softwareList}
         totalProducts={games.length + softwareList.length} 
         onSelectCategory={handleCategoryChange}
       />
