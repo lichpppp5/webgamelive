@@ -1,27 +1,39 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, MessageSquare, ShieldCheck, Zap, RefreshCw, Star, Download, ChevronRight, CheckCircle2, Wrench, Headphones, Sparkles, ExternalLink } from 'lucide-react';
+import { 
+  ArrowRight, 
+  MessageSquare, 
+  ShieldCheck, 
+  Zap, 
+  RefreshCw, 
+  Star, 
+  Download, 
+  ChevronRight, 
+  CheckCircle2, 
+  Wrench, 
+  Headphones, 
+  Sparkles, 
+  AppWindow, 
+  Gamepad2, 
+  Clock 
+} from 'lucide-react';
 import ContactModal from './ContactModal';
 import { useSettings } from '../context/AppContext';
 import './HeroBanner.css';
 
 const SLIDE_INTERVAL = 4500;
 
-const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
-  const { contactSettings } = useSettings();
-  const navigate = useNavigate();
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
-
-  // Enhanced showcase slides (use hot items, fallback to curated high-quality showcase items)
-  const defaultShowcase = [
-    {
-      id: 'sw-featured',
-      title: 'Phần Mềm Quản Lý & Tự Động Hóa All-In-One',
+// Curated 4 Category Showcases for the App Window
+const CATEGORY_TABS = [
+  { 
+    id: 'phan-mem', 
+    label: 'Phần Mềm Hot', 
+    catName: 'Phần Mềm',
+    defaultItem: {
+      id: 'sw-auto-pro',
+      title: 'Phần Mềm Quản Lý & Tự Động Hóa All-In-One Pro',
       category: 'Phần Mềm',
-      tagline: 'Đa luồng tốc độ cao, Fake Fingerprint thông minh, tích hợp Proxy xoay IP',
+      tagline: 'Hệ thống tự động hóa đa luồng, Fake Fingerprint thông minh, tích hợp xoay Proxy',
       image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1000&q=80',
       badge: '🔥 Đề Xuất Số 1',
       version: 'v3.8.2',
@@ -29,12 +41,17 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
       rating: 4.9,
       downloads: 2480,
       link: '/?category=phan-mem'
-    },
-    {
+    }
+  },
+  { 
+    id: 'tuong-tac', 
+    label: 'Game Tương Tác', 
+    catName: 'Tương tác',
+    defaultItem: {
       id: 'game-bar-dj',
-      title: 'Game Bar DJ Tương Tác Trực Tiếp',
+      title: 'Game Bar DJ Tương Tác Livestream',
       category: 'Game Tương Tác',
-      tagline: 'Hiệu ứng âm thanh ánh sáng sống động, kết nối phòng chat tự động mượt mà',
+      tagline: 'Âm thanh sống động, hiệu ứng trực quan kết nối phòng chat tự động mượt mà',
       image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
       badge: '⚡ Hot Trend',
       version: 'v2.1 VN',
@@ -42,10 +59,15 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
       rating: 4.8,
       downloads: 1850,
       link: '/product/game-bar-dj'
-    },
-    {
-      id: 'tool-auto-pro',
-      title: 'Tool Tiện Ích Tối Ưu Tương Tác & Lướt Feed',
+    }
+  },
+  { 
+    id: 'tools-tien-ich', 
+    label: 'Tools Tiện Ích', 
+    catName: 'Tools Tiện Ích',
+    defaultItem: {
+      id: 'tool-tien-ich-pro',
+      title: 'Bộ Tool Tiện Ích Tối Ưu Hóa & Tương Tác Đa Kênh',
       category: 'Tools Tiện Ích',
       tagline: 'Kịch bản kéo thả thông minh, mô phỏng thao tác người dùng chuẩn 100%',
       image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80',
@@ -54,33 +76,85 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
       platform: 'Windows / VPS',
       rating: 5.0,
       downloads: 3200,
-      link: '/product/tool-auto-pro'
+      link: '/product/tool-tien-ich-pro'
     }
-  ];
+  },
+  { 
+    id: 'treo-afk', 
+    label: 'Treo AFK', 
+    catName: 'Treo AFK',
+    defaultItem: {
+      id: 'tool-afk-keeper',
+      title: 'Tool Giữ Kết Nối & Tự Động Treo AFK 24/7',
+      category: 'Treo AFK',
+      tagline: 'Tiết kiệm 90% tài nguyên CPU/RAM, chống ngắt kết nối tự động an toàn',
+      image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1000&q=80',
+      badge: '🕒 Ổn Định 24/7',
+      version: 'v1.5',
+      platform: 'Windows / Web',
+      rating: 4.9,
+      downloads: 1420,
+      link: '/product/tool-afk-keeper'
+    }
+  }
+];
 
-  const slides = hotGames.length > 0
-    ? hotGames.map((g, i) => ({
-        id: g.id || `hot-${i}`,
-        title: g.title,
-        category: g.category || 'Công cụ nổi bật',
-        tagline: g.description?.replace(/<[^>]*>?/gm, '').slice(0, 75) + '...' || 'Công cụ tiện ích cao cấp được cập nhật liên tục',
-        image: g.image || defaultShowcase[0].image,
-        badge: g.isHot ? '🔥 Sản Phẩm HOT' : 'Mới Nhất',
-        version: 'v' + (g.version || '2.5'),
-        platform: 'Windows / Web',
-        rating: 4.9,
-        downloads: g.downloads || 950,
-        link: `/product/${g.id}`
-      }))
-    : defaultShowcase;
+const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
+  const { contactSettings } = useSettings();
+  const navigate = useNavigate();
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  // Construct the 4 distinct showcase slides matching the 4 tabs
+  const slides = useMemo(() => {
+    return CATEGORY_TABS.map(tab => {
+      // Find matching item from hotGames
+      const matched = hotGames.find(g => {
+        if (tab.id === 'tools-tien-ich') {
+          return g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO';
+        }
+        return g.category === tab.catName;
+      });
+
+      if (matched) {
+        const cleanCat = matched.category === 'Tools MMO' ? 'Tools Tiện Ích' : matched.category;
+        const cleanTitle = matched.title?.replace(/\bMMO\b/gi, 'Tiện Ích').replace(/\(MMO\)/gi, '').trim();
+        const cleanDesc = matched.description?.replace(/<[^>]*>?/gm, '').replace(/\bMMO\b/gi, 'tiện ích').slice(0, 75);
+
+        return {
+          id: matched.id,
+          title: cleanTitle,
+          category: cleanCat,
+          tagline: cleanDesc ? cleanDesc + '...' : tab.defaultItem.tagline,
+          image: matched.image || tab.defaultItem.image,
+          badge: matched.isHot ? '🔥 Sản Phẩm HOT' : 'Mới Nhất',
+          version: 'v' + (matched.version || '2.5'),
+          platform: 'Windows / Web',
+          rating: 4.9,
+          downloads: matched.downloads || 950,
+          link: `/product/${matched.id}`
+        };
+      }
+
+      return tab.defaultItem;
+    });
+  }, [hotGames]);
+
+  // Reset img error when slide changes
+  useEffect(() => {
+    setImgError(false);
+  }, [currentIdx]);
 
   const goTo = useCallback((idx) => {
     if (isTransitioning) return;
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentIdx(idx);
+      setImgError(false);
       setIsTransitioning(false);
-    }, 250);
+    }, 200);
   }, [isTransitioning]);
 
   const goNext = useCallback(() => {
@@ -88,10 +162,9 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
   }, [currentIdx, slides.length, goTo]);
 
   useEffect(() => {
-    if (slides.length <= 1) return;
     const timer = setInterval(goNext, SLIDE_INTERVAL);
     return () => clearInterval(timer);
-  }, [goNext, slides.length]);
+  }, [goNext]);
 
   const currentSlide = slides[currentIdx] || slides[0];
 
@@ -108,6 +181,8 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
       navigate(slide.link || `/product/${slide.id}`);
     }
   };
+
+  const isVideo = currentSlide.image && (currentSlide.image.endsWith('.mp4') || currentSlide.image.endsWith('.webm'));
 
   return (
     <div className="hero-product-showcase">
@@ -204,16 +279,16 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
               </div>
             </div>
 
-            {/* Quick Filter Switchers Inside Window */}
+            {/* Exactly 4 Clean Category Tabs (NO Duplicates, NO MMO) */}
             <div className="window-tab-bar">
-              {slides.map((s, idx) => (
+              {CATEGORY_TABS.map((tab, idx) => (
                 <button
-                  key={s.id || idx}
+                  key={tab.id}
                   type="button"
                   className={`win-tab-btn ${currentIdx === idx ? 'active' : ''}`}
                   onClick={() => goTo(idx)}
                 >
-                  <span>{s.category || `Mục ${idx + 1}`}</span>
+                  <span>{tab.label}</span>
                   {idx === currentIdx && <span className="tab-indicator" />}
                 </button>
               ))}
@@ -225,12 +300,38 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
               onClick={() => handleSlideClick(currentSlide)}
             >
               <div className="viewport-image-wrap">
-                <img
-                  src={currentSlide.image}
-                  alt={currentSlide.title}
-                  className="viewport-img"
-                  loading="eager"
-                />
+                {!imgError && currentSlide.image ? (
+                  isVideo ? (
+                    <video
+                      src={currentSlide.image}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="viewport-img"
+                      onError={() => setImgError(true)}
+                    />
+                  ) : (
+                    <img
+                      src={currentSlide.image}
+                      alt=""
+                      className="viewport-img"
+                      loading="eager"
+                      onError={() => setImgError(true)}
+                    />
+                  )
+                ) : (
+                  <div className="viewport-fallback-graphic">
+                    <div className="fallback-aura" />
+                    <div className="fallback-icon">
+                      {currentIdx === 0 && <AppWindow size={36} />}
+                      {currentIdx === 1 && <Gamepad2 size={36} />}
+                      {currentIdx === 2 && <Wrench size={36} />}
+                      {currentIdx === 3 && <Clock size={36} />}
+                    </div>
+                    <span className="fallback-text">{currentSlide.title}</span>
+                  </div>
+                )}
                 <div className="viewport-gradient-overlay" />
                 <span className="viewport-badge-tag">{currentSlide.badge}</span>
                 <div className="viewport-platform-tag">{currentSlide.platform}</div>
@@ -259,9 +360,9 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0, onSelectCategory }) => {
               </div>
             </div>
 
-            {/* Slide Navigation Dots */}
+            {/* Exactly 4 Slide Navigation Dots */}
             <div className="window-dots-nav">
-              {slides.map((_, i) => (
+              {CATEGORY_TABS.map((_, i) => (
                 <button
                   key={i}
                   type="button"
