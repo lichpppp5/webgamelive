@@ -1,9 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700;800&display=swap');
 
 /* ===========================
    CSS DESIGN TOKENS
    =========================== */
 :root {
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
   --primary: #00cffb;
   --primary-dark: #00a8d6;
   --primary-glow: rgba(0, 207, 251, 0.35);
@@ -147,18 +150,27 @@ html {
 }
 
 body {
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--bg-800);
   color: var(--text-100);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   /* Modern Ambient Atmosphere Background */
   background-image:
     radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 207, 251, 0.14), transparent 70%),
     radial-gradient(ellipse 60% 40% at 85% 80%, rgba(168, 85, 247, 0.09), transparent 70%),
     radial-gradient(ellipse 40% 30% at 10% 40%, rgba(0, 207, 251, 0.05), transparent 60%);
   background-attachment: fixed;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-100);
 }
 
 a {
@@ -172,7 +184,7 @@ a:hover {
 }
 
 button {
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: var(--font-sans);
   cursor: pointer;
   border: none;
   outline: none;
@@ -185,7 +197,7 @@ img {
 }
 
 input, select, textarea {
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: var(--font-sans);
   outline: none;
   transition: border-color var(--transition-base), box-shadow var(--transition-base);
 }

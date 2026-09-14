@@ -158,7 +158,7 @@
   align-items: center;
   gap: 10px;
   font-size: 0.76rem;
-  font-family: 'Inter', monospace;
+  font-family: var(--font-mono);
   color: var(--text-400);
 }
 

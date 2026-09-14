@@ -181,6 +181,6 @@
 .placeholder-letter-sm {
   font-size: 3rem;
   font-weight: 900;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-sans);
   opacity: 0.85;
 }

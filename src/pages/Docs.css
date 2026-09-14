@@ -142,7 +142,7 @@
 .placeholder-letter {
   font-size: 5rem;
   font-weight: 900;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-sans);
   opacity: 0.85;
 }
 

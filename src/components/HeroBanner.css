@@ -265,7 +265,7 @@
 
 .win-title {
   font-size: 0.75rem;
-  font-family: 'Inter', monospace;
+  font-family: var(--font-mono);
   color: var(--text-400);
 }
 
