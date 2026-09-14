@@ -43,6 +43,47 @@ const SkeletonCard = () => (
   </div>
 );
 
+// Bulletproof media card with fallback for spotlight items
+const SpotlightMediaCard = ({ src, tag, badgeClass = 'cyan' }) => {
+  const [hasError, setHasError] = useState(false);
+  const isVideo = src && (src.endsWith('.mp4') || src.endsWith('.webm'));
+
+  return (
+    <div className="spotlight-media-wrap">
+      {!hasError && src ? (
+        isVideo ? (
+          <video
+            src={src}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="spotlight-img"
+            onError={() => setHasError(true)}
+          />
+        ) : (
+          <img
+            src={src}
+            alt=""
+            className="spotlight-img"
+            onError={() => setHasError(true)}
+          />
+        )
+      ) : (
+        <div className="spotlight-fallback-media">
+          <div className="fallback-glow" />
+          <div className="fallback-icon-wrap">
+            <Zap size={30} />
+          </div>
+          <span className="fallback-label">Tools &amp; Phần Mềm Tiện Ích</span>
+        </div>
+      )}
+      <div className="spotlight-media-overlay" />
+      {tag && <span className={`bento-tag ${badgeClass}`}>{tag}</span>}
+    </div>
+  );
+};
+
 const SORT_OPTIONS = [
   { value: 'newest', label: '🆕 Mới nhất' },
   { value: 'downloads', label: '🔥 Lượt tải nhiều nhất' },
@@ -194,7 +235,7 @@ const Home = ({ defaultCategory = 'all' }) => {
         onSelectCategory={handleCategoryChange}
       />
 
-      {/* 2. Featured Spotlight / Bento Grid (Flagship Showcase) */}
+      {/* 2. Featured Spotlight Cards (Flagship Showcase) */}
       {spotlightItems.length > 0 && activeCategory === 'all' && !searchQuery && (
         <section className="spotlight-showcase-section container">
           <div className="section-head-center">
@@ -208,103 +249,61 @@ const Home = ({ defaultCategory = 'all' }) => {
             </p>
           </div>
 
-          <div className="bento-grid">
-            {/* Bento Card 1: Primary Spotlight (Wide) */}
-            {spotlightItems[0] && (
-              <div 
-                className="bento-card bento-primary"
-                onClick={() => navigate(`/product/${spotlightItems[0].id}`)}
-              >
-                <div className="bento-content">
-                  <div className="bento-badge-row">
-                    <span className="bento-tag flame">🔥 ĐƯỢC CHỌN NHIỀU NHẤT</span>
-                    <span className="bento-category">{spotlightItems[0].category}</span>
-                  </div>
-                  <h3 className="bento-title">{spotlightItems[0].title}</h3>
-                  <p className="bento-desc">
-                    {spotlightItems[0].description?.replace(/<[^>]*>?/gm, '').slice(0, 110)}...
-                  </p>
-                  <div className="bento-features-mini">
-                    <div className="mini-feat">
-                      <CheckCircle2 size={14} />
-                      <span>Hiệu năng mượt mà 100%</span>
-                    </div>
-                    <div className="mini-feat">
-                      <CheckCircle2 size={14} />
-                      <span>Hỗ trợ cài đặt từ xa 24/7</span>
-                    </div>
-                  </div>
-                  <div className="bento-action-row">
-                    <button type="button" className="btn-bento-primary">
-                      <span>Xem Chi Tiết Ngay</span>
-                      <ArrowRight size={16} />
-                    </button>
-                    <span className="bento-downloads">
-                      <Download size={14} />
-                      {(spotlightItems[0].downloads || 850).toLocaleString()} lượt tải
-                    </span>
-                  </div>
-                </div>
-                <div className="bento-media-wrap">
-                  <img 
-                    src={spotlightItems[0].image} 
-                    alt={spotlightItems[0].title} 
-                    className="bento-img"
-                  />
-                  <div className="bento-glow-overlay" />
-                </div>
-              </div>
-            )}
+          <div className="spotlight-cards-grid">
+            {spotlightItems.map((item, idx) => {
+              const displayCategory = item.category === 'Tools MMO' ? 'Tools Tiện Ích' : (item.category || 'Tools Tiện Ích');
+              const badgeLabel = idx === 0 ? '🔥 ĐƯỢC CHỌN NHIỀU NHẤT' : idx === 1 ? '⚡ TỐI ƯU TỐC ĐỘ' : '🛡️ AN TOÀN & ỔN ĐỊNH';
+              const badgeClass = idx === 0 ? 'flame' : idx === 1 ? 'cyan' : 'green';
 
-            {/* Bento Card 2 */}
-            {spotlightItems[1] && (
-              <div 
-                className="bento-card bento-secondary"
-                onClick={() => navigate(`/product/${spotlightItems[1].id}`)}
-              >
-                <div className="bento-media-top">
-                  <img 
-                    src={spotlightItems[1].image} 
-                    alt={spotlightItems[1].title} 
-                    className="bento-img"
+              return (
+                <div 
+                  key={item.id} 
+                  className={`spotlight-item-card ${idx === 0 ? 'card-highlight' : ''}`}
+                  onClick={() => navigate(`/product/${item.id}`)}
+                >
+                  <SpotlightMediaCard 
+                    src={item.image} 
+                    tag={badgeLabel}
+                    badgeClass={badgeClass}
                   />
-                  <span className="bento-tag cyan">⚡ Tối Ưu Tốc Độ</span>
-                </div>
-                <div className="bento-content-compact">
-                  <span className="bento-category">{spotlightItems[1].category}</span>
-                  <h4 className="bento-sub-title">{spotlightItems[1].title}</h4>
-                  <div className="bento-compact-footer">
-                    <span className="rating-pill">⭐ 4.9</span>
-                    <span className="bento-link-text">Khám phá →</span>
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* Bento Card 3 */}
-            {spotlightItems[2] && (
-              <div 
-                className="bento-card bento-secondary"
-                onClick={() => navigate(`/product/${spotlightItems[2].id}`)}
-              >
-                <div className="bento-media-top">
-                  <img 
-                    src={spotlightItems[2].image} 
-                    alt={spotlightItems[2].title} 
-                    className="bento-img"
-                  />
-                  <span className="bento-tag green">🛡️ An Toàn &amp; Ổn Định</span>
-                </div>
-                <div className="bento-content-compact">
-                  <span className="bento-category">{spotlightItems[2].category}</span>
-                  <h4 className="bento-sub-title">{spotlightItems[2].title}</h4>
-                  <div className="bento-compact-footer">
-                    <span className="rating-pill">⭐ 4.8</span>
-                    <span className="bento-link-text">Khám phá →</span>
+                  <div className="spotlight-card-body">
+                    <div className="spotlight-meta-top">
+                      <span className="spotlight-cat-tag">{displayCategory}</span>
+                      <span className="spotlight-rating-pill">⭐ 4.9</span>
+                    </div>
+
+                    <h3 className="spotlight-card-title">{item.title}</h3>
+
+                    <p className="spotlight-card-desc">
+                      {item.description?.replace(/<[^>]*>?/gm, '').slice(0, 95) || 'Công cụ tiện ích chất lượng cao, tối ưu hiệu suất làm việc.'}...
+                    </p>
+
+                    <div className="spotlight-features-checklist">
+                      <div className="spotlight-feat-item">
+                        <CheckCircle2 size={14} />
+                        <span>Vận hành đa luồng ổn định</span>
+                      </div>
+                      <div className="spotlight-feat-item">
+                        <CheckCircle2 size={14} />
+                        <span>Hỗ trợ cài đặt từ xa 24/7</span>
+                      </div>
+                    </div>
+
+                    <div className="spotlight-card-footer">
+                      <span className="spotlight-downloads-count">
+                        <Download size={14} />
+                        {(item.downloads || 850).toLocaleString()} lượt tải
+                      </span>
+                      <button type="button" className="btn-spotlight-action">
+                        <span>Khám phá</span>
+                        <ArrowRight size={15} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })}
           </div>
         </section>
       )}

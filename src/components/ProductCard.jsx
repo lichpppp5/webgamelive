@@ -119,7 +119,7 @@ const ProductCard = ({ product }) => {
         {/* Info */}
         <div className="product-info">
           <div className="product-meta">
-            <span className="product-category">{product.category}</span>
+            <span className="product-category">{product.category === 'Tools MMO' ? 'Tools Tiện Ích' : product.category}</span>
             <span className="product-downloads">
               <Download size={12} />
               {(downloadCount || 0).toLocaleString()}
