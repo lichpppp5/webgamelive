@@ -21,7 +21,50 @@ import ContactModal from './ContactModal';
 import { useSettings } from '../context/AppContext';
 import './HeroBanner.css';
 
-const SLIDE_INTERVAL = 4500;
+const DEFAULT_FALLBACK_SLIDES = [
+  {
+    id: 'game-bar-dj',
+    tabLabel: 'Game Tương Tác',
+    title: 'Game Bar DJ Tương Tác Livestream',
+    category: 'Game Tương Tác',
+    tagline: 'Âm thanh sống động, hiệu ứng trực quan kết nối phòng chat tự động mượt mà',
+    image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
+    badge: '⚡ Hot Trend',
+    version: 'v2.1 VN',
+    platform: 'Web / Desktop',
+    rating: 4.8,
+    downloads: 1850,
+    link: '/?category=tuong-tac'
+  },
+  {
+    id: 'tool-tien-ich-pro',
+    tabLabel: 'Tools Tiện Ích',
+    title: 'Bộ Tool Tiện Ích Tối Ưu Hóa & Tương Tác Đa Kênh',
+    category: 'Tools Tiện Ích',
+    tagline: 'Kịch bản kéo thả thông minh, mô phỏng thao tác người dùng chuẩn 100%',
+    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80',
+    badge: '⭐ Tiện Ích Đỉnh Cao',
+    version: 'v4.0 Pro',
+    platform: 'Windows / VPS',
+    rating: 5.0,
+    downloads: 3200,
+    link: '/?category=tools-tien-ich'
+  },
+  {
+    id: 'tool-afk-keeper',
+    tabLabel: 'Treo AFK',
+    title: 'Tool Giữ Kết Nối & Tự Động Treo AFK 24/7',
+    category: 'Treo AFK',
+    tagline: 'Tiết kiệm 90% tài nguyên CPU/RAM, chống ngắt kết nối tự động an toàn',
+    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1000&q=80',
+    badge: '🕒 Ổn Định 24/7',
+    version: 'v1.5',
+    platform: 'Windows / Web',
+    rating: 4.9,
+    downloads: 1420,
+    link: '/?category=treo-afk'
+  }
+];
 
 const HeroBanner = ({ hotGames = [], allProducts = [], softwareList = [], totalProducts = 0, onSelectCategory }) => {
   const { contactSettings } = useSettings();
@@ -131,7 +174,8 @@ const HeroBanner = ({ hotGames = [], allProducts = [], softwareList = [], totalP
       });
     }
 
-    return list;
+    // 4. If pool and software are both empty (e.g. initial fetch delay), use safe default slides
+    return list.length > 0 ? list : DEFAULT_FALLBACK_SLIDES;
   }, [pool, softwareList]);
 
   // Reset img error when slide changes
@@ -150,15 +194,18 @@ const HeroBanner = ({ hotGames = [], allProducts = [], softwareList = [], totalP
   }, [isTransitioning]);
 
   const goNext = useCallback(() => {
+    if (!slides || slides.length === 0) return;
     goTo((currentIdx + 1) % slides.length);
-  }, [currentIdx, slides.length, goTo]);
+  }, [currentIdx, slides, goTo]);
 
   useEffect(() => {
+    if (!slides || slides.length <= 1) return;
     const timer = setInterval(goNext, SLIDE_INTERVAL);
     return () => clearInterval(timer);
-  }, [goNext]);
+  }, [goNext, slides]);
 
-  const currentSlide = slides[currentIdx] || slides[0];
+  const safeIdx = Math.min(currentIdx, Math.max(0, (slides?.length || 1) - 1));
+  const currentSlide = (slides && slides.length > 0) ? (slides[safeIdx] || slides[0]) : DEFAULT_FALLBACK_SLIDES[0];
 
   const handleExploreClick = () => {
     const el = document.getElementById('product-section');
@@ -166,6 +213,7 @@ const HeroBanner = ({ hotGames = [], allProducts = [], softwareList = [], totalP
   };
 
   const handleSlideClick = (slide) => {
+    if (!slide) return;
     if (slide.category === 'Phần Mềm') {
       if (onSelectCategory) onSelectCategory('phan-mem');
       else navigate('/?category=phan-mem');
@@ -174,7 +222,7 @@ const HeroBanner = ({ hotGames = [], allProducts = [], softwareList = [], totalP
     }
   };
 
-  const isVideo = currentSlide.image && (currentSlide.image.endsWith('.mp4') || currentSlide.image.endsWith('.webm'));
+  const isVideo = Boolean(currentSlide?.image && (currentSlide.image.endsWith('.mp4') || currentSlide.image.endsWith('.webm')));
 
   return (
     <div className="hero-product-showcase">
