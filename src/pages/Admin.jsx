@@ -3,7 +3,7 @@ import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDash
 import { useToast, useSettings } from '../context/AppContext';
 import './Admin.css';
 
-const CATEGORIES = ['Tương tác', 'Tools MMO', 'Tools Sưu Tầm', 'Treo AFK', 'Phần Mềm'];
+const CATEGORIES = ['Tương tác', 'Tools Tiện Ích', 'Tools Sưu Tầm', 'Treo AFK', 'Phần Mềm'];
 
 const StatCard = ({ icon, label, value, color }) => (
   <div className="stat-card" style={{ '--stat-color': color }}>
@@ -1199,7 +1199,7 @@ const Admin = () => {
                   name="title" 
                   value={softwareFormData.title} 
                   onChange={handleSoftwareInputChange} 
-                  placeholder="Ví dụ: Phần Mềm Nuôi Nick & Tự Động Hóa MMO All-In-One" 
+                  placeholder="Ví dụ: Phần Mềm Quản Lý & Tự Động Hóa All-In-One" 
                   required 
                 />
               </div>

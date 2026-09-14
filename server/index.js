@@ -107,7 +107,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
 
-        // Create articles table for MMO Docs
+        // Create articles table for Docs & Guides
         db.run(`CREATE TABLE IF NOT EXISTS articles (
           id TEXT PRIMARY KEY,
           title TEXT NOT NULL,
@@ -146,7 +146,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 console.log('Seeding initial software...');
                 const seedStmt = db.prepare(`INSERT INTO software (id, title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads, features) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
                 const sampleDesc = `<h3>Giới thiệu Tổng quan</h3>
-<p><strong>Phần Mềm Quản Lý & Tự Động Hóa MMO Pro</strong> là giải pháp toàn diện được phát triển riêng cho cộng đồng kiếm tiền online (MMO), marketer và các team vận hành nuôi tài khoản số lượng lớn.</p>
+<p><strong>Phần Mềm Quản Lý & Tự Động Hóa Chuyên Nghiệp Pro</strong> là giải pháp toàn diện được phát triển dành cho cá trị viên, marketer và các team vận hành nuôi tài khoản, tự động hoá quy trình số lượng lớn.</p>
 
 <h3>Các Tính Năng Nổi Bật</h3>
 <ul>
@@ -174,9 +174,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 ]);
 
                 seedStmt.run(
-                  'sw-mmo-pro',
-                  'Phần Mềm Quản Lý & Tự Động Hóa MMO All-In-One Pro',
-                  'Hệ sinh thái tự động hóa tương tác, quản lý hàng nghìn profile và tối ưu hóa quy trình kiếm tiền trực tuyến',
+                  'sw-auto-pro',
+                  'Phần Mềm Quản Lý & Tự Động Hóa All-In-One Pro',
+                  'Hệ sinh thái tự động hóa tương tác, quản lý hàng nghìn profile và tối ưu hóa hiệu suất làm việc trực tuyến',
                   sampleDesc,
                   'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80',
                   'image',

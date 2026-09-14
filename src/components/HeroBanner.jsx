@@ -13,7 +13,7 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0 }) => {
 
   const slides = hotGames.length > 0
     ? hotGames
-    : [{ image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop', title: 'MMO Tools', id: 'default' }];
+    : [{ image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop', title: 'Hot Tools', id: 'default' }];
 
   const goTo = useCallback((idx) => {
     if (isTransitioning) return;
@@ -51,14 +51,13 @@ const HeroBanner = ({ hotGames = [], totalProducts = 0 }) => {
       <div className="hero-content">
         <div className="hero-badge">
           <span className="hero-badge-dot" />
-          Nền Tảng Tool - Game tương tác
+          Nền Tảng Tools - Game - Phần Mềm
         </div>
         <h1 className="hero-title">
-          Công Cụ &amp; Giải Pháp <span className="text-gradient">MMO</span>
+          Kho Tools, Game &amp; <span className="text-gradient">Phần Mềm</span>
         </h1>
         <p className="hero-desc">
-          Tối ưu thời gian, gia tăng hiệu suất với kho tool và game tương tác đa dạng.
-          Hỗ trợ 24/7, cập nhật liên tục.
+          Khám phá các công cụ tiện ích, tựa game tương tác và giải pháp phần mềm chất lượng cao. Tối ưu thời gian, trải nghiệm mượt mà, cập nhật liên tục.
         </p>
         <div className="hero-cta">
           <button

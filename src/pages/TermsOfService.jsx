@@ -20,7 +20,7 @@ const TermsOfService = () => {
         <section className="policy-section">
           <h2>1. Mục Đích Hoạt Động</h2>
           <p>
-            TOOLLIVE là một nền tảng <strong>chia sẻ cộng đồng, cung cấp tài liệu và công cụ phần mềm mục đích học tập, nghiên cứu và tối ưu hóa quy trình làm việc (MMO).</strong> Chúng tôi không phải là một sàn thương mại điện tử chuyên nghiệp và các khoản thanh toán được xem như hình thức <strong>ủng hộ (Donate)</strong> cho công sức phát triển của tác giả.
+            TOOLLIVE là một nền tảng <strong>chia sẻ cộng đồng, cung cấp tài liệu, công cụ, game và phần mềm nhằm mục đích học tập, nghiên cứu và tối ưu hóa quy trình làm việc.</strong> Chúng tôi không phải là một sàn thương mại điện tử chuyên nghiệp và các khoản thanh toán được xem như hình thức <strong>ủng hộ (Donate)</strong> cho công sức phát triển của tác giả.
           </p>
         </section>
 

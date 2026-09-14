@@ -141,7 +141,7 @@ const SoftwareShowcase = ({ softwareList = [], loading = false, onReload }) => {
           <span>HỆ THỐNG PHẦN MỀM CHUYÊN NGHIỆP</span>
         </div>
         <h1 className="software-main-title">
-          Giới Thiệu Sản Phẩm Phần Mềm MMO
+          Giới Thiệu Sản Phẩm Phần Mềm Tiện Ích
         </h1>
         <p className="software-subtitle">
           Khám phá và tải các công cụ phần mềm tự động hóa hàng đầu, tối ưu hóa tốc độ và nâng cao hiệu suất làm việc 24/7.
@@ -341,7 +341,7 @@ const SoftwareShowcase = ({ softwareList = [], loading = false, onReload }) => {
         {/* Bottom CTA Box */}
         <div className="software-bottom-cta">
           <div className="bottom-cta-left">
-            <h4>Sẵn sàng tối ưu hóa công việc MMO của bạn?</h4>
+            <h4>Sẵn sàng tối ưu hóa trải nghiệm & hiệu suất của bạn?</h4>
             <p>Tải ngay bản cập nhật mới nhất hoặc liên hệ đội ngũ hỗ trợ để nhận hướng dẫn cài đặt trực tiếp qua Ultraview / Anydesk.</p>
           </div>
           <div className="bottom-cta-right">

@@ -25,9 +25,9 @@ const Docs = () => {
       <div className="docs-header">
         <h1 className="docs-title">
           <BookOpen className="docs-icon" />
-          Tài Liệu & Hướng Dẫn MMO
+          Tài Liệu &amp; Hướng Dẫn
         </h1>
-        <p className="docs-subtitle">Các bài viết chia sẻ kinh nghiệm, hướng dẫn sử dụng công cụ và tối ưu hóa hệ thống.</p>
+        <p className="docs-subtitle">Các bài viết chia sẻ kinh nghiệm, hướng dẫn cài đặt và sử dụng công cụ, game và phần mềm tiện ích.</p>
       </div>
 
       {loading ? (

@@ -10,6 +10,7 @@ const getCategoryIcon = (id) => {
   switch (id) {
     case 'all': return <Sparkles size={17} />;
     case 'tuong-tac': return <MonitorPlay size={17} />;
+    case 'tools-tien-ich':
     case 'tools-mmo': return <Wrench size={17} />;
     case 'tools-suu-tam': return <Layers size={17} />;
     case 'treo-afk': return <Cpu size={17} />;
@@ -22,6 +23,9 @@ const getCategoryCount = (name, games, softwareCount = 0) => {
   if (name === 'Phần Mềm') return softwareCount;
   if (!games) return 0;
   if (name === 'Tất cả') return games.length;
+  if (name === 'Tools Tiện Ích') {
+    return games.filter(g => g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO').length;
+  }
   return games.filter(g => g.category === name).length;
 };
 
@@ -65,12 +69,12 @@ const Sidebar = ({ activeCategory, setActiveCategory, games, softwareCount = 0 }
             <Link
               to="/docs"
               className="category-item"
-              aria-label="Tài Liệu MMO"
+              aria-label="Tài Liệu & Hướng Dẫn"
             >
               <span className="category-icon" aria-hidden="true">
                 <BookOpen size={17} />
               </span>
-              <span className="category-name">Tài Liệu MMO</span>
+              <span className="category-name">Tài Liệu & Hướng Dẫn</span>
             </Link>
           </li>
         </ul>

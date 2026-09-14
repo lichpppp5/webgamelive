@@ -21,7 +21,7 @@ const Footer = () => {
             <span className="text-gradient" style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '1.5px' }}>TOOLLIVE</span>
           </Link>
           <p className="footer-desc">
-            Nền tảng cung cấp tool và game MMO chất lượng cao. Hỗ trợ cài đặt, vận hành tận tâm.
+            Nền tảng chia sẻ và giới thiệu Tools, Game tương tác và Phần mềm chất lượng cao. Hỗ trợ cài đặt, vận hành tận tâm.
           </p>
           <div className="footer-socials">
             <a href={contactSettings?.facebook || 'https://facebook.com'} target="_blank" rel="noreferrer" className="social-link" title="Facebook">
@@ -44,13 +44,14 @@ const Footer = () => {
 
         {/* Links */}
         <div className="footer-col">
-          <h3 className="footer-col-title">Công cụ</h3>
+          <h3 className="footer-col-title">Danh mục</h3>
           <ul className="footer-links">
-            <li><Link to="/?cat=tuong-tac">Game Tương Tác</Link></li>
-            <li><Link to="/?cat=tools-mmo">Tools MMO</Link></li>
-            <li><Link to="/?cat=tools-suu-tam">Tools Sưu Tầm</Link></li>
-            <li><Link to="/?cat=treo-afk">Treo AFK</Link></li>
-            <li><Link to="/docs">Tài Liệu MMO</Link></li>
+            <li><Link to="/software">Phần Mềm</Link></li>
+            <li><Link to="/?category=tuong-tac">Game Tương Tác</Link></li>
+            <li><Link to="/?category=tools-tien-ich">Tools Tiện Ích</Link></li>
+            <li><Link to="/?category=tools-suu-tam">Tools Sưu Tầm</Link></li>
+            <li><Link to="/?category=treo-afk">Treo AFK</Link></li>
+            <li><Link to="/docs">Tài Liệu &amp; Hướng Dẫn</Link></li>
             <li><Link to="/cart">Danh sách tải</Link></li>
           </ul>
         </div>
@@ -94,7 +95,7 @@ const Footer = () => {
             </p>
           </div>
           <p className="footer-tagline">
-            Chuyên cung cấp game &amp; tool MMO chất lượng cao | 👁️ <strong>{contactSettings?.visitCount ? parseInt(contactSettings.visitCount, 10).toLocaleString('vi-VN') : '1.250'}</strong> Lượt truy cập
+            Chuyên cung cấp tools, game &amp; phần mềm tiện ích chất lượng cao | 👁️ <strong>{contactSettings?.visitCount ? parseInt(contactSettings.visitCount, 10).toLocaleString('vi-VN') : '1.250'}</strong> Lượt truy cập
           </p>
         </div>
       </div>

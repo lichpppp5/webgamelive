@@ -28,7 +28,7 @@ const ArticleSlider = () => {
       <div className="article-slider-header">
         <h2 className="article-slider-title">
           <BookOpen size={20} className="text-primary" />
-          Tài Liệu MMO
+          Tài Liệu &amp; Hướng Dẫn
         </h2>
         <Link to="/docs" className="article-slider-more">
           Xem tất cả <ChevronRight size={16} />

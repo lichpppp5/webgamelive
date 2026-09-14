@@ -17,7 +17,7 @@ const DisclaimerSection = () => {
             Mục đích
           </div>
           <div className="disclaimer-box-text">
-            Các công cụ MMO, Game Live và phần mềm tự phát triển trên hệ thống chỉ phục vụ tự động hóa quy trình, học tập, giải trí, nghiên cứu và tối ưu hóa công việc hợp pháp.
+            Các công cụ tiện ích, Game tương tác và phần mềm tự phát triển trên hệ thống chỉ phục vụ tự động hóa quy trình, học tập, giải trí, nghiên cứu và tối ưu hóa công việc hợp pháp.
           </div>
         </div>
 
