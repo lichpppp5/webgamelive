@@ -21,7 +21,8 @@ import {
   Filter,
   Laptop,
   LayoutGrid,
-  Monitor
+  Monitor,
+  Compass
 } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import HeroBanner from '../components/HeroBanner';
@@ -143,8 +144,10 @@ const Home = ({ defaultCategory = 'all' }) => {
     const cat = searchParams.get('category');
     if (cat && cat !== activeCategory) {
       setActiveCategory(cat);
+    } else if (!cat && defaultCategory && defaultCategory !== activeCategory) {
+      setActiveCategory(defaultCategory);
     }
-  }, [searchParams]);
+  }, [searchParams, defaultCategory]);
 
   useEffect(() => {
     fetch('/api/products')
@@ -207,6 +210,9 @@ const Home = ({ defaultCategory = 'all' }) => {
         if (activeCategory === 'phan-mem') {
           return g.category === 'Phần Mềm' || g.category?.toLowerCase() === 'phần mềm' || g.category === 'phan-mem' || g.isSoftware;
         }
+        if (activeCategory === 'tools-game') {
+          return g.category !== 'Phần Mềm' && g.category?.toLowerCase() !== 'phần mềm' && !g.isSoftware;
+        }
         if (activeCategory === 'tuong-tac') {
           return g.category === 'Game Tương Tác' || g.category === 'Tương tác';
         }
@@ -255,6 +261,7 @@ const Home = ({ defaultCategory = 'all' }) => {
     switch (id) {
       case 'all': return <Layers size={16} />;
       case 'phan-mem': return <AppWindow size={16} />;
+      case 'tools-game': return <Compass size={16} />;
       case 'tools-tien-ich': return <Wrench size={16} />;
       case 'tuong-tac': return <Gamepad2 size={16} />;
       case 'tools-suu-tam': return <Cpu size={16} />;
@@ -267,6 +274,9 @@ const Home = ({ defaultCategory = 'all' }) => {
     if (id === 'all') return allCatalogItems.length;
     if (id === 'phan-mem') {
       return allCatalogItems.filter(g => g.category === 'Phần Mềm' || g.category?.toLowerCase() === 'phần mềm' || g.category === 'phan-mem' || g.isSoftware).length;
+    }
+    if (id === 'tools-game') {
+      return allCatalogItems.filter(g => g.category !== 'Phần Mềm' && g.category?.toLowerCase() !== 'phần mềm' && !g.isSoftware).length;
     }
     if (id === 'tools-tien-ich') {
       return allCatalogItems.filter(g => g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO').length;

@@ -28,6 +28,9 @@ function App() {
         <Route index element={<Home />} />
         <Route path="software" element={<Home defaultCategory="phan-mem" />} />
         <Route path="phan-mem" element={<Home defaultCategory="phan-mem" />} />
+        <Route path="tools" element={<Home defaultCategory="tools-game" />} />
+        <Route path="tools-game" element={<Home defaultCategory="tools-game" />} />
+        <Route path="kho-tools" element={<Home defaultCategory="tools-game" />} />
         <Route path="product/:id" element={<ProductDetail />} />
         <Route path="cart" element={<Cart />} />
         <Route path="admin" element={<Admin />} />

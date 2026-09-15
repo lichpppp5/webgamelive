@@ -16,8 +16,8 @@ const Header = ({ searchQuery, setSearchQuery }) => {
 
   const currentCat = new URLSearchParams(location.search).get('category');
   const isHomeActive = location.pathname === '/' && !currentCat;
-  const isSoftwareActive = currentCat === 'phan-mem';
-  const isToolsActive = location.pathname === '/' && currentCat && currentCat !== 'phan-mem';
+  const isSoftwareActive = currentCat === 'phan-mem' || location.pathname === '/phan-mem' || location.pathname === '/software';
+  const isToolsActive = currentCat === 'tools-game' || location.pathname === '/tools-game' || location.pathname === '/tools' || location.pathname === '/kho-tools';
   const isDocsActive = location.pathname.startsWith('/docs');
 
   const handleSearchChange = (e) => {
@@ -101,7 +101,7 @@ const Header = ({ searchQuery, setSearchQuery }) => {
             <button 
               type="button" 
               className={`nav-link ${isToolsActive ? 'active' : ''}`}
-              onClick={() => handleNavClick('product-section', 'all')}
+              onClick={() => handleNavClick('product-section', 'tools-game')}
             >
               <Compass size={15} />
               <span>Kho Tools &amp; Game</span>
@@ -237,7 +237,7 @@ const Header = ({ searchQuery, setSearchQuery }) => {
               <button 
                 type="button" 
                 className={`mobile-nav-item ${isToolsActive ? 'active' : ''}`}
-                onClick={() => handleNavClick('product-section', 'all')}
+                onClick={() => handleNavClick('product-section', 'tools-game')}
               >
                 <Compass size={18} />
                 <span>Kho Tools &amp; Game</span>
