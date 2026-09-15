@@ -142,12 +142,17 @@ const Home = ({ defaultCategory = 'all' }) => {
 
   useEffect(() => {
     const cat = searchParams.get('category');
-    if (cat && cat !== activeCategory) {
-      setActiveCategory(cat);
-    } else if (!cat && defaultCategory && defaultCategory !== activeCategory) {
-      setActiveCategory(defaultCategory);
+    if (cat) {
+      if (cat !== activeCategory) {
+        setActiveCategory(cat);
+      }
+    } else {
+      const target = defaultCategory || 'all';
+      if (activeCategory !== target) {
+        setActiveCategory(target);
+      }
     }
-  }, [searchParams, defaultCategory]);
+  }, [searchParams, defaultCategory, activeCategory]);
 
   useEffect(() => {
     fetch('/api/products')

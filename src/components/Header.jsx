@@ -31,15 +31,14 @@ const Header = ({ searchQuery, setSearchQuery }) => {
   const handleNavClick = (target, category = null) => {
     setIsMobileNavOpen(false);
     if (target === 'top') {
-      if (location.pathname !== '/') {
-        navigate('/');
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      clearSearch();
+      navigate({ pathname: '/', search: '' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     if (category) {
+      clearSearch();
       navigate(`/?category=${category}`);
       setTimeout(() => {
         const el = document.getElementById('product-section');
