@@ -207,6 +207,9 @@ const Home = ({ defaultCategory = 'all' }) => {
         if (activeCategory === 'phan-mem') {
           return g.category === 'Phần Mềm' || g.category?.toLowerCase() === 'phần mềm' || g.category === 'phan-mem' || g.isSoftware;
         }
+        if (activeCategory === 'tuong-tac') {
+          return g.category === 'Game Tương Tác' || g.category === 'Tương tác';
+        }
         return g.category === catName;
       });
     }
@@ -252,8 +255,8 @@ const Home = ({ defaultCategory = 'all' }) => {
     switch (id) {
       case 'all': return <Layers size={16} />;
       case 'phan-mem': return <AppWindow size={16} />;
-      case 'tuong-tac': return <Gamepad2 size={16} />;
       case 'tools-tien-ich': return <Wrench size={16} />;
+      case 'tuong-tac': return <Gamepad2 size={16} />;
       case 'tools-suu-tam': return <Cpu size={16} />;
       case 'treo-afk': return <Clock size={16} />;
       default: return <Sparkles size={16} />;
@@ -267,6 +270,9 @@ const Home = ({ defaultCategory = 'all' }) => {
     }
     if (id === 'tools-tien-ich') {
       return allCatalogItems.filter(g => g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO').length;
+    }
+    if (id === 'tuong-tac') {
+      return allCatalogItems.filter(g => g.category === 'Game Tương Tác' || g.category === 'Tương tác').length;
     }
     const catName = categories.find(c => c.id === id)?.name;
     return allCatalogItems.filter(g => g.category === catName).length;
@@ -282,69 +288,6 @@ const Home = ({ defaultCategory = 'all' }) => {
         totalProducts={allCatalogItems.length} 
         onSelectCategory={handleCategoryChange}
       />
-
-      {/* 1.5 Tech Ecosystem & Guarantee Trust Bar */}
-      <section className="tech-ecosystem-bar container" aria-label="Hệ sinh thái & Tiêu chuẩn phần mềm">
-        <div className="ecosystem-inner">
-          <div className="eco-item">
-            <div className="eco-icon-wrap cyan">
-              <Laptop size={18} />
-            </div>
-            <div className="eco-text">
-              <span className="eco-title">Tương Thích Mọi Windows</span>
-              <span className="eco-sub">Win 10 &amp; 11 64-bit mượt mà</span>
-            </div>
-          </div>
-
-          <div className="eco-divider" />
-
-          <div className="eco-item">
-            <div className="eco-icon-wrap green">
-              <Zap size={18} />
-            </div>
-            <div className="eco-text">
-              <span className="eco-title">Đa Luồng &amp; Tiết Kiệm RAM</span>
-              <span className="eco-sub">Vận hành êm ái, tối ưu tài nguyên</span>
-            </div>
-          </div>
-
-          <div className="eco-divider" />
-
-          <div className="eco-item">
-            <div className="eco-icon-wrap blue">
-              <ShieldCheck size={18} />
-            </div>
-            <div className="eco-text">
-              <span className="eco-title">Kiểm Định VirusTotal</span>
-              <span className="eco-sub">100% Sạch mã độc, an toàn tuyệt đối</span>
-            </div>
-          </div>
-
-          <div className="eco-divider" />
-
-          <div className="eco-item">
-            <div className="eco-icon-wrap purple">
-              <RefreshCw size={18} />
-            </div>
-            <div className="eco-text">
-              <span className="eco-title">Tự Động Cập Nhật</span>
-              <span className="eco-sub">Bắt kịp thuật toán &amp; phiên bản mới</span>
-            </div>
-          </div>
-
-          <div className="eco-divider" />
-
-          <div className="eco-item">
-            <div className="eco-icon-wrap orange">
-              <Headphones size={18} />
-            </div>
-            <div className="eco-text">
-              <span className="eco-title">Kỹ Thuật Hỗ Trợ 24/7</span>
-              <span className="eco-sub">Cài đặt trực tiếp qua Ultraview</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* 2. Featured Spotlight Cards (Flagship Showcase) */}
       {spotlightItems.length > 0 && activeCategory === 'all' && !searchQuery && (
@@ -477,42 +420,44 @@ const Home = ({ defaultCategory = 'all' }) => {
               )}
             </div>
 
-            {/* View Mode Switcher for Software Tab (Grid vs Interactive Showcase Player) */}
-            {activeCategory === 'phan-mem' && softwareList.length > 0 && (
-              <div className="catalog-view-toggle">
-                <button
-                  type="button"
-                  className={`view-mode-btn ${softwareViewMode === 'grid' ? 'active' : ''}`}
-                  onClick={() => setSoftwareViewMode('grid')}
-                  title="Hiển thị dạng thẻ lưới như tools & game"
-                >
-                  <LayoutGrid size={14} />
-                  <span>Dạng Lưới</span>
-                </button>
-                <button
-                  type="button"
-                  className={`view-mode-btn ${softwareViewMode === 'showcase' ? 'active' : ''}`}
-                  onClick={() => setSoftwareViewMode('showcase')}
-                  title="Chế độ trình chiếu đa phương tiện"
-                >
-                  <Monitor size={14} />
-                  <span>Trình Chiếu</span>
-                </button>
-              </div>
-            )}
+            <div className="catalog-sub-right">
+              {/* View Mode Switcher for Software Tab */}
+              {activeCategory === 'phan-mem' && (
+                <div className="catalog-view-toggle">
+                  <button
+                    type="button"
+                    className={`view-mode-btn ${softwareViewMode === 'grid' ? 'active' : ''}`}
+                    onClick={() => setSoftwareViewMode('grid')}
+                    title="Hiển thị dạng thẻ lưới như tools & game"
+                  >
+                    <LayoutGrid size={14} />
+                    <span>Dạng Lưới</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`view-mode-btn ${softwareViewMode === 'showcase' ? 'active' : ''}`}
+                    onClick={() => setSoftwareViewMode('showcase')}
+                    title="Chế độ trình chiếu đa phương tiện"
+                  >
+                    <Monitor size={14} />
+                    <span>Trình Chiếu</span>
+                  </button>
+                </div>
+              )}
 
-            <div className="catalog-sort-wrap">
-              <select
-                className="catalog-sort-select"
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value)}
-                id="sort-select"
-                aria-label="Sắp xếp danh sách"
-              >
-                {SORT_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+              <div className="catalog-sort-wrap">
+                <select
+                  className="catalog-sort-select"
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value)}
+                  id="sort-select"
+                  aria-label="Sắp xếp danh sách"
+                >
+                  {SORT_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 

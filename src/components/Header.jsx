@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingCart, Search, X, Zap, Sun, Moon, Menu, MessageSquare, Compass, AppWindow, Sparkles, BookOpen } from 'lucide-react';
+import { ShoppingCart, Search, X, Zap, Sun, Moon, Menu, MessageSquare, Compass, AppWindow, Sparkles, BookOpen, Home as HomeIcon } from 'lucide-react';
 import { useCart, useTheme } from '../context/AppContext';
 import ContactModal from './ContactModal';
 import './Header.css';
@@ -14,6 +14,12 @@ const Header = ({ searchQuery, setSearchQuery }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const currentCat = new URLSearchParams(location.search).get('category');
+  const isHomeActive = location.pathname === '/' && !currentCat;
+  const isSoftwareActive = currentCat === 'phan-mem';
+  const isToolsActive = location.pathname === '/' && currentCat && currentCat !== 'phan-mem';
+  const isDocsActive = location.pathname.startsWith('/docs');
+
   const handleSearchChange = (e) => {
     if (setSearchQuery) setSearchQuery(e.target.value);
   };
@@ -24,6 +30,15 @@ const Header = ({ searchQuery, setSearchQuery }) => {
 
   const handleNavClick = (target, category = null) => {
     setIsMobileNavOpen(false);
+    if (target === 'top') {
+      if (location.pathname !== '/') {
+        navigate('/');
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return;
+    }
+
     if (category) {
       navigate(`/?category=${category}`);
       setTimeout(() => {
@@ -59,7 +74,7 @@ const Header = ({ searchQuery, setSearchQuery }) => {
           </button>
 
           {/* Logo */}
-          <Link to="/" className="logo" aria-label="TOOLLIVE - Trang chủ" onClick={() => setIsMobileNavOpen(false)}>
+          <Link to="/" className="logo" aria-label="TOOLLIVE - Trang chủ" onClick={() => handleNavClick('top')}>
             <span className="logo-icon"><Zap size={20} fill="currentColor" /></span>
             <span className="logo-text text-gradient">TOOLLIVE</span>
           </Link>
@@ -68,15 +83,15 @@ const Header = ({ searchQuery, setSearchQuery }) => {
           <nav className="header-nav" aria-label="Menu chính">
             <button 
               type="button" 
-              className="nav-link" 
-              onClick={() => handleNavClick('product-section', 'all')}
+              className={`nav-link ${isHomeActive ? 'active' : ''}`}
+              onClick={() => handleNavClick('top')}
             >
-              <Compass size={15} />
-              <span>Kho Tools &amp; Game</span>
+              <HomeIcon size={15} />
+              <span>Trang Chủ</span>
             </button>
             <button 
               type="button" 
-              className="nav-link nav-link-highlight" 
+              className={`nav-link nav-link-highlight ${isSoftwareActive ? 'active' : ''}`}
               onClick={() => handleNavClick('product-section', 'phan-mem')}
             >
               <AppWindow size={15} />
@@ -85,42 +100,50 @@ const Header = ({ searchQuery, setSearchQuery }) => {
             </button>
             <button 
               type="button" 
+              className={`nav-link ${isToolsActive ? 'active' : ''}`}
+              onClick={() => handleNavClick('product-section', 'all')}
+            >
+              <Compass size={15} />
+              <span>Kho Tools &amp; Game</span>
+            </button>
+            <Link to="/docs" className={`nav-link ${isDocsActive ? 'active' : ''}`}>
+              <BookOpen size={15} />
+              <span>Tài Liệu</span>
+            </Link>
+            <button 
+              type="button" 
               className="nav-link" 
               onClick={() => handleNavClick('features-section')}
             >
               <Sparkles size={15} />
               <span>Ưu Điểm</span>
             </button>
-            <Link to="/docs" className="nav-link">
-              <BookOpen size={15} />
-              <span>Tài Liệu</span>
-            </Link>
           </nav>
-
-          {/* Search Bar - Desktop */}
-          <div className="header-search-wrap">
-            <div className={`header-search ${searchQuery ? 'has-value' : ''}`}>
-              <Search size={16} className="search-icon-left" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm tool, game, app..."
-                value={searchQuery || ''}
-                onChange={handleSearchChange}
-                id="header-search-input"
-                aria-label="Tìm kiếm công cụ"
-              />
-              {searchQuery ? (
-                <button className="search-clear-btn" onClick={clearSearch} aria-label="Xóa tìm kiếm">
-                  <X size={14} />
-                </button>
-              ) : (
-                <span className="search-kbd-hint">⌘K</span>
-              )}
-            </div>
-          </div>
 
           {/* Right Actions */}
           <div className="header-actions">
+            {/* Search Bar - Desktop */}
+            <div className="header-search-wrap">
+              <div className={`header-search ${searchQuery ? 'has-value' : ''}`}>
+                <Search size={15} className="search-icon-left" />
+                <input
+                  type="text"
+                  placeholder="Tìm tool, app..."
+                  value={searchQuery || ''}
+                  onChange={handleSearchChange}
+                  id="header-search-input"
+                  aria-label="Tìm kiếm công cụ"
+                />
+                {searchQuery ? (
+                  <button className="search-clear-btn" onClick={clearSearch} aria-label="Xóa tìm kiếm">
+                    <X size={14} />
+                  </button>
+                ) : (
+                  <span className="search-kbd-hint">⌘K</span>
+                )}
+              </div>
+            </div>
+
             {/* Theme Toggle */}
             <button
               className="icon-btn theme-toggle-btn"
@@ -129,7 +152,7 @@ const Header = ({ searchQuery, setSearchQuery }) => {
               aria-label="Đổi giao diện Sáng / Tối"
               id="theme-toggle-button"
             >
-              {theme === 'light' ? <Moon size={19} /> : <Sun size={19} />}
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             </button>
 
             {/* Mobile Search Toggle */}
@@ -138,12 +161,12 @@ const Header = ({ searchQuery, setSearchQuery }) => {
               onClick={() => setIsMobileSearchOpen(prev => !prev)}
               aria-label="Mở tìm kiếm"
             >
-              <Search size={19} />
+              <Search size={18} />
             </button>
 
             {/* Cart */}
             <Link to="/cart" className="icon-btn cart-btn" aria-label={`Danh sách tải (${cartCount} công cụ)`}>
-              <ShoppingCart size={20} />
+              <ShoppingCart size={19} />
               {cartCount > 0 && (
                 <span className="cart-badge animate-scaleIn">
                   {cartCount > 99 ? '99+' : cartCount}
@@ -158,7 +181,7 @@ const Header = ({ searchQuery, setSearchQuery }) => {
               onClick={() => setIsContactOpen(true)}
               aria-label="Tư vấn hỗ trợ trực tuyến"
             >
-              <MessageSquare size={15} />
+              <MessageSquare size={14} />
               <span>Tư Vấn Ngay</span>
             </button>
           </div>
@@ -196,21 +219,37 @@ const Header = ({ searchQuery, setSearchQuery }) => {
             <div className="mobile-nav-links">
               <button 
                 type="button" 
-                className="mobile-nav-item" 
+                className={`mobile-nav-item ${isHomeActive ? 'active' : ''}`}
+                onClick={() => handleNavClick('top')}
+              >
+                <HomeIcon size={18} />
+                <span>Trang Chủ</span>
+              </button>
+              <button 
+                type="button" 
+                className={`mobile-nav-item ${isSoftwareActive ? 'active' : ''}`}
+                onClick={() => handleNavClick('product-section', 'phan-mem')}
+              >
+                <AppWindow size={18} />
+                <span>Phần Mềm Chuyên Nghiệp</span>
+                <span className="nav-badge-pill">Hot</span>
+              </button>
+              <button 
+                type="button" 
+                className={`mobile-nav-item ${isToolsActive ? 'active' : ''}`}
                 onClick={() => handleNavClick('product-section', 'all')}
               >
                 <Compass size={18} />
                 <span>Kho Tools &amp; Game</span>
               </button>
-              <button 
-                type="button" 
-                className="mobile-nav-item" 
-                onClick={() => handleNavClick('product-section', 'phan-mem')}
+              <Link 
+                to="/docs" 
+                className={`mobile-nav-item ${isDocsActive ? 'active' : ''}`}
+                onClick={() => setIsMobileNavOpen(false)}
               >
-                <AppWindow size={18} />
-                <span>Phần Mềm Nổi Bật</span>
-                <span className="nav-badge-pill">Hot</span>
-              </button>
+                <BookOpen size={18} />
+                <span>Tài Liệu Hướng Dẫn</span>
+              </Link>
               <button 
                 type="button" 
                 className="mobile-nav-item" 
@@ -219,14 +258,6 @@ const Header = ({ searchQuery, setSearchQuery }) => {
                 <Sparkles size={18} />
                 <span>Ưu Điểm Vượt Trội</span>
               </button>
-              <Link 
-                to="/docs" 
-                className="mobile-nav-item" 
-                onClick={() => setIsMobileNavOpen(false)}
-              >
-                <BookOpen size={18} />
-                <span>Tài Liệu Hướng Dẫn</span>
-              </Link>
             </div>
             <div className="mobile-nav-footer">
               <button
