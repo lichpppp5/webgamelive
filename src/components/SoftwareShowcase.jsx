@@ -258,13 +258,15 @@ const SoftwareShowcase = ({ softwareList = [], loading = false, onReload }) => {
             <div className="software-price-wrap">
               <span className="price-label">Mức phí sở hữu:</span>
               <div className="price-amount">
-                {current.price > 0 ? (
+                {Boolean(current.isFree) ? (
+                  <strong className="free-badge">🎁 MIỄN PHÍ TRẢI NGHIỆM</strong>
+                ) : current.price > 0 ? (
                   <>
                     <strong className="text-gradient">{current.price.toLocaleString('vi-VN')}</strong>
                     <span className="currency">VNĐ</span>
                   </>
                 ) : (
-                  <strong className="free-badge">MIỄN PHÍ TRẢI NGHIỆM</strong>
+                  <strong className="free-badge" style={{ color: 'var(--primary)' }}>💬 LIÊN HỆ TƯ VẤN</strong>
                 )}
               </div>
             </div>

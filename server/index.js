@@ -152,10 +152,19 @@ const db = new sqlite3.Database(dbPath, (err) => {
           badge TEXT DEFAULT '',
           downloadLink TEXT DEFAULT '',
           downloads INTEGER DEFAULT 0,
+          isFree BOOLEAN DEFAULT 0,
+          features TEXT DEFAULT '[]',
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`, (err) => {
           if (err) {
             console.error('Error creating software table:', err);
+          } else {
+            db.run(`ALTER TABLE software ADD COLUMN isFree BOOLEAN DEFAULT 0`, (alterErr) => {
+              // Ignore if column already exists
+            });
+            db.run(`ALTER TABLE software ADD COLUMN features TEXT DEFAULT '[]'`, (alterErr) => {
+              // Ignore if column already exists
+            });
           }
         });
       }
@@ -349,7 +358,7 @@ app.get('/api/products/:id', (req, res) => {
         category: 'Phần Mềm',
         downloads: swRow.downloads || 0,
         isHot: Boolean(swRow.badge?.includes('Hot') || swRow.badge?.includes('Khuyên') || swRow.badge?.includes('Đề Xuất') || swRow.badge?.includes('Trend')),
-        isFree: false,
+        isFree: Boolean(swRow.isFree === 1 || swRow.isFree === true || swRow.isFree === '1'),
         downloadLink: swRow.downloadLink || '',
         version: swRow.version || 'v1.0',
         platform: swRow.platform || 'Windows 10/11 (64-bit)',
@@ -501,7 +510,11 @@ app.get('/api/software', (req, res) => {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json(rows);
+    const formatted = (rows || []).map(r => ({
+      ...r,
+      isFree: Boolean(r.isFree === 1 || r.isFree === true || r.isFree === '1')
+    }));
+    res.json(formatted);
   });
 });
 
@@ -517,16 +530,17 @@ app.get('/api/software/:id', (req, res) => {
       res.status(404).json({ error: 'Software not found' });
       return;
     }
+    row.isFree = Boolean(row.isFree === 1 || row.isFree === true || row.isFree === '1');
     res.json(row);
   });
 });
 
 // POST new software
 app.post('/api/software', (req, res) => {
-  const { title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, features } = req.body;
+  const { title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, isFree, features } = req.body;
   const id = 'sw' + Date.now();
 
-  const stmt = db.prepare(`INSERT INTO software (id, title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads, features) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+  const stmt = db.prepare(`INSERT INTO software (id, title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads, isFree, features) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
   stmt.run(
     id,
     title || 'Phần mềm mới',
@@ -540,13 +554,14 @@ app.post('/api/software', (req, res) => {
     badge || '',
     downloadLink || '',
     0,
+    isFree ? 1 : 0,
     typeof features === 'string' ? features : JSON.stringify(features || []),
     function(err) {
       if (err) {
         res.status(500).json({ error: err.message });
         return;
       }
-      res.json({ id, title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads: 0, features });
+      res.json({ id, title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads: 0, isFree: isFree ? 1 : 0, features });
     }
   );
   stmt.finalize();
@@ -555,9 +570,9 @@ app.post('/api/software', (req, res) => {
 // PUT update software
 app.put('/api/software/:id', (req, res) => {
   const { id } = req.params;
-  const { title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads, features } = req.body;
+  const { title, tagline, description, media, mediaType, version, platform, price, badge, downloadLink, downloads, isFree, features } = req.body;
 
-  const stmt = db.prepare(`UPDATE software SET title = ?, tagline = ?, description = ?, media = ?, mediaType = ?, version = ?, platform = ?, price = ?, badge = ?, downloadLink = ?, downloads = COALESCE(?, downloads), features = ? WHERE id = ?`);
+  const stmt = db.prepare(`UPDATE software SET title = ?, tagline = ?, description = ?, media = ?, mediaType = ?, version = ?, platform = ?, price = ?, badge = ?, downloadLink = ?, downloads = COALESCE(?, downloads), isFree = ?, features = ? WHERE id = ?`);
   stmt.run(
     title,
     tagline || '',
@@ -570,6 +585,7 @@ app.put('/api/software/:id', (req, res) => {
     badge || '',
     downloadLink || '',
     downloads !== undefined ? downloads : null,
+    isFree ? 1 : 0,
     typeof features === 'string' ? features : JSON.stringify(features || []),
     id,
     function(err) {

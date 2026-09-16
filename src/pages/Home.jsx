@@ -190,7 +190,7 @@ const Home = ({ defaultCategory = 'all' }) => {
           category: 'Phần Mềm',
           downloads: sw.downloads || 0,
           isHot: Boolean(sw.badge?.includes('Hot') || sw.badge?.includes('Khuyên') || sw.badge?.includes('Đề Xuất') || sw.badge?.includes('Trend')),
-          isFree: false,
+          isFree: Boolean(sw.isFree),
           downloadLink: sw.downloadLink || '',
           version: sw.version || 'v1.0',
           platform: sw.platform || 'Windows 10/11 (64-bit)',

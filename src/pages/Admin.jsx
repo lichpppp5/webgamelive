@@ -81,6 +81,7 @@ const Admin = () => {
     version: 'v1.0',
     platform: 'Windows 10/11 (64-bit)',
     price: 0,
+    isFree: false,
     badge: 'Khuyên Dùng',
     downloadLink: '',
     downloads: 0,
@@ -248,6 +249,7 @@ const Admin = () => {
       version: 'v1.0',
       platform: 'Windows 10/11 (64-bit)',
       price: 0,
+      isFree: false,
       badge: 'Khuyên Dùng',
       downloadLink: '',
       downloads: 0,
@@ -275,6 +277,7 @@ const Admin = () => {
         ...softwareFormData,
         price: Number(softwareFormData.price) || 0,
         downloads: Number(softwareFormData.downloads) || 0,
+        isFree: Boolean(softwareFormData.isFree),
         features: JSON.stringify(featuresArray)
       })
     })
@@ -307,6 +310,7 @@ const Admin = () => {
       version: sw.version || 'v1.0',
       platform: sw.platform || 'Windows 10/11 (64-bit)',
       price: sw.price || 0,
+      isFree: Boolean(sw.isFree),
       badge: sw.badge || '',
       downloadLink: sw.downloadLink || '',
       downloads: sw.downloads || 0,
@@ -1116,7 +1120,13 @@ const Admin = () => {
                         {game.isHot && <span className="hot-tag">🔥 HOT</span>}
                       </td>
                       <td className="admin-price">
-                        {game.price > 0 ? game.price.toLocaleString() + 'đ' : 'LH'}
+                        {game.isFree ? (
+                          <span style={{ color: 'var(--secondary)', fontWeight: 700 }}>🎁 Miễn Phí</span>
+                        ) : game.price > 0 ? (
+                          game.price.toLocaleString() + 'đ'
+                        ) : (
+                          <span style={{ color: 'var(--primary)' }}>LH</span>
+                        )}
                       </td>
                       <td>
                         <span className="cat-pill">{game.category}</span>
@@ -1340,6 +1350,22 @@ const Admin = () => {
                 />
               </div>
 
+              {/* Free Toggle */}
+              <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.5rem' }}>
+                <label className="hot-toggle">
+                  <input 
+                    type="checkbox" 
+                    name="isFree" 
+                    checked={Boolean(softwareFormData.isFree)} 
+                    onChange={handleSoftwareInputChange} 
+                  />
+                  <span className="toggle-track">
+                    <span className="toggle-thumb" />
+                  </span>
+                  <span className="toggle-label">Không yêu cầu đóng góp 🎁 (Miễn phí)</span>
+                </label>
+              </div>
+
               {/* Media: Video or Image */}
               <div className="form-group">
                 <label className="form-label">
@@ -1503,13 +1529,17 @@ const Admin = () => {
                           </span>
                         </td>
                         <td>
-                          {sw.price > 0 ? (
+                          {Boolean(sw.isFree) ? (
+                            <span style={{ color: 'var(--secondary)', fontSize: '0.82rem', fontWeight: 700 }}>
+                              🎁 Miễn Phí
+                            </span>
+                          ) : sw.price > 0 ? (
                             <span style={{ fontWeight: 600, color: 'var(--text-100)', fontSize: '0.88rem' }}>
                               {sw.price.toLocaleString('vi-VN')} đ
                             </span>
                           ) : (
-                            <span style={{ color: 'var(--secondary)', fontSize: '0.82rem', fontWeight: 700 }}>
-                              Miễn Phí
+                            <span style={{ color: 'var(--primary)', fontSize: '0.82rem', fontWeight: 600 }}>
+                              💬 Liên Hệ
                             </span>
                           )}
                         </td>

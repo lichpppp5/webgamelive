@@ -108,6 +108,20 @@ const ProductDetail = () => {
 
   const cleanTitle = product.title?.replace(/\bMMO\b/gi, 'Tiện Ích').replace(/\(MMO\)/gi, '').trim();
 
+  const getCategorySlug = (cat) => {
+    if (!cat) return '';
+    const c = cat.toLowerCase().trim();
+    if (c === 'phần mềm' || c === 'phan-mem') return 'phan-mem';
+    if (c === 'kho tools & game' || c === 'kho tools game' || c === 'tools-game') return 'tools-game';
+    if (c === 'tools tiện ích' || c === 'tools mmo' || c === 'tien-ich') return 'tools-tien-ich';
+    if (c === 'game tương tác' || c === 'tương tác' || c === 'tuong-tac') return 'tuong-tac';
+    if (c === 'tools sưu tầm' || c === 'suu-tam') return 'tools-suu-tam';
+    if (c === 'treo afk' || c === 'afk') return 'treo-afk';
+    return '';
+  };
+
+  const categorySlug = getCategorySlug(cleanCategory);
+
   const ytMatch = product.image ? product.image.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/) : null;
   const ytEmbedUrl = ytMatch ? `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0` : null;
   const isVideo = !ytEmbedUrl && product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm'));
@@ -133,7 +147,7 @@ const ProductDetail = () => {
       <nav className="detail-breadcrumb" aria-label="Điều hướng">
         <Link to="/" className="breadcrumb-link">Trang chủ</Link>
         <span className="breadcrumb-sep">›</span>
-        <Link to={`/?category=${product.category === 'Tools MMO' ? 'tools-tien-ich' : ''}`} className="breadcrumb-link">
+        <Link to={categorySlug ? `/?category=${categorySlug}` : '/'} className="breadcrumb-link">
           {cleanCategory}
         </Link>
         <span className="breadcrumb-sep">›</span>

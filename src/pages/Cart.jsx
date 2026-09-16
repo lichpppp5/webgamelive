@@ -61,13 +61,25 @@ const Cart = () => {
                     <h3 className="cart-item-title">{item.title}</h3>
                   </Link>
                   <span className="cart-item-price">
-                    {item.price > 0 ? item.price.toLocaleString('vi-VN') + 'đ': null}
+                    {Boolean(item.isFree) ? (
+                      <span style={{ color: 'var(--secondary)', fontWeight: 600 }}>🎁 Miễn Phí</span>
+                    ) : item.price > 0 ? (
+                      item.price.toLocaleString('vi-VN') + 'đ'
+                    ) : (
+                      <span style={{ color: 'var(--primary)', fontWeight: 600 }}>💬 Liên Hệ</span>
+                    )}
                   </span>
                 </div>
 
                 <div className="cart-item-controls">
                   <div className="cart-item-subtotal">
-                    {item.price > 0 ? (item.price * item.quantity).toLocaleString('vi-VN') + 'đ' : null}
+                    {Boolean(item.isFree) ? (
+                      <span style={{ color: 'var(--secondary)', fontWeight: 600 }}>0đ</span>
+                    ) : item.price > 0 ? (
+                      (item.price * item.quantity).toLocaleString('vi-VN') + 'đ'
+                    ) : (
+                      <span style={{ color: 'var(--primary)', fontWeight: 600 }}>Liên hệ</span>
+                    )}
                   </div>
 
                   <button
@@ -93,7 +105,13 @@ const Cart = () => {
                     <span className="summary-item-name">
                       {item.title}
                     </span>
-                    <span>{item.price > 0 ? (item.price * item.quantity).toLocaleString('vi-VN') + 'đ' : ''}</span>
+                    <span>
+                      {Boolean(item.isFree)
+                        ? '🎁 Miễn Phí'
+                        : item.price > 0
+                          ? (item.price * item.quantity).toLocaleString('vi-VN') + 'đ'
+                          : '💬 Liên Hệ'}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -103,7 +121,11 @@ const Cart = () => {
               <div className="summary-total-row">
                 <span>Mức đóng góp đề xuất</span>
                 <span className="summary-total-price">
-                  {cartTotal > 0 ? cartTotal.toLocaleString('vi-VN') + 'đ' : 'Tùy tâm'}
+                  {cartTotal > 0
+                    ? cartTotal.toLocaleString('vi-VN') + 'đ'
+                    : cartItems.some(i => i.isFree)
+                      ? '0đ (Miễn Phí)'
+                      : 'Tùy tâm'}
                 </span>
               </div>
 
