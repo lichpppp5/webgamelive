@@ -612,6 +612,20 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.85rem;
+  }
+
+  html, body {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  button, input, select, textarea, a {
+    touch-action: manipulation;
+  }
+}
+
 /* ========================================================
    LIGHT THEME COMPONENT STYLES & OVERRIDES
    ======================================================== */

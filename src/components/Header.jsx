@@ -199,91 +199,105 @@ const Header = ({ searchQuery, setSearchQuery }) => {
 
         {/* Mobile Search Dropdown */}
         {isMobileSearchOpen && (
-          <div className="mobile-search-dropdown">
-            <div className="mobile-search-inner container">
-              <div className="header-search has-value mobile-active">
-                <Search size={17} className="search-icon-left" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm tool, game, app..."
-                  value={searchQuery || ''}
-                  onChange={handleSearchChange}
-                  autoFocus
-                />
-                {searchQuery && (
-                  <button className="search-clear-btn" onClick={clearSearch}>
-                    <X size={15} />
-                  </button>
-                )}
+          <>
+            <div 
+              className="mobile-backdrop" 
+              onClick={() => setIsMobileSearchOpen(false)}
+              aria-hidden="true"
+            />
+            <div className="mobile-search-dropdown">
+              <div className="mobile-search-inner container">
+                <div className="header-search has-value mobile-active">
+                  <Search size={17} className="search-icon-left" />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm tool, game, app..."
+                    value={searchQuery || ''}
+                    onChange={handleSearchChange}
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <button className="search-clear-btn" onClick={clearSearch}>
+                      <X size={15} />
+                    </button>
+                  )}
+                </div>
+                <button className="btn-ghost" onClick={() => setIsMobileSearchOpen(false)}>
+                  <X size={20} />
+                </button>
               </div>
-              <button className="btn-ghost" onClick={() => setIsMobileSearchOpen(false)}>
-                <X size={20} />
-              </button>
             </div>
-          </div>
+          </>
         )}
 
         {/* Mobile Navigation Drawer */}
         {isMobileNavOpen && (
-          <div className="mobile-nav-drawer animate-fadeIn">
-            <div className="mobile-nav-links">
-              <button 
-                type="button" 
-                className={`mobile-nav-item ${isHomeActive ? 'active' : ''}`}
-                onClick={() => handleNavClick('top')}
-              >
-                <HomeIcon size={18} />
-                <span>Trang Chủ</span>
-              </button>
-              <button 
-                type="button" 
-                className={`mobile-nav-item ${isSoftwareActive ? 'active' : ''}`}
-                onClick={() => handleNavClick('product-section', 'phan-mem')}
-              >
-                <AppWindow size={18} />
-                <span>Phần Mềm Chuyên Nghiệp</span>
-                <span className="nav-badge-pill">Hot</span>
-              </button>
-              <button 
-                type="button" 
-                className={`mobile-nav-item ${isToolsActive ? 'active' : ''}`}
-                onClick={() => handleNavClick('product-section', 'tools-game')}
-              >
-                <Compass size={18} />
-                <span>Kho Tools &amp; Game</span>
-              </button>
-              <Link 
-                to="/docs" 
-                className={`mobile-nav-item ${isDocsActive ? 'active' : ''}`}
-                onClick={() => setIsMobileNavOpen(false)}
-              >
-                <BookOpen size={18} />
-                <span>Tài Liệu Hướng Dẫn</span>
-              </Link>
-              <button 
-                type="button" 
-                className="mobile-nav-item" 
-                onClick={() => handleNavClick('features-section')}
-              >
-                <Sparkles size={18} />
-                <span>Ưu Điểm Vượt Trội</span>
-              </button>
+          <>
+            <div 
+              className="mobile-backdrop" 
+              onClick={() => setIsMobileNavOpen(false)}
+              aria-hidden="true"
+            />
+            <div className="mobile-nav-drawer animate-fadeIn">
+              <div className="mobile-nav-links">
+                <button 
+                  type="button" 
+                  className={`mobile-nav-item ${isHomeActive ? 'active' : ''}`}
+                  onClick={() => handleNavClick('top')}
+                >
+                  <HomeIcon size={18} />
+                  <span>Trang Chủ</span>
+                </button>
+                <button 
+                  type="button" 
+                  className={`mobile-nav-item ${isSoftwareActive ? 'active' : ''}`}
+                  onClick={() => handleNavClick('product-section', 'phan-mem')}
+                >
+                  <AppWindow size={18} />
+                  <span>Phần Mềm Chuyên Nghiệp</span>
+                  <span className="nav-badge-pill">Hot</span>
+                </button>
+                <button 
+                  type="button" 
+                  className={`mobile-nav-item ${isToolsActive ? 'active' : ''}`}
+                  onClick={() => handleNavClick('product-section', 'tools-game')}
+                >
+                  <Compass size={18} />
+                  <span>Kho Tools &amp; Game</span>
+                </button>
+                <Link 
+                  to="/docs" 
+                  className={`mobile-nav-item ${isDocsActive ? 'active' : ''}`}
+                  onClick={() => setIsMobileNavOpen(false)}
+                >
+                  <BookOpen size={18} />
+                  <span>Tài Liệu Hướng Dẫn</span>
+                </Link>
+                <button 
+                  type="button" 
+                  className="mobile-nav-item" 
+                  onClick={() => handleNavClick('features-section')}
+                >
+                  <Sparkles size={18} />
+                  <span>Ưu Điểm Vượt Trội</span>
+                </button>
+              </div>
+              <div className="mobile-nav-footer">
+                <button
+                  type="button"
+                  className="btn-primary w-full"
+                  style={{ justifyContent: 'center', width: '100%' }}
+                  onClick={() => {
+                    setIsMobileNavOpen(false);
+                    setIsContactOpen(true);
+                  }}
+                >
+                  <MessageSquare size={16} />
+                  <span>Liên Hệ Tư Vấn Kỹ Thuật</span>
+                </button>
+              </div>
             </div>
-            <div className="mobile-nav-footer">
-              <button
-                type="button"
-                className="btn-primary w-full"
-                style={{ justifyContent: 'center', width: '100%' }}
-                onClick={() => {
-                  setIsMobileNavOpen(false);
-                  setIsContactOpen(true);
-                }}
-              >
-                <MessageSquare size={16} />
-                <span>Liên Hệ Tư Vấn Kỹ Thuật</span>
-              </button>
-            </div>
-          </div>
+          </>
         )}
       </header>
 
