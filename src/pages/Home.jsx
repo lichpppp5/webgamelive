@@ -387,15 +387,6 @@ const Home = ({ defaultCategory = 'all' }) => {
             </div>
             <h2 className="catalog-title">Kho Sản Phẩm &amp; Bộ Sưu Tập Công Cụ</h2>
           </div>
-
-          {contactSettings?.marqueeText && (
-            <div className="catalog-marquee-badge">
-              <span className="marquee-dot" />
-              <div className="marquee-text-scroll">
-                <span>{contactSettings.marqueeText}</span>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Modern Pill Tabs Category Filter */}
