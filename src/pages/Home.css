@@ -6,6 +6,17 @@
   flex-direction: column;
   gap: 4.5rem;
   padding-bottom: 4rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.home-showcase-page > * {
+  max-width: 100%;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* ── Headings & Section Headers ── */
@@ -411,6 +422,10 @@
    ======================================================== */
 .catalog-showcase-section {
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .catalog-section-header {
@@ -420,12 +435,17 @@
   margin-bottom: 1.75rem;
   flex-wrap: wrap;
   gap: 1.25rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .catalog-header-left {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .catalog-title {
@@ -433,34 +453,7 @@
   font-weight: 800;
   color: var(--text-100);
   letter-spacing: -0.5px;
-}
-
-.catalog-marquee-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(0, 207, 251, 0.08);
-  border: 1px solid rgba(0, 207, 251, 0.2);
-  padding: 0.4rem 1rem;
-  border-radius: var(--radius-full);
-  max-width: 400px;
-  overflow: hidden;
-}
-
-.marquee-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--primary);
-  box-shadow: 0 0 6px var(--primary);
-  flex-shrink: 0;
-}
-
-.marquee-text-scroll {
-  white-space: nowrap;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-200);
+  word-break: break-word;
 }
 
 /* Pill Tabs Bar */
@@ -477,10 +470,21 @@
   scrollbar-width: none;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .category-pills-bar::-webkit-scrollbar {
   display: none;
+}
+
+.catalog-content-wrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .cat-pill-btn {

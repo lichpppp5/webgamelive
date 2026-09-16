@@ -143,10 +143,19 @@
 
 html, body {
   overflow-x: hidden;
+  max-width: 100%;
+  position: relative;
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+.app-layout {
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+  min-width: 0;
 }
 
 body {
@@ -212,8 +221,11 @@ input:focus, select:focus, textarea:focus {
    =========================== */
 .container {
   max-width: 1440px;
+  width: 100%;
+  min-width: 0;
   margin: 0 auto;
   padding: 0 2rem;
+  box-sizing: border-box;
 }
 
 /* ===========================
