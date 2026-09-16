@@ -3,7 +3,14 @@ import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDash
 import { useToast, useSettings } from '../context/AppContext';
 import './Admin.css';
 
-const CATEGORIES = ['Tương tác', 'Tools Tiện Ích', 'Tools Sưu Tầm', 'Treo AFK', 'Phần Mềm'];
+const CATEGORIES = [
+  'Game Tương Tác',
+  'Kho Tools & Game',
+  'Tools Tiện Ích',
+  'Tools Sưu Tầm',
+  'Treo AFK',
+  'Phần Mềm'
+];
 
 const StatCard = ({ icon, label, value, color }) => (
   <div className="stat-card" style={{ '--stat-color': color }}>
@@ -26,6 +33,7 @@ const Admin = () => {
   const [loginShake, setLoginShake] = useState(false);
 
   const [activeTab, setActiveTab] = useState('products');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
   const [analytics, setAnalytics] = useState({
     totalRealVisits: 0,
     todayVisits: 0,
@@ -33,7 +41,7 @@ const Admin = () => {
     recentVisits: []
   });
   const [settingsForm, setSettingsForm] = useState({
-    zalo: '', facebook: '', telegram: '', visitCount: '1250', marqueeText: '',
+    zalo: '', zaloQr: '', facebook: '', telegram: '', visitCount: '1250', marqueeText: '',
     donateText: 'Nếu thấy hữu ích Donate tôi cốc cafe nha !', donateQR: '', donateName: '', donateBank: '', donateAccount: '', donateContent: '', donateEnabled: 'true', maintenanceMode: 'false'
   });
 
@@ -75,6 +83,7 @@ const Admin = () => {
     price: 0,
     badge: 'Khuyên Dùng',
     downloadLink: '',
+    downloads: 0,
     features: ''
   });
 
@@ -86,6 +95,9 @@ const Admin = () => {
       setIsAuthenticated(true);
       fetchGames();
       fetchSoftware();
+      fetchSettings();
+      fetchArticles();
+      fetchAnalytics();
     } else {
       setLoginShake(true);
       showToast('Sai tên đăng nhập hoặc mật khẩu!', 'error');
@@ -116,6 +128,17 @@ const Admin = () => {
         refreshSettings();
       })
       .catch(() => showToast('Lỗi khi lưu cấu hình', 'error'));
+  };
+
+  const fetchSettings = () => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data && Object.keys(data).length > 0) {
+          setSettingsForm(prev => ({ ...prev, ...data }));
+        }
+      })
+      .catch(err => console.error('Lỗi lấy cấu hình:', err));
   };
 
   const fetchGames = () => {
@@ -227,6 +250,7 @@ const Admin = () => {
       price: 0,
       badge: 'Khuyên Dùng',
       downloadLink: '',
+      downloads: 0,
       features: ''
     });
   };
@@ -250,6 +274,7 @@ const Admin = () => {
       body: JSON.stringify({
         ...softwareFormData,
         price: Number(softwareFormData.price) || 0,
+        downloads: Number(softwareFormData.downloads) || 0,
         features: JSON.stringify(featuresArray)
       })
     })
@@ -284,6 +309,7 @@ const Admin = () => {
       price: sw.price || 0,
       badge: sw.badge || '',
       downloadLink: sw.downloadLink || '',
+      downloads: sw.downloads || 0,
       features: parsedFeatures
     });
     setSoftwareMediaPreview(sw.media || '');
@@ -420,11 +446,14 @@ const Admin = () => {
   const handleEdit = (game) => {
     setIsEditing(true);
     setCurrentId(game.id);
+    let cat = game.category;
+    if (cat === 'Tương tác') cat = 'Game Tương Tác';
+    if (!CATEGORIES.includes(cat)) cat = CATEGORIES[0];
     setFormData({
-      title: game.title, category: game.category,
+      title: game.title, category: cat,
       price: game.price, oldPrice: game.oldPrice,
       image: game.image, downloads: game.downloads,
-      isHot: game.isHot, isFree: game.isFree, description: game.description || '',
+      isHot: Boolean(game.isHot), isFree: Boolean(game.isFree), description: game.description || '',
       downloadLink: game.downloadLink || ''
     });
     setImagePreview(game.image || '');
@@ -513,10 +542,16 @@ const Admin = () => {
     }
   };
 
-  const filteredGames = games.filter(g =>
-    g.title?.toLowerCase().includes(searchTable.toLowerCase()) ||
-    g.category?.toLowerCase().includes(searchTable.toLowerCase())
-  );
+  const filteredGames = games.filter(g => {
+    const matchesSearch = g.title?.toLowerCase().includes(searchTable.toLowerCase()) ||
+      g.category?.toLowerCase().includes(searchTable.toLowerCase());
+    if (!matchesSearch) return false;
+    if (selectedCategoryFilter === 'all') return true;
+    if (selectedCategoryFilter === 'Game Tương Tác') {
+      return g.category === 'Game Tương Tác' || g.category === 'Tương tác';
+    }
+    return g.category === selectedCategoryFilter;
+  });
 
   const filteredArticles = articles.filter(a =>
     a.title?.toLowerCase().includes(articleSearch.toLowerCase())
@@ -612,41 +647,41 @@ const Admin = () => {
       </div>
 
       {/* Tabs */}
-      <div className="admin-tabs" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+      <div className="admin-tabs" style={{ display: 'flex', gap: '0.8rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', flexWrap: 'wrap' }}>
         <button 
           className={`admin-tab-btn ${activeTab === 'products' ? 'active' : ''}`}
-          onClick={() => setActiveTab('products')}
-          style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'products' ? 'var(--primary)' : 'transparent', color: activeTab === 'products' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          onClick={() => { setActiveTab('products'); fetchGames(); }}
+          style={{ padding: '0.8rem 1.4rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'products' ? 'var(--primary)' : 'transparent', color: activeTab === 'products' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          <Package size={18} /> Quản lý Công cụ
+          <Package size={18} /> Quản lý Tools &amp; Game
         </button>
         <button 
           className={`admin-tab-btn ${activeTab === 'software' ? 'active' : ''}`}
           onClick={() => { setActiveTab('software'); fetchSoftware(); }}
-          style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'software' ? 'var(--primary)' : 'transparent', color: activeTab === 'software' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          style={{ padding: '0.8rem 1.4rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'software' ? 'var(--primary)' : 'transparent', color: activeTab === 'software' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <AppWindow size={18} /> Quản lý Phần Mềm
         </button>
         <button 
-          className={`admin-tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('settings')}
-          style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'settings' ? 'var(--primary)' : 'transparent', color: activeTab === 'settings' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          className={`admin-tab-btn ${activeTab === 'articles' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('articles'); fetchArticles(); }}
+          style={{ padding: '0.8rem 1.4rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'articles' ? 'var(--primary)' : 'transparent', color: activeTab === 'articles' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          <SettingsIcon size={18} /> Cài đặt chung
+          <BookOpen size={18} /> Quản lý Tài Liệu
+        </button>
+        <button 
+          className={`admin-tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('settings'); fetchSettings(); }}
+          style={{ padding: '0.8rem 1.4rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'settings' ? 'var(--primary)' : 'transparent', color: activeTab === 'settings' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <SettingsIcon size={18} /> Cài đặt chung &amp; Liên hệ
         </button>
         <button 
           className={`admin-tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
           onClick={() => { setActiveTab('analytics'); fetchAnalytics(); }}
-          style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'analytics' ? 'var(--primary)' : 'transparent', color: activeTab === 'analytics' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          style={{ padding: '0.8rem 1.4rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'analytics' ? 'var(--primary)' : 'transparent', color: activeTab === 'analytics' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <BarChart2 size={18} /> Thống kê Truy cập Thực tế
-        </button>
-        <button 
-          className={`admin-tab-btn ${activeTab === 'articles' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('articles'); fetchArticles(); }}
-          style={{ padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'articles' ? 'var(--primary)' : 'transparent', color: activeTab === 'articles' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-        >
-          <BookOpen size={18} /> Quản lý Tài Liệu
         </button>
       </div>
 
@@ -1007,23 +1042,37 @@ const Admin = () => {
 
         {/* List Panel */}
         <div className="admin-list-panel">
-          <div className="list-panel-header">
-            <h2 className="panel-title"><Package size={18} /> Danh sách ({filteredGames.length})</h2>
-            <div className="table-search-wrap">
-              <Search size={15} />
-              <input
-                type="text"
-                placeholder="Tìm kiếm..."
-                value={searchTable}
-                onChange={e => setSearchTable(e.target.value)}
-                className="table-search"
-                id="admin-search-input"
-              />
-              {searchTable && (
-                <button onClick={() => setSearchTable('')} className="table-search-clear">
-                  <X size={13} />
-                </button>
-              )}
+          <div className="list-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem' }}>
+            <h2 className="panel-title" style={{ margin: 0 }}><Package size={18} /> Danh sách ({filteredGames.length})</h2>
+            <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <select
+                className="form-input"
+                value={selectedCategoryFilter}
+                onChange={e => setSelectedCategoryFilter(e.target.value)}
+                style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem', width: 'auto', minWidth: '150px' }}
+                aria-label="Lọc theo danh mục"
+              >
+                <option value="all">📂 Tất cả danh mục</option>
+                {CATEGORIES.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <div className="table-search-wrap">
+                <Search size={15} />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm..."
+                  value={searchTable}
+                  onChange={e => setSearchTable(e.target.value)}
+                  className="table-search"
+                  id="admin-search-input"
+                />
+                {searchTable && (
+                  <button onClick={() => setSearchTable('')} className="table-search-clear">
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -1241,7 +1290,7 @@ const Admin = () => {
                 </div>
               </div>
 
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Huy Hiệu (Badge)</label>
                   <input 
@@ -1250,17 +1299,30 @@ const Admin = () => {
                     name="badge" 
                     value={softwareFormData.badge} 
                     onChange={handleSoftwareInputChange} 
-                    placeholder="vd: Khuyên Dùng - Mới Nhất, HOT, Bản Quyền..." 
+                    placeholder="vd: Khuyên Dùng, HOT..." 
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Mức Phí (0 = Miễn phí)</label>
+                  <label className="form-label">Mức Phí (VNĐ)</label>
                   <input 
                     className="form-input" 
                     type="number" 
                     name="price" 
                     value={softwareFormData.price} 
                     onChange={handleSoftwareInputChange} 
+                    placeholder="0" 
+                    min="0"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Lượt Tải</label>
+                  <input 
+                    className="form-input" 
+                    type="number" 
+                    name="downloads" 
+                    value={softwareFormData.downloads || 0} 
+                    onChange={handleSoftwareInputChange} 
+                    min="0"
                     placeholder="0" 
                   />
                 </div>

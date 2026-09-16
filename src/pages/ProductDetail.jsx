@@ -112,6 +112,21 @@ const ProductDetail = () => {
   const ytEmbedUrl = ytMatch ? `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0` : null;
   const isVideo = !ytEmbedUrl && product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm'));
 
+  const customFeatures = (() => {
+    if (!product?.features) return null;
+    if (Array.isArray(product.features)) return product.features;
+    try {
+      const parsed = JSON.parse(product.features);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {
+      if (typeof product.features === 'string') {
+        const lines = product.features.split('\n').map(s => s.trim()).filter(Boolean);
+        if (lines.length > 0) return lines;
+      }
+    }
+    return null;
+  })();
+
   return (
     <div className="product-detail-page container page-enter">
       {/* 1. Breadcrumb Navigation */}
@@ -129,7 +144,13 @@ const ProductDetail = () => {
       <div className="detail-header-overview">
         <div className="detail-badges-row">
           <span className="detail-category-badge">{cleanCategory}</span>
-          {product.isHot && (
+          {product.badge && (
+            <span className="detail-hot-pill" style={{ background: 'rgba(0, 207, 251, 0.15)', borderColor: 'rgba(0, 207, 251, 0.4)', color: 'var(--primary)' }}>
+              <Sparkles size={14} />
+              <span>{product.badge}</span>
+            </span>
+          )}
+          {product.isHot && !product.badge && (
             <span className="detail-hot-pill">
               <Flame size={14} />
               <span>Sản Phẩm Hot</span>
@@ -148,7 +169,7 @@ const ProductDetail = () => {
         <h1 className="detail-main-heading">{cleanTitle}</h1>
 
         <p className="detail-tagline-text">
-          Giải pháp công nghệ chuyên nghiệp, vận hành ổn định và được tối ưu hóa cho hiệu suất làm việc cao nhất.
+          {product.tagline || 'Giải pháp công nghệ chuyên nghiệp, vận hành ổn định và được tối ưu hóa cho hiệu suất làm việc cao nhất.'}
         </p>
       </div>
 
@@ -246,49 +267,65 @@ const ProductDetail = () => {
           <div className="highlights-card">
             <h3 className="highlights-title">
               <Sparkles size={18} className="highlights-icon" />
-              <span>Đặc Điểm Nổi Bật Của Công Cụ</span>
+              <span>{product.isSoftware ? 'Tính Năng & Giải Pháp Nổi Bật' : 'Đặc Điểm Nổi Bật Của Công Cụ'}</span>
             </h3>
-            <div className="highlights-grid">
-              <div className="highlight-item">
-                <div className="hl-icon-wrap cyan">
-                  <Zap size={18} />
-                </div>
-                <div>
-                  <h4>Hiệu Năng Tối Đa</h4>
-                  <p>Xử lý đa luồng thông minh, không chiếm dụng tài nguyên máy tính.</p>
-                </div>
+            {customFeatures && customFeatures.length > 0 ? (
+              <div className="highlights-grid">
+                {customFeatures.map((feat, idx) => (
+                  <div key={idx} className="highlight-item">
+                    <div className={`hl-icon-wrap ${['cyan', 'green', 'purple', 'orange'][idx % 4]}`}>
+                      <CheckCircle2 size={18} />
+                    </div>
+                    <div>
+                      <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '0.95rem' }}>{feat}</h4>
+                      <p style={{ margin: 0, fontSize: '0.84rem' }}>Tối ưu hóa chuyên sâu, vận hành ổn định</p>
+                    </div>
+                  </div>
+                ))}
               </div>
+            ) : (
+              <div className="highlights-grid">
+                <div className="highlight-item">
+                  <div className="hl-icon-wrap cyan">
+                    <Zap size={18} />
+                  </div>
+                  <div>
+                    <h4>Hiệu Năng Tối Đa</h4>
+                    <p>Xử lý đa luồng thông minh, không chiếm dụng tài nguyên máy tính.</p>
+                  </div>
+                </div>
 
-              <div className="highlight-item">
-                <div className="hl-icon-wrap green">
-                  <ShieldCheck size={18} />
+                <div className="highlight-item">
+                  <div className="hl-icon-wrap green">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div>
+                    <h4>An Toàn Tuyệt Đối</h4>
+                    <p>Không chứa mã độc hay backdoor, đã kiểm duyệt an toàn.</p>
+                  </div>
                 </div>
-                <div>
-                  <h4>An Toàn Tuyệt Đối</h4>
-                  <p>Không chứa mã độc hay backdoor, đã kiểm duyệt an toàn.</p>
-                </div>
-              </div>
 
-              <div className="highlight-item">
-                <div className="hl-icon-wrap purple">
-                  <RefreshCw size={18} />
+                <div className="highlight-item">
+                  <div className="hl-icon-wrap purple">
+                    <RefreshCw size={18} />
+                  </div>
+                  <div>
+                    <h4>Cập Nhật Trọn Đời</h4>
+                    <p>Tự động nhận các bản vá lỗi và nâng cấp tính năng mới.</p>
+                  </div>
                 </div>
-                <div>
-                  <h4>Cập Nhật Trọn Đời</h4>
-                  <p>Tự động nhận các bản vá lỗi và nâng cấp tính năng mới.</p>
-                </div>
-              </div>
 
-              <div className="highlight-item">
-                <div className="hl-icon-wrap orange">
-                  <Laptop size={18} />
-                </div>
-                <div>
-                  <h4>Giao Diện Trực Quan</h4>
-                  <p>Dễ dàng sử dụng chỉ với vài thao tác nhấp chuột cơ bản.</p>
+                <div className="highlight-item">
+                  <div className="hl-icon-wrap orange">
+                    <Laptop size={18} />
+                  </div>
+                  <div>
+                    <h4>Giao Diện Trực Quan</h4>
+                    <p>Dễ dàng sử dụng chỉ với vài thao tác nhấp chuột cơ bản.</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -401,15 +438,15 @@ const ProductDetail = () => {
               </div>
               <div className="spec-row">
                 <span className="spec-name">Phiên bản:</span>
-                <span className="spec-val">v{product.version || '1.0 Pro'}</span>
+                <span className="spec-val">{product.version?.startsWith('v') ? product.version : `v${product.version || '1.0 Pro'}`}</span>
               </div>
               <div className="spec-row">
                 <span className="spec-name">Nền tảng:</span>
-                <span className="spec-val">Windows / Web / VPS</span>
+                <span className="spec-val">{product.platform || 'Windows 10/11 (64-bit)'}</span>
               </div>
               <div className="spec-row">
                 <span className="spec-name">Bảo mật:</span>
-                <span className="spec-val text-green">100% Sạch</span>
+                <span className="spec-val text-green">100% An Toàn &amp; Sạch</span>
               </div>
             </div>
           </div>

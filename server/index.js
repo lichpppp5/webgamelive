@@ -84,17 +84,32 @@ const db = new sqlite3.Database(dbPath, (err) => {
           if (err) {
             console.error('Error creating settings table', err);
           } else {
-            // Seed default settings if empty
-            db.get("SELECT count(*) as count FROM settings", (err, row) => {
-              if (row.count === 0) {
-                console.log('Seeding initial settings...');
-                const stmt = db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)`);
-                stmt.run('zalo', 'https://zalo.me/');
-                stmt.run('facebook', 'https://facebook.com');
-                stmt.run('telegram', 'https://t.me');
-                stmt.run('visitCount', '1250');
-                stmt.finalize();
-              }
+            // Seed default settings if empty or missing keys
+            db.all("SELECT key FROM settings", (err, rows) => {
+              const existingKeys = (rows || []).map(r => r.key);
+              const defaults = [
+                ['zalo', 'https://zalo.me/'],
+                ['facebook', 'https://facebook.com'],
+                ['telegram', 'https://t.me'],
+                ['visitCount', '1250'],
+                ['marqueeText', 'Chào mừng bạn đến với Webgame Live! Chúc bạn một ngày tốt lành. Liên hệ ngay để được hỗ trợ tốt nhất.'],
+                ['donateText', 'Nếu thấy hữu ích Donate tôi cốc cafe nha !'],
+                ['donateQR', ''],
+                ['donateName', ''],
+                ['donateBank', ''],
+                ['donateAccount', ''],
+                ['donateContent', 'Ung ho webgame'],
+                ['donateEnabled', 'true'],
+                ['maintenanceMode', 'false'],
+                ['zaloQr', '']
+              ];
+              const stmt = db.prepare(`INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)`);
+              defaults.forEach(([k, v]) => {
+                if (!existingKeys.includes(k)) {
+                  stmt.run(k, v);
+                }
+              });
+              stmt.finalize();
             });
           }
         });
@@ -323,17 +338,22 @@ app.get('/api/products/:id', (req, res) => {
       res.json({
         id: swRow.id,
         title: swRow.title,
+        tagline: swRow.tagline || '',
         description: swRow.description || swRow.tagline,
         price: swRow.price || 0,
         oldPrice: 0,
         image: swRow.media || '',
+        mediaType: swRow.mediaType || 'image',
         category: 'Phần Mềm',
         downloads: swRow.downloads || 0,
-        isHot: true,
+        isHot: Boolean(swRow.badge?.includes('Hot') || swRow.badge?.includes('Khuyên') || swRow.badge?.includes('Đề Xuất') || swRow.badge?.includes('Trend')),
         isFree: swRow.price === 0,
         downloadLink: swRow.downloadLink || '',
-        version: swRow.version,
-        platform: swRow.platform
+        version: swRow.version || 'v1.0',
+        platform: swRow.platform || 'Windows 10/11 (64-bit)',
+        badge: swRow.badge || '',
+        features: swRow.features || '[]',
+        isSoftware: true
       });
     });
   });

@@ -19,14 +19,24 @@ const getCategoryIcon = (id) => {
   }
 };
 
-const getCategoryCount = (name, games, softwareCount = 0) => {
-  if (name === 'Phần Mềm') return softwareCount;
-  if (!games) return 0;
-  if (name === 'Tất cả') return games.length;
-  if (name === 'Tools Tiện Ích') {
-    return games.filter(g => g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO').length;
+const getCategoryCount = (id, games = [], softwareCount = 0) => {
+  const gamesList = games || [];
+  if (id === 'all') return gamesList.length + softwareCount;
+  if (id === 'phan-mem') {
+    const swInGames = gamesList.filter(g => g.category === 'Phần Mềm' || g.category?.toLowerCase() === 'phần mềm').length;
+    return swInGames + softwareCount;
   }
-  return games.filter(g => g.category === name).length;
+  if (id === 'tools-game') {
+    return gamesList.filter(g => g.category !== 'Phần Mềm' && g.category?.toLowerCase() !== 'phần mềm' && !g.isSoftware).length;
+  }
+  if (id === 'tools-tien-ich') {
+    return gamesList.filter(g => g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO').length;
+  }
+  if (id === 'tuong-tac') {
+    return gamesList.filter(g => g.category === 'Game Tương Tác' || g.category === 'Tương tác').length;
+  }
+  const catName = categories.find(c => c.id === id)?.name;
+  return gamesList.filter(g => g.category === catName).length;
 };
 
 const Sidebar = ({ activeCategory, setActiveCategory, games, softwareCount = 0 }) => {
@@ -43,7 +53,7 @@ const Sidebar = ({ activeCategory, setActiveCategory, games, softwareCount = 0 }
         </h2>
         <ul className="category-list" role="list">
           {categories.map(cat => {
-            const count = getCategoryCount(cat.name, games, softwareCount);
+            const count = getCategoryCount(cat.id, games, softwareCount);
             const isActive = activeCategory === cat.id;
             return (
               <li key={cat.id} role="listitem">

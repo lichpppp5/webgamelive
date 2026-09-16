@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, Search, X, Zap, Sun, Moon, Menu, MessageSquare, Compass, AppWindow, Sparkles, BookOpen, Home as HomeIcon } from 'lucide-react';
-import { useCart, useTheme } from '../context/AppContext';
+import { useCart, useTheme, useSettings } from '../context/AppContext';
 import ContactModal from './ContactModal';
 import './Header.css';
 
 const Header = ({ searchQuery, setSearchQuery }) => {
   const { cartCount } = useCart();
   const { theme, toggleTheme } = useTheme();
+  const { contactSettings } = useSettings();
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
@@ -61,6 +62,16 @@ const Header = ({ searchQuery, setSearchQuery }) => {
 
   return (
     <>
+      {contactSettings?.marqueeText && (
+        <div className="top-announcement-bar">
+          <div className="container top-announcement-inner">
+            <span className="announcement-badge">📢 Thông Báo</span>
+            <div className="announcement-ticker">
+              <span>{contactSettings.marqueeText}</span>
+            </div>
+          </div>
+        </div>
+      )}
       <header className="header">
         <div className="header-inner container">
           {/* Mobile Hamburger Toggle */}

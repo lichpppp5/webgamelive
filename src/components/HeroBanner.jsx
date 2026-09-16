@@ -114,7 +114,8 @@ const HeroBanner = ({ hotGames = [], allProducts = [], softwareList = [], totalP
 
     // 2. Add real products by category from pool
     const targetCats = [
-      { cat: 'Tương tác', label: 'Game Tương Tác' },
+      { cat: 'Game Tương Tác', label: 'Game Tương Tác' },
+      { cat: 'Kho Tools & Game', label: 'Kho Tools & Game' },
       { cat: 'Tools Tiện Ích', label: 'Tools Tiện Ích' },
       { cat: 'Treo AFK', label: 'Treo AFK' },
       { cat: 'Tools Sưu Tầm', label: 'Tools Sưu Tầm' },
@@ -122,8 +123,14 @@ const HeroBanner = ({ hotGames = [], allProducts = [], softwareList = [], totalP
 
     targetCats.forEach(({ cat, label }) => {
       const match = pool.find(g => {
+        if (cat === 'Game Tương Tác') {
+          return g.category === 'Game Tương Tác' || g.category === 'Tương tác';
+        }
         if (cat === 'Tools Tiện Ích') {
           return g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO';
+        }
+        if (cat === 'Kho Tools & Game') {
+          return g.category === 'Kho Tools & Game';
         }
         return g.category === cat;
       });

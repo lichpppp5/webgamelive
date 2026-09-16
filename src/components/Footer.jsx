@@ -47,6 +47,7 @@ const Footer = () => {
           <h3 className="footer-col-title">Danh mục</h3>
           <ul className="footer-links">
             <li><Link to="/software">Phần Mềm</Link></li>
+            <li><Link to="/tools-game">Kho Tools &amp; Game</Link></li>
             <li><Link to="/?category=tuong-tac">Game Tương Tác</Link></li>
             <li><Link to="/?category=tools-tien-ich">Tools Tiện Ích</Link></li>
             <li><Link to="/?category=tools-suu-tam">Tools Sưu Tầm</Link></li>
