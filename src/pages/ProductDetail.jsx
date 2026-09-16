@@ -338,11 +338,15 @@ const ProductDetail = () => {
                 <span className="price-label">Mức đóng góp / Chi phí</span>
                 <div className="price-values">
                   <span className="price-main">
-                    {product.price > 0 && !product.isFree
-                      ? product.price.toLocaleString('vi-VN') + 'đ'
-                      : 'Miễn Phí'}
+                    {Boolean(product.isFree) ? (
+                      'Miễn Phí'
+                    ) : product.price > 0 ? (
+                      product.price.toLocaleString('vi-VN') + 'đ'
+                    ) : (
+                      'Liên Hệ'
+                    )}
                   </span>
-                  {product.oldPrice > 0 && (
+                  {product.oldPrice > 0 && product.price > 0 && !product.isFree && (
                     <>
                       <span className="price-strike">{product.oldPrice.toLocaleString('vi-VN')}đ</span>
                       <span className="price-save-tag">-{discountPct}%</span>
@@ -354,7 +358,7 @@ const ProductDetail = () => {
 
             {/* Action buttons */}
             <div className="sidebar-buttons-stack">
-              {(product.downloadLink || product.isFree) ? (
+              {product.downloadLink ? (
                 <>
                   <button
                     className="btn-detail-download"
@@ -374,14 +378,23 @@ const ProductDetail = () => {
                     <span>Tư Vấn Hỗ Trợ Kỹ Thuật</span>
                   </button>
                 </>
-              ) : (
+              ) : Boolean(product.isFree) ? (
                 <button
                   className="btn-detail-download"
                   onClick={() => setIsModalOpen(true)}
                   id={`detail-download-btn-${product.id}`}
                 >
                   <Download size={20} />
-                  <span>Tải Xuống Ngay</span>
+                  <span>Nhận Miễn Phí</span>
+                </button>
+              ) : (
+                <button
+                  className="btn-detail-download"
+                  onClick={() => setIsModalOpen(true)}
+                  id={`detail-download-btn-${product.id}`}
+                >
+                  <MessageSquare size={20} />
+                  <span>Liên Hệ Tư Vấn &amp; Cài Đặt</span>
                 </button>
               )}
 

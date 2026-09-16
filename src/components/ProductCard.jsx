@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Eye, Share2, Download, Play } from 'lucide-react';
+import { ShoppingCart, Eye, Share2, Download, Play, MessageSquare } from 'lucide-react';
 import ContactModal from './ContactModal';
 import DownloadConfirmModal from './DownloadConfirmModal';
 import { useCart, useToast } from '../context/AppContext';
@@ -99,7 +99,7 @@ const ProductCard = ({ product }) => {
                   {product.isHot && (
                     <span className="badge badge-hot" aria-label="Công cụ hot">🔥 HOT</span>
                   )}
-                  {discountPct > 0 && (
+                  {discountPct > 0 && product.price > 0 && !product.isFree && (
                     <span className="badge badge-sale">-{discountPct}%</span>
                   )}
                 </div>
@@ -120,7 +120,7 @@ const ProductCard = ({ product }) => {
         {/* Info */}
         <div className="product-info">
           <div className="product-meta">
-            <span className="product-category">{product.category === 'Tools MMO' ? 'Tools Tiện Ích' : product.category}</span>
+            <span className="product-category">{product.category}</span>
             <span className="product-downloads">
               <Download size={12} />
               {(downloadCount || 0).toLocaleString()}
@@ -133,19 +133,21 @@ const ProductCard = ({ product }) => {
 
           {/* Price */}
           <div className="product-price">
-            {product.price > 0 && !product.isFree ? (
+            {Boolean(product.isFree) ? (
+              <span className="price-free-tag">🎁 Miễn Phí</span>
+            ) : (product.price > 0) ? (
               <span className="price-current">{product.price.toLocaleString('vi-VN')}đ</span>
             ) : (
-              <span className="price-free-tag">🎁 Miễn Phí</span>
+              <span className="price-contact-tag">💬 Liên Hệ</span>
             )}
-            {product.oldPrice > 0 && (
+            {product.oldPrice > 0 && product.price > 0 && !product.isFree && (
               <span className="price-old">{product.oldPrice.toLocaleString('vi-VN')}đ</span>
             )}
           </div>
 
           {/* Actions */}
           <div className="product-actions">
-            {(product.downloadLink || product.isFree) ? (
+            {product.downloadLink ? (
               <button
                 className="action-btn btn-download"
                 onClick={() => setIsDownloadConfirmOpen(true)}
@@ -155,15 +157,25 @@ const ProductCard = ({ product }) => {
                 <Download size={15} />
                 Tải xuống
               </button>
-            ) : (
+            ) : Boolean(product.isFree) ? (
               <button
                 className="action-btn btn-download"
                 onClick={() => setIsModalOpen(true)}
                 id={`download-btn-${product.id}`}
-                aria-label={`Tải xuống ${product.title}`}
+                aria-label={`Nhận miễn phí ${product.title}`}
               >
                 <Download size={15} />
-                Tải xuống
+                Nhận miễn phí
+              </button>
+            ) : (
+              <button
+                className="action-btn btn-download btn-contact-action"
+                onClick={() => setIsModalOpen(true)}
+                id={`contact-btn-${product.id}`}
+                aria-label={`Liên hệ ${product.title}`}
+              >
+                <MessageSquare size={15} />
+                Liên hệ ngay
               </button>
             )}
             <button

@@ -261,7 +261,8 @@ app.get('/api/products', (req, res) => {
     // SQLite stores booleans as 0 or 1, convert to boolean for frontend
     const products = rows.map(row => ({
       ...row,
-      isHot: row.isHot === 1
+      isHot: row.isHot === 1,
+      isFree: row.isFree === 1
     }));
     res.json(products);
   });
@@ -325,6 +326,7 @@ app.get('/api/products/:id', (req, res) => {
     }
     if (row) {
       row.isHot = row.isHot === 1;
+      row.isFree = row.isFree === 1;
       return res.json(row);
     }
     // Fallback: Check software table
@@ -347,7 +349,7 @@ app.get('/api/products/:id', (req, res) => {
         category: 'Phần Mềm',
         downloads: swRow.downloads || 0,
         isHot: Boolean(swRow.badge?.includes('Hot') || swRow.badge?.includes('Khuyên') || swRow.badge?.includes('Đề Xuất') || swRow.badge?.includes('Trend')),
-        isFree: swRow.price === 0,
+        isFree: false,
         downloadLink: swRow.downloadLink || '',
         version: swRow.version || 'v1.0',
         platform: swRow.platform || 'Windows 10/11 (64-bit)',
