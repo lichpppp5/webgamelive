@@ -177,7 +177,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
               if (!err) {
                 db.get("SELECT count(*) as count FROM license_games", (err2, row) => {
                   if (row && row.count === 0) {
-                    db.run("INSERT INTO license_games (id, name, description, active, created_at) VALUES ('tiktok-printer', 'TikTok Máy In Giấy', 'Game in hoá đơn livestream TikTok', 1, ?)", [Date.now()]);
+                    db.run("INSERT OR IGNORE INTO license_games (id, name, description, active, created_at) VALUES ('tiktok-printer', 'TikTok Máy In Giấy', 'Game in hoá đơn livestream TikTok', 1, ?)", [Date.now()]);
+                    db.run("INSERT OR IGNORE INTO license_games (id, name, description, active, created_at) VALUES ('game-le-phat', 'Game Lễ Phật Online', 'Game tương tác lễ Phật 3D livestream TikTok', 1, ?)", [Date.now()]);
                   }
                 });
               }
@@ -701,7 +702,8 @@ function getMasterSecret(callback) {
 }
 
 // 1. PUBLIC API — Dành cho game xác thực bản quyền
-app.post('/api/v1/license/verify', (req, res) => {
+app.use('/api/license/verify', (req, res, next) => { req.url = '/api/v1/license/verify'; next(); });
+  app.post('/api/v1/license/verify', (req, res) => {
   const { key: keyString, gameId, machineId, hwid, hostname, clientInfo } = req.body || {};
   const actualMachineId = (machineId || hwid || '').toString().trim();
   const clientIp = getClientIp(req);
