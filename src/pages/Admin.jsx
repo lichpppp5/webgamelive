@@ -675,6 +675,14 @@ const Admin = () => {
           <BookOpen size={18} /> Quản lý Tài Liệu
         </button>
         <button 
+          className={`admin-tab-btn ${activeTab === 'licenses' ? 'active' : ''}`}
+          onClick={() => setActiveTab('licenses')}
+          style={{ padding: '0.8rem 1.4rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'licenses' ? 'var(--primary)' : 'transparent', color: activeTab === 'licenses' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <Key size={18} /> Quản lý Bản Quyền &amp; Key
+        </button>
+
+        <button 
           className={`admin-tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => { setActiveTab('settings'); fetchSettings(); }}
           style={{ padding: '0.8rem 1.4rem', borderRadius: 'var(--radius-md)', border: 'none', background: activeTab === 'settings' ? 'var(--primary)' : 'transparent', color: activeTab === 'settings' ? '#000' : 'var(--text-100)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
