@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -165,6 +166,54 @@ const db = new sqlite3.Database(dbPath, (err) => {
             db.run(`ALTER TABLE software ADD COLUMN features TEXT DEFAULT '[]'`, (alterErr) => {
               // Ignore if column already exists
             });
+            // ================= MASTERKEY LICENSE TABLES =================
+            db.run(`CREATE TABLE IF NOT EXISTS license_games (
+              id TEXT PRIMARY KEY,
+              name TEXT NOT NULL,
+              description TEXT DEFAULT '',
+              active BOOLEAN DEFAULT 1,
+              created_at INTEGER
+            )`, (err) => {
+              if (!err) {
+                db.get("SELECT count(*) as count FROM license_games", (err2, row) => {
+                  if (row && row.count === 0) {
+                    db.run("INSERT INTO license_games (id, name, description, active, created_at) VALUES ('tiktok-printer', 'TikTok Máy In Giấy', 'Game in hoá đơn livestream TikTok', 1, ?)", [Date.now()]);
+                  }
+                });
+              }
+            });
+
+            db.run(`CREATE TABLE IF NOT EXISTS license_keys (
+              id TEXT PRIMARY KEY,
+              key_string TEXT UNIQUE NOT NULL,
+              game_id TEXT NOT NULL,
+              customer_name TEXT,
+              customer_contact TEXT,
+              note TEXT,
+              duration_days INTEGER,
+              is_lifetime BOOLEAN DEFAULT 0,
+              start_type TEXT DEFAULT 'on_activation',
+              status TEXT DEFAULT 'active',
+              max_devices INTEGER DEFAULT 1,
+              bound_devices TEXT DEFAULT '[]',
+              created_at INTEGER,
+              activated_at INTEGER,
+              expires_at INTEGER,
+              last_check_in INTEGER,
+              last_ip TEXT
+            )`);
+
+            db.run(`CREATE TABLE IF NOT EXISTS license_logs (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              type TEXT,
+              key_string TEXT,
+              game_id TEXT,
+              machine_id TEXT,
+              ip TEXT,
+              reason TEXT,
+              created_at INTEGER
+            )`);
+
           }
         });
       }
@@ -621,6 +670,441 @@ app.post('/api/software/:id/download', (req, res) => {
     db.get("SELECT downloads FROM software WHERE id = ?", [id], (err2, row) => {
       res.json({ downloads: row ? row.downloads : 1 });
     });
+  });
+});
+
+
+// ================= LICENSE & MASTERKEY API =================
+
+// Helper: Lấy IP thật của client
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return req.socket.remoteAddress || req.ip || 'Unknown';
+}
+
+let cachedMasterSecret = null;
+function getMasterSecret(callback) {
+  if (cachedMasterSecret) return callback(cachedMasterSecret);
+  db.get("SELECT value FROM settings WHERE key = 'license_master_secret'", (err, row) => {
+    if (row && row.value) {
+      cachedMasterSecret = row.value;
+      callback(cachedMasterSecret);
+    } else {
+      const newSecret = crypto.randomBytes(32).toString('hex');
+      cachedMasterSecret = newSecret;
+      db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('license_master_secret', ?)", [newSecret], () => {
+        callback(newSecret);
+      });
+    }
+  });
+}
+
+// 1. PUBLIC API — Dành cho game xác thực bản quyền
+app.post('/api/v1/license/verify', (req, res) => {
+  const { key: keyString, gameId, machineId, hwid, hostname, clientInfo } = req.body || {};
+  const actualMachineId = (machineId || hwid || '').toString().trim();
+  const clientIp = getClientIp(req);
+
+  if (!keyString || !gameId || !actualMachineId) {
+    return res.status(400).json({
+      valid: false,
+      success: false,
+      code: 'MISSING_PARAMS',
+      message: 'Thiếu thông tin xác thực bản quyền (Key, Game ID hoặc Machine ID)!'
+    });
+  }
+
+  const normalizedKey = keyString.trim().toUpperCase();
+  db.get("SELECT * FROM license_keys WHERE UPPER(key_string) = ?", [normalizedKey], (err, key) => {
+    if (err) return res.status(500).json({ valid: false, message: 'Lỗi cơ sở dữ liệu' });
+    if (!key) {
+      db.run("INSERT INTO license_logs (type, key_string, game_id, machine_id, ip, reason, created_at) VALUES ('verify_failed', ?, ?, ?, ?, 'key_not_found', ?)",
+        [keyString.slice(0, 10) + '...', gameId, actualMachineId, clientIp, Date.now()]);
+      return res.status(200).json({
+        valid: false,
+        success: false,
+        code: 'KEY_NOT_FOUND',
+        message: 'License Key không tồn tại trên hệ thống máy chủ!'
+      });
+    }
+
+    if (key.game_id !== gameId) {
+      return res.status(200).json({
+        valid: false,
+        success: false,
+        code: 'GAME_MISMATCH',
+        message: `Key này thuộc về game khác, không sử dụng được cho game '${gameId}'!`
+      });
+    }
+
+    if (key.status === 'banned') {
+      db.run("INSERT INTO license_logs (type, key_string, game_id, machine_id, ip, reason, created_at) VALUES ('verify_failed', ?, ?, ?, ?, 'key_banned', ?)",
+        [key.key_string, gameId, actualMachineId, clientIp, Date.now()]);
+      return res.status(200).json({
+        valid: false,
+        success: false,
+        code: 'KEY_BANNED',
+        message: 'License Key này đã bị tạm khóa hoặc thu hồi bởi Quản trị viên!'
+      });
+    }
+
+    const now = Date.now();
+    let activatedAt = key.activated_at;
+    let expiresAt = key.expires_at;
+
+    // Kích hoạt lần đầu nếu on_activation
+    if (!activatedAt) {
+      activatedAt = now;
+      if (!key.is_lifetime && key.duration_days) {
+        expiresAt = now + key.duration_days * 86400000;
+      }
+    }
+
+    // Kiểm tra hết hạn
+    if (!key.is_lifetime && expiresAt && expiresAt < now) {
+      db.run("UPDATE license_keys SET status = 'expired', expires_at = ? WHERE id = ?", [expiresAt, key.id]);
+      db.run("INSERT INTO license_logs (type, key_string, game_id, machine_id, ip, reason, created_at) VALUES ('verify_failed', ?, ?, ?, ?, 'key_expired', ?)",
+        [key.key_string, gameId, actualMachineId, clientIp, now]);
+      return res.status(200).json({
+        valid: false,
+        success: false,
+        code: 'KEY_EXPIRED',
+        message: 'License Key đã hết hạn sử dụng! Vui lòng liên hệ Admin để gia hạn.',
+        expiresAt: expiresAt
+      });
+    }
+
+    // Kiểm tra thiết bị
+    let boundDevices = [];
+    try {
+      boundDevices = JSON.parse(key.bound_devices || '[]');
+    } catch {
+      boundDevices = [];
+    }
+
+    let dev = boundDevices.find(d => d.machineId === actualMachineId);
+    if (!dev) {
+      if (boundDevices.length >= (key.max_devices || 1)) {
+        db.run("INSERT INTO license_logs (type, key_string, game_id, machine_id, ip, reason, created_at) VALUES ('verify_failed', ?, ?, ?, ?, 'device_limit', ?)",
+          [key.key_string, gameId, actualMachineId, clientIp, now]);
+        return res.status(200).json({
+          valid: false,
+          success: false,
+          code: 'DEVICE_LIMIT_EXCEEDED',
+          message: `Key này đã được kích hoạt đủ ${key.max_devices || 1} máy tính! Hãy liên hệ Admin để đổi máy.`
+        });
+      }
+      dev = {
+        machineId: actualMachineId,
+        hostname: hostname || (clientInfo && clientInfo.hostname) || 'Unknown PC',
+        firstBoundAt: now,
+        lastIp: clientIp,
+        lastSeenAt: now
+      };
+      boundDevices.push(dev);
+    } else {
+      dev.lastIp = clientIp;
+      dev.lastSeenAt = now;
+    }
+
+    const boundDevicesJson = JSON.stringify(boundDevices);
+    db.run("UPDATE license_keys SET activated_at = ?, expires_at = ?, bound_devices = ?, last_check_in = ?, last_ip = ?, status = 'active' WHERE id = ?",
+      [activatedAt, expiresAt, boundDevicesJson, now, clientIp, key.id]);
+
+    getMasterSecret((secret) => {
+      const daysLeft = key.is_lifetime ? 999999 : Math.max(0, Math.ceil((expiresAt - now) / 86400000));
+      const tokenPayload = `${key.id}|${actualMachineId}|${expiresAt || 'LIFETIME'}|${now}`;
+      const tokenSignature = crypto.createHmac('sha256', secret).update(tokenPayload).digest('hex');
+
+      db.run("INSERT INTO license_logs (type, key_string, game_id, machine_id, ip, reason, created_at) VALUES ('verify_success', ?, ?, ?, ?, 'active', ?)",
+        [key.key_string, gameId, actualMachineId, clientIp, now]);
+
+      return res.status(200).json({
+        valid: true,
+        success: true,
+        status: 'active',
+        code: 'SUCCESS',
+        message: 'Bản quyền hợp lệ!',
+        isLifetime: Boolean(key.is_lifetime),
+        activatedAt: activatedAt,
+        expiresAt: expiresAt,
+        daysLeft: daysLeft,
+        customerName: key.customer_name,
+        token: `${tokenPayload}.${tokenSignature}`
+      });
+    });
+  });
+});
+
+// Ping định kỳ từ game
+app.post('/api/v1/license/ping', (req, res) => {
+  const { key: keyString, machineId, hwid } = req.body || {};
+  const actualMachineId = machineId || hwid;
+  if (!keyString) return res.status(400).json({ valid: false, success: false });
+
+  const normalizedKey = keyString.trim().toUpperCase();
+  db.get("SELECT * FROM license_keys WHERE UPPER(key_string) = ?", [normalizedKey], (err, key) => {
+    if (err || !key || key.status === 'banned') {
+      return res.status(200).json({ valid: false, success: false, status: 'banned' });
+    }
+    const now = Date.now();
+    if (!key.is_lifetime && key.expires_at && key.expires_at < now) {
+      db.run("UPDATE license_keys SET status = 'expired' WHERE id = ?", [key.id]);
+      return res.status(200).json({ valid: false, success: false, status: 'expired' });
+    }
+
+    const clientIp = getClientIp(req);
+    let boundDevices = [];
+    try { boundDevices = JSON.parse(key.bound_devices || '[]'); } catch {}
+    if (actualMachineId) {
+      const d = boundDevices.find(dev => dev.machineId === actualMachineId);
+      if (d) {
+        d.lastSeenAt = now;
+        d.lastIp = clientIp;
+      }
+    }
+    db.run("UPDATE license_keys SET last_check_in = ?, last_ip = ?, bound_devices = ? WHERE id = ?",
+      [now, clientIp, JSON.stringify(boundDevices), key.id]);
+
+    return res.status(200).json({ valid: true, success: true, status: 'active' });
+  });
+});
+
+// 2. ADMIN API — Quản lý Keys & Games
+app.get('/api/admin/licenses/stats', (req, res) => {
+  db.all("SELECT status, is_lifetime, expires_at FROM license_keys", [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    const now = Date.now();
+    const totalKeys = (rows || []).length;
+    let activeKeys = 0;
+    let expiredKeys = 0;
+    let bannedKeys = 0;
+
+    (rows || []).forEach(k => {
+      if (k.status === 'banned') bannedKeys++;
+      else if (!k.is_lifetime && k.expires_at && k.expires_at < now) expiredKeys++;
+      else activeKeys++;
+    });
+
+    db.get("SELECT count(*) as totalGames FROM license_games WHERE active = 1", (err2, rowGames) => {
+      res.json({
+        success: true,
+        stats: {
+          totalKeys,
+          activeKeys,
+          expiredKeys,
+          bannedKeys,
+          totalGames: rowGames ? rowGames.totalGames : 0
+        }
+      });
+    });
+  });
+});
+
+app.get('/api/admin/licenses/games', (req, res) => {
+  db.all("SELECT * FROM license_games WHERE active = 1 ORDER BY created_at ASC", [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, games: rows || [] });
+  });
+});
+
+app.post('/api/admin/licenses/games', (req, res) => {
+  const { id, name, description } = req.body || {};
+  if (!id || !name) return res.status(400).json({ error: 'Mã Game và Tên Game là bắt buộc' });
+  const gameId = id.trim().toLowerCase();
+  db.run("INSERT OR REPLACE INTO license_games (id, name, description, active, created_at) VALUES (?, ?, ?, 1, ?)",
+    [gameId, name.trim(), (description || '').trim(), Date.now()],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, game: { id: gameId, name: name.trim(), description } });
+    }
+  );
+});
+
+app.get('/api/admin/licenses/keys', (req, res) => {
+  const { gameId, status, search } = req.query || {};
+  let query = "SELECT * FROM license_keys WHERE 1=1";
+  const params = [];
+
+  if (gameId) {
+    query += " AND game_id = ?";
+    params.push(gameId);
+  }
+  if (status && status !== 'all') {
+    if (status === 'banned') {
+      query += " AND status = 'banned'";
+    } else if (status === 'expired') {
+      query += " AND (status = 'expired' OR (is_lifetime = 0 AND expires_at < ?))";
+      params.push(Date.now());
+    } else if (status === 'active') {
+      query += " AND status = 'active' AND (is_lifetime = 1 OR expires_at IS NULL OR expires_at >= ?)";
+      params.push(Date.now());
+    }
+  }
+  if (search) {
+    query += " AND (UPPER(key_string) LIKE ? OR UPPER(customer_name) LIKE ? OR customer_contact LIKE ? OR note LIKE ?)";
+    const s = '%' + search.trim().toUpperCase() + '%';
+    const sNorm = '%' + search.trim() + '%';
+    params.push(s, s, sNorm, sNorm);
+  }
+
+  query += " ORDER BY created_at DESC";
+
+  db.all(query, params, (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    const now = Date.now();
+    const formatted = (rows || []).map(r => {
+      let bound = [];
+      try { bound = JSON.parse(r.bound_devices || '[]'); } catch {}
+      const isExpired = !r.is_lifetime && r.expires_at && r.expires_at < now;
+      return {
+        id: r.id,
+        key: r.key_string,
+        gameId: r.game_id,
+        customerName: r.customer_name,
+        customerContact: r.customer_contact,
+        note: r.note,
+        durationDays: r.is_lifetime ? 'lifetime' : r.duration_days,
+        isLifetime: Boolean(r.is_lifetime),
+        startType: r.start_type,
+        status: r.status,
+        isBanned: r.status === 'banned',
+        isExpired: isExpired,
+        maxDevices: r.max_devices,
+        boundDevices: bound,
+        createdAt: r.created_at,
+        activatedAt: r.activated_at,
+        expiresAt: r.expires_at,
+        lastCheckIn: r.last_check_in,
+        lastIp: r.last_ip
+      };
+    });
+    res.json({ success: true, keys: formatted });
+  });
+});
+
+app.post('/api/admin/licenses/keys', (req, res) => {
+  const { gameId, customerName, customerContact, note, durationDays, maxDevices, startType, customKey } = req.body || {};
+  if (!gameId) return res.status(400).json({ error: 'Vui lòng chọn Game áp dụng' });
+
+  const id = 'k_' + crypto.randomBytes(6).toString('hex');
+  const isLifetime = durationDays === 'lifetime';
+  const durDays = isLifetime ? null : (parseInt(durationDays) || 30);
+  const now = Date.now();
+  const stType = startType || 'on_activation';
+
+  let activatedAt = null;
+  let expiresAt = null;
+  if (stType === 'immediate') {
+    activatedAt = now;
+    expiresAt = isLifetime ? null : (now + durDays * 86400000);
+  }
+
+  let keyString = '';
+  if (customKey && customKey.trim()) {
+    keyString = customKey.trim().toUpperCase();
+  } else {
+    let prefix = (gameId || 'KEY').substring(0, 3).toUpperCase();
+    let dur = isLifetime ? 'LIFE' : `${durDays}D`;
+    const p1 = crypto.randomBytes(2).toString('hex').toUpperCase();
+    const p2 = crypto.randomBytes(2).toString('hex').toUpperCase();
+    const p3 = crypto.randomBytes(2).toString('hex').toUpperCase();
+    keyString = `${prefix}-${dur}-${p1}-${p2}-${p3}`;
+  }
+
+  const stmt = db.prepare(`
+    INSERT INTO license_keys (id, key_string, game_id, customer_name, customer_contact, note, duration_days, is_lifetime, start_type, status, max_devices, bound_devices, created_at, activated_at, expires_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, '[]', ?, ?, ?)
+  `);
+
+  stmt.run(
+    id, keyString, gameId, customerName || 'Khách vãng lai', customerContact || '', note || '',
+    durDays, isLifetime ? 1 : 0, stType, parseInt(maxDevices) || 1, now, activatedAt, expiresAt,
+    function(err) {
+      if (err) return res.status(400).json({ error: 'Lỗi khi lưu key (mã key có thể đã trùng lặp): ' + err.message });
+      res.json({
+        success: true,
+        key: {
+          id, key: keyString, gameId, customerName, customerContact, note,
+          durationDays: isLifetime ? 'lifetime' : durDays, isLifetime, startType: stType,
+          status: 'active', maxDevices: parseInt(maxDevices) || 1, boundDevices: [],
+          createdAt: now, activatedAt, expiresAt
+        }
+      });
+    }
+  );
+  stmt.finalize();
+});
+
+app.post('/api/admin/licenses/keys/:id/extend', (req, res) => {
+  const { id } = req.params;
+  const { days, isLifetime } = req.body || {};
+  const normalized = id.trim().toUpperCase();
+
+  db.get("SELECT * FROM license_keys WHERE id = ? OR UPPER(key_string) = ?", [id, normalized], (err, key) => {
+    if (err || !key) return res.status(404).json({ error: 'Không tìm thấy Key' });
+
+    const now = Date.now();
+    const wantLifetime = isLifetime || days === 'lifetime';
+
+    if (wantLifetime) {
+      db.run("UPDATE license_keys SET is_lifetime = 1, duration_days = NULL, expires_at = NULL, status = 'active' WHERE id = ?", [key.id], function(err2) {
+        if (err2) return res.status(500).json({ error: err2.message });
+        res.json({ success: true, message: 'Nâng cấp key thành Vĩnh Viễn thành công' });
+      });
+    } else {
+      const daysToAdd = parseInt(days) || 30;
+      let baseTime = now;
+      if (key.expires_at && key.expires_at > now) {
+        baseTime = key.expires_at;
+      }
+      const newExpires = baseTime + daysToAdd * 86400000;
+      const newDur = (key.duration_days || 0) + daysToAdd;
+      db.run("UPDATE license_keys SET expires_at = ?, duration_days = ?, status = 'active' WHERE id = ?", [newExpires, newDur, key.id], function(err2) {
+        if (err2) return res.status(500).json({ error: err2.message });
+        res.json({ success: true, message: `Gia hạn thêm ${daysToAdd} ngày thành công`, expiresAt: newExpires });
+      });
+    }
+  });
+});
+
+app.post('/api/admin/licenses/keys/:id/reset-hwid', (req, res) => {
+  const { id } = req.params;
+  const normalized = id.trim().toUpperCase();
+  db.run("UPDATE license_keys SET bound_devices = '[]' WHERE id = ? OR UPPER(key_string) = ?", [id, normalized], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, message: 'Đã reset máy liên kết! Khách có thể kích hoạt trên máy mới.' });
+  });
+});
+
+app.post('/api/admin/licenses/keys/:id/toggle-lock', (req, res) => {
+  const { id } = req.params;
+  const normalized = id.trim().toUpperCase();
+  db.get("SELECT * FROM license_keys WHERE id = ? OR UPPER(key_string) = ?", [id, normalized], (err, key) => {
+    if (err || !key) return res.status(404).json({ error: 'Không tìm thấy Key' });
+    const newStatus = key.status === 'banned' ? 'active' : 'banned';
+    db.run("UPDATE license_keys SET status = ? WHERE id = ?", [newStatus, key.id], function(err2) {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json({ success: true, message: (newStatus === 'banned' ? 'Đã khóa key' : 'Đã mở khóa key'), status: newStatus });
+    });
+  });
+});
+
+app.delete('/api/admin/licenses/keys/:id', (req, res) => {
+  const { id } = req.params;
+  const normalized = id.trim().toUpperCase();
+  db.run("DELETE FROM license_keys WHERE id = ? OR UPPER(key_string) = ?", [id, normalized], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, message: 'Đã xóa Key thành công' });
+  });
+});
+
+app.get('/api/admin/licenses/logs', (req, res) => {
+  const limit = parseInt(req.query.limit) || 50;
+  db.all("SELECT * FROM license_logs ORDER BY created_at DESC LIMIT ?", [limit], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, logs: rows || [] });
   });
 });
 

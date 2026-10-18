@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon, BarChart2, Globe, Clock, RotateCcw, BookOpen, AppWindow, Video } from 'lucide-react';
+import { Key, Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon, BarChart2, Globe, Clock, RotateCcw, BookOpen, AppWindow, Video } from 'lucide-react';
 import { useToast, useSettings } from '../context/AppContext';
+import LicenseManager from '../components/LicenseManager';
 import './Admin.css';
 
 const CATEGORIES = [
@@ -688,6 +689,9 @@ const Admin = () => {
           <BarChart2 size={18} /> Thống kê Truy cập Thực tế
         </button>
       </div>
+
+      
+      {activeTab === 'licenses' && <LicenseManager />}
 
       {activeTab === 'analytics' && (
         <div className="admin-card analytics-card" style={{ background: 'var(--bg-card)', padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
