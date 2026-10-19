@@ -301,6 +301,50 @@
   display: none;
 }
 
+/* ── Donate button (header) ── */
+.header-donate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #f43f5e, #f97316);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 14px rgba(244, 63, 94, 0.35);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), filter var(--transition-base);
+}
+.header-donate-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(244, 63, 94, 0.5);
+  filter: brightness(1.05);
+}
+.header-donate-btn svg { animation: header-heart 2.4s ease-in-out 1.5s infinite; }
+@keyframes header-heart { 0%, 20%, 40%, 100% { transform: scale(1); } 10%, 30% { transform: scale(1.2); } }
+
+.mobile-donate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 0.6rem;
+  padding: 0.8rem 1rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #f43f5e, #f97316);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
 /* ── MOBILE SEARCH ── */
 .mobile-search-dropdown {
   position: absolute;
@@ -464,6 +508,33 @@
 }
 
 /* ── RESPONSIVE ── */
+/* The ⌘K hint was positioned outside the search box (hidden under the theme button) and no
+   shortcut is wired to it — hide it everywhere */
+.search-kbd-hint { display: none; }
+
+/* Keep the right-hand actions inside the bar as the screen narrows */
+@media (max-width: 1480px) {
+  .header-search-wrap { width: 160px; }
+  .header-search-wrap:focus-within { width: 220px; }
+  .nav-link { padding: 0.45rem 0.7rem; }
+}
+@media (max-width: 1420px) {
+  .header-donate-btn { width: 38px; height: 38px; padding: 0; justify-content: center; }
+  .header-donate-btn span { display: none; }
+}
+@media (max-width: 1400px) {
+  .nav-link > svg { display: none; }   /* text-only menu on laptops */
+  .nav-link { padding: 0.45rem 0.6rem; }
+}
+@media (max-width: 1320px) {
+  .header-search-wrap { display: none; }
+  .mobile-search-btn { display: flex; }
+}
+@media (max-width: 1180px) {
+  .header-nav { display: none; }
+  .mobile-menu-btn { display: flex; }
+}
+
 @media (max-width: 1024px) {
   .header-nav {
     display: none;
@@ -484,6 +555,17 @@
   }
 
   .header-cta-btn {
+    display: none;
+  }
+
+  /* icon-only heart next to the cart on small screens */
+  .header-donate-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+  .header-donate-btn span {
     display: none;
   }
 

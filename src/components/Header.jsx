@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingCart, Search, X, Zap, Sun, Moon, Menu, MessageSquare, Compass, AppWindow, Sparkles, BookOpen, Home as HomeIcon } from 'lucide-react';
+import { ShoppingCart, Search, X, Zap, Sun, Moon, Menu, MessageSquare, Compass, AppWindow, Sparkles, BookOpen, Home as HomeIcon, Heart } from 'lucide-react';
 import { useCart, useTheme, useSettings } from '../context/AppContext';
 import ContactModal from './ContactModal';
+import { openDonate } from '../utils/donate';
 import './Header.css';
 
 const Header = ({ searchQuery, setSearchQuery }) => {
@@ -20,6 +21,8 @@ const Header = ({ searchQuery, setSearchQuery }) => {
   const isSoftwareActive = currentCat === 'phan-mem' || location.pathname === '/phan-mem' || location.pathname === '/software';
   const isToolsActive = currentCat === 'tools-game' || location.pathname === '/tools-game' || location.pathname === '/tools' || location.pathname === '/kho-tools';
   const isDocsActive = location.pathname.startsWith('/docs');
+  // Same condition as DonateWidget: toggle on in admin and a QR or account set
+  const donateOn = contactSettings?.donateEnabled === 'true' && Boolean(contactSettings.donateQR || contactSettings.donateAccount);
 
   const handleSearchChange = (e) => {
     if (setSearchQuery) setSearchQuery(e.target.value);
@@ -184,6 +187,21 @@ const Header = ({ searchQuery, setSearchQuery }) => {
               )}
             </Link>
 
+            {/* Donate (opens the QR modal from DonateWidget) */}
+            {donateOn && (
+              <button
+                type="button"
+                className="header-donate-btn"
+                onClick={openDonate}
+                aria-label="Ủng hộ TOOLLIVE qua QR"
+                title="Ủng hộ qua QR"
+                id="header-donate-button"
+              >
+                <Heart size={15} fill="currentColor" />
+                <span>Ủng hộ</span>
+              </button>
+            )}
+
             {/* CTA Button: Tư Vấn Ngay */}
             <button
               type="button"
@@ -283,6 +301,16 @@ const Header = ({ searchQuery, setSearchQuery }) => {
                 </button>
               </div>
               <div className="mobile-nav-footer">
+                {donateOn && (
+                  <button
+                    type="button"
+                    className="mobile-donate-btn"
+                    onClick={() => { setIsMobileNavOpen(false); openDonate(); }}
+                  >
+                    <Heart size={16} fill="currentColor" />
+                    <span>Ủng hộ qua QR</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   className="btn-primary w-full"
