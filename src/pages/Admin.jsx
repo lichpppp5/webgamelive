@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Key, Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon, BarChart2, Globe, Clock, RotateCcw, BookOpen, AppWindow, Video } from 'lucide-react';
 import { useToast, useSettings } from '../context/AppContext';
 import LicenseManager from '../components/LicenseManager';
+import { adminFetch, adminLogin, checkAdminSession, clearAdminSession } from '../utils/adminApi';
 import './Admin.css';
 
 const CATEGORIES = [
@@ -92,21 +93,41 @@ const Admin = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginLoading(true);
-    await new Promise(r => setTimeout(r, 600)); // simulate delay
-    if (username === 'admin' && password === 'Chrlghk123#') {
+    try {
+      // Credentials are verified on the server; it returns a 12h admin token
+      await adminLogin(username.trim(), password);
+      setPassword('');
       setIsAuthenticated(true);
-      fetchGames();
-      fetchSoftware();
-      fetchSettings();
-      fetchArticles();
-      fetchAnalytics();
-    } else {
+      loadAdminData();
+    } catch (err) {
       setLoginShake(true);
-      showToast('Sai tên đăng nhập hoặc mật khẩu!', 'error');
+      showToast(err.message || 'Sai tên đăng nhập hoặc mật khẩu!', 'error');
       setTimeout(() => setLoginShake(false), 600);
     }
     setLoginLoading(false);
   };
+
+  const loadAdminData = () => {
+    fetchGames();
+    fetchSoftware();
+    fetchSettings();
+    fetchArticles();
+    fetchAnalytics();
+  };
+
+  // Restore a still-valid session after a page reload; drop back to login when it expires
+  useEffect(() => {
+    checkAdminSession().then(ok => {
+      if (ok) { setIsAuthenticated(true); loadAdminData(); }
+    });
+    const onLogout = () => {
+      setIsAuthenticated(false);
+      showToast('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.', 'error');
+    };
+    window.addEventListener('admin-logout', onLogout);
+    return () => window.removeEventListener('admin-logout', onLogout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (contactSettings) {
@@ -119,7 +140,7 @@ const Admin = () => {
 
   const handleSettingsSubmit = (e) => {
     e.preventDefault();
-    fetch('/api/settings', {
+    adminFetch('/api/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(settingsForm)
@@ -133,7 +154,7 @@ const Admin = () => {
   };
 
   const fetchSettings = () => {
-    fetch('/api/settings')
+    adminFetch('/api/settings')
       .then(res => res.json())
       .then(data => {
         if (data && Object.keys(data).length > 0) {
@@ -145,28 +166,28 @@ const Admin = () => {
 
   const fetchGames = () => {
     setLoading(true);
-    fetch('/api/products')
+    adminFetch('/api/products')
       .then(res => res.json())
       .then(data => { setGames(data); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });
   };
 
   const fetchAnalytics = () => {
-    fetch('/api/admin/analytics')
+    adminFetch('/api/admin/analytics')
       .then(res => res.json())
       .then(data => { if (data) setAnalytics(data); })
       .catch(err => console.error(err));
   };
 
   const fetchArticles = () => {
-    fetch('/api/articles')
+    adminFetch('/api/articles')
       .then(res => res.json())
       .then(data => setArticles(data))
       .catch(err => console.error(err));
   };
 
   const fetchSoftware = () => {
-    fetch('/api/software')
+    adminFetch('/api/software')
       .then(res => res.json())
       .then(data => setSoftwareList(data || []))
       .catch(err => console.error(err));
@@ -190,7 +211,7 @@ const Admin = () => {
     if (!file) return;
     const fd = new FormData();
     fd.append('image', file);
-    fetch('/api/upload', { method: 'POST', body: fd })
+    adminFetch('/api/upload', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
         if (data.location) {
@@ -212,7 +233,7 @@ const Admin = () => {
     if (!file) return;
     const fd = new FormData();
     fd.append('image', file);
-    fetch('/api/upload', { method: 'POST', body: fd })
+    adminFetch('/api/upload', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
         if (data.location) {
@@ -271,7 +292,7 @@ const Admin = () => {
         .filter(Boolean);
     }
 
-    fetch(url, {
+    adminFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -325,7 +346,7 @@ const Admin = () => {
 
   const handleSoftwareDelete = (id, title) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa phần mềm "${title}"?`)) {
-      fetch(`/api/software/${id}`, { method: 'DELETE' })
+      adminFetch(`/api/software/${id}`, { method: 'DELETE' })
         .then(() => {
           fetchSoftware();
           showToast('Đã xóa phần mềm thành công!', 'info');
@@ -346,7 +367,7 @@ const Admin = () => {
     if (!file) return;
     const fd = new FormData();
     fd.append('image', file);
-    fetch('/api/upload', { method: 'POST', body: fd })
+    adminFetch('/api/upload', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
         if (data.location) {
@@ -363,7 +384,7 @@ const Admin = () => {
     if (!file) return;
     const fd = new FormData();
     fd.append('image', file);
-    fetch('/api/upload', { method: 'POST', body: fd })
+    adminFetch('/api/upload', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
         if (data.location) {
@@ -380,7 +401,7 @@ const Admin = () => {
     if (!file) return;
     const fd = new FormData();
     fd.append('image', file);
-    fetch('/api/upload', { method: 'POST', body: fd })
+    adminFetch('/api/upload', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
         if (data.location) {
@@ -396,7 +417,7 @@ const Admin = () => {
     if (!file) return;
     const fd = new FormData();
     fd.append('image', file);
-    fetch('/api/upload', { method: 'POST', body: fd })
+    adminFetch('/api/upload', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
         if (data.location) {
@@ -412,7 +433,7 @@ const Admin = () => {
     if (!file) return;
     const fd = new FormData();
     fd.append('image', file);
-    fetch('/api/upload', { method: 'POST', body: fd })
+    adminFetch('/api/upload', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
         if (data.location) {
@@ -434,7 +455,7 @@ const Admin = () => {
       : '/api/products';
     const method = isEditing ? 'PUT' : 'POST';
 
-    fetch(url, {
+    adminFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...formData, price: Number(formData.price), oldPrice: Number(formData.oldPrice), downloads: Number(formData.downloads) })
@@ -467,7 +488,7 @@ const Admin = () => {
 
   const handleDelete = (id, title) => {
     if (window.confirm(`Xóa công cụ "${title}"?`)) {
-      fetch(`/api/products/${id}`, { method: 'DELETE' })
+      adminFetch(`/api/products/${id}`, { method: 'DELETE' })
         .then(() => { fetchGames(); showToast('Đã xóa công cụ!', 'info'); })
         .catch(() => showToast('Lỗi khi xóa!', 'error'));
     }
@@ -475,7 +496,7 @@ const Admin = () => {
 
   const handleResetAllDownloads = () => {
     if (window.confirm('Bạn có chắc chắn muốn đặt lại TẤT CẢ lượt tải của toàn bộ công cụ về 0?')) {
-      fetch('/api/products/reset-downloads', { method: 'POST' })
+      adminFetch('/api/products/reset-downloads', { method: 'POST' })
         .then(res => res.json())
         .then(() => {
           fetchGames();
@@ -509,7 +530,7 @@ const Admin = () => {
     const url = isArticleEditing ? `/api/articles/${currentArticleId}` : '/api/articles';
     const method = isArticleEditing ? 'PUT' : 'POST';
 
-    fetch(url, {
+    adminFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(articleFormData)
@@ -526,7 +547,7 @@ const Admin = () => {
   const handleArticleEdit = (article) => {
     setIsArticleEditing(true);
     setCurrentArticleId(article.id);
-    fetch(`/api/articles/${article.id}`)
+    adminFetch(`/api/articles/${article.id}`)
       .then(res => res.json())
       .then(data => {
         setArticleFormData({
@@ -541,7 +562,7 @@ const Admin = () => {
 
   const handleArticleDelete = (id, title) => {
     if (window.confirm(`Xóa bài viết "${title}"?`)) {
-      fetch(`/api/articles/${id}`, { method: 'DELETE' })
+      adminFetch(`/api/articles/${id}`, { method: 'DELETE' })
         .then(() => { fetchArticles(); showToast('Đã xóa bài viết!', 'info'); })
         .catch(() => showToast('Lỗi khi xóa!', 'error'));
     }
@@ -647,7 +668,7 @@ const Admin = () => {
           <p className="admin-page-sub">Thiết lập chung và quản lý công cụ</p>
         </div>
         <div className="admin-header-actions">
-          <button className="btn-outline btn-logout" onClick={() => setIsAuthenticated(false)}>Đăng xuất</button>
+          <button className="btn-outline btn-logout" onClick={() => { clearAdminSession(); setIsAuthenticated(false); }}>Đăng xuất</button>
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import {
   Monitor, X, HelpCircle, Gamepad2, FileText
 } from 'lucide-react';
 import './LicenseManager.css';
+import { adminFetch } from '../utils/adminApi';
 
 const StatCard = ({ icon, label, value, color }) => (
   <div className="stat-card" style={{ '--stat-color': color }}>
@@ -53,10 +54,10 @@ const LicenseManager = () => {
   const refreshAll = () => {
     setLoading(true);
     Promise.all([
-      fetch('/api/admin/licenses/stats').then(r => r.json()),
-      fetch('/api/admin/licenses/games').then(r => r.json()),
-      fetch('/api/admin/licenses/keys').then(r => r.json()),
-      fetch('/api/admin/licenses/logs').then(r => r.json())
+      adminFetch('/api/admin/licenses/stats').then(r => r.json()),
+      adminFetch('/api/admin/licenses/games').then(r => r.json()),
+      adminFetch('/api/admin/licenses/keys').then(r => r.json()),
+      adminFetch('/api/admin/licenses/logs').then(r => r.json())
     ]).then(([sRes, gRes, kRes, lRes]) => {
       if (sRes.success) setStats(sRes.stats);
       if (gRes.success) {
@@ -85,7 +86,7 @@ const LicenseManager = () => {
   // Actions
   const handleCreateKey = (e) => {
     e.preventDefault();
-    fetch('/api/admin/licenses/keys', {
+    adminFetch('/api/admin/licenses/keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(createForm)
@@ -105,7 +106,7 @@ const LicenseManager = () => {
 
   const handleAddGame = (e) => {
     e.preventDefault();
-    fetch('/api/admin/licenses/games', {
+    adminFetch('/api/admin/licenses/games', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(gameForm)
@@ -126,7 +127,7 @@ const LicenseManager = () => {
   const handleExtendKey = (e) => {
     e.preventDefault();
     if (!selectedKey) return;
-    fetch(`/api/admin/licenses/keys/${encodeURIComponent(selectedKey.key)}/extend`, {
+    adminFetch(`/api/admin/licenses/keys/${encodeURIComponent(selectedKey.key)}/extend`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ days: extendDays })
@@ -145,7 +146,7 @@ const LicenseManager = () => {
 
   const handleResetHwid = (keyString) => {
     if (!window.confirm(`Reset thiết bị cho key: ${keyString}?\nKhách sẽ có thể nhập key trên máy tính mới!`)) return;
-    fetch(`/api/admin/licenses/keys/${encodeURIComponent(keyString)}/reset-hwid`, { method: 'POST' })
+    adminFetch(`/api/admin/licenses/keys/${encodeURIComponent(keyString)}/reset-hwid`, { method: 'POST' })
       .then(r => r.json())
       .then(res => {
         if (res.success) {
@@ -158,7 +159,7 @@ const LicenseManager = () => {
   };
 
   const handleToggleLock = (keyString) => {
-    fetch(`/api/admin/licenses/keys/${encodeURIComponent(keyString)}/toggle-lock`, { method: 'POST' })
+    adminFetch(`/api/admin/licenses/keys/${encodeURIComponent(keyString)}/toggle-lock`, { method: 'POST' })
       .then(r => r.json())
       .then(res => {
         if (res.success) refreshAll();
@@ -168,7 +169,7 @@ const LicenseManager = () => {
 
   const handleDeleteKey = (keyString) => {
     if (!window.confirm(`CẢNH BÁO: Xóa vĩnh viễn key ${keyString} khỏi hệ thống?\nThao tác này không thể hoàn tác!`)) return;
-    fetch(`/api/admin/licenses/keys/${encodeURIComponent(keyString)}`, { method: 'DELETE' })
+    adminFetch(`/api/admin/licenses/keys/${encodeURIComponent(keyString)}`, { method: 'DELETE' })
       .then(r => r.json())
       .then(res => {
         if (res.success) refreshAll();

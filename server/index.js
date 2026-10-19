@@ -7,10 +7,15 @@ const multer = require('multer');
 const fs = require('fs');
 
 const app = express();
-const PORT = 3005;
+const PORT = process.env.PORT || 3005;
 
 app.use(cors());
 app.use(express.json());
+
+// Admin login + guard for /api/admin/* and all content write routes.
+// Registered before any route below; public game/site endpoints are not affected.
+const { setupAdminAuth } = require('./admin-auth');
+setupAdminAuth(app, () => db);
 
 // Serve thư mục uploads dưới dạng static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -702,8 +707,8 @@ function getMasterSecret(callback) {
 }
 
 // 1. PUBLIC API — Dành cho game xác thực bản quyền
-app.use('/api/license/verify', (req, res, next) => { req.url = '/api/v1/license/verify'; next(); });
-  app.post('/api/v1/license/verify', (req, res) => {
+// '/api/license/verify' is a short alias of the same handler
+app.post(['/api/v1/license/verify', '/api/license/verify'], (req, res) => {
   const { key: keyString, gameId, machineId, hwid, hostname, clientInfo } = req.body || {};
   const actualMachineId = (machineId || hwid || '').toString().trim();
   const clientIp = getClientIp(req);
