@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import CookieConsent from './CookieConsent';
+import DonateWidget from './DonateWidget';
 
 const Layout = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,6 +16,7 @@ const Layout = () => {
       </main>
       <Footer />
       <CookieConsent />
+      <DonateWidget />
     </div>
   );
 };

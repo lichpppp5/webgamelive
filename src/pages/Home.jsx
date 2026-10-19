@@ -1,13 +1,15 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useOutletContext, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   ShieldCheck, Zap, RefreshCw, Headphones, ArrowRight, MessageSquare,
-  Download, Search, ChevronRight, Package, Users, Sparkles, X,
+  Download, Search, ChevronRight, ChevronLeft, Package, Users, Sparkles, X, Heart,
 } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import ArticleSlider from '../components/ArticleSlider';
 import DisclaimerSection from '../components/DisclaimerSection';
 import ContactModal from '../components/ContactModal';
+import { openDonate } from '../utils/donate';
+import { useSettings } from '../context/AppContext';
 import { GROUPS, OTHER_GROUP, VIRTUAL_FILTERS, groupOf, filterFor, filterMeta } from '../data/catalog';
 import './Home.css';
 import './Storefront.css';
@@ -18,7 +20,6 @@ const SORT_OPTIONS = [
   { value: 'price-asc', label: 'Giá tăng dần' },
   { value: 'price-desc', label: 'Giá giảm dần' },
 ];
-const SHELF_LIMIT = 8;
 const FreeIcon = VIRTUAL_FILTERS['mien-phi'].icon;
 
 const ytThumbOf = (url) => {
@@ -44,6 +45,30 @@ const MediaThumb = ({ src, title, icon: Icon }) => {
     : <img src={yt || src} alt="" loading="lazy" onError={() => setErr(true)} />;
 };
 
+// One horizontal, scroll-snapping row per group: compact overview, arrows on desktop
+const ShelfRow = ({ children }) => {
+  const ref = useRef(null);
+  const [edge, setEdge] = useState({ start: true, end: false });
+  const update = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    setEdge({ start: el.scrollLeft < 8, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 8 });
+  }, []);
+  useEffect(() => {
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [update]);
+  const scroll = (dir) => ref.current?.scrollBy({ left: dir * ref.current.clientWidth * 0.9, behavior: 'smooth' });
+  return (
+    <div className="sf-row-wrap">
+      {!edge.start && <button type="button" className="sf-row-nav sf-row-prev" onClick={() => scroll(-1)} aria-label="Xem trước"><ChevronLeft size={20} /></button>}
+      <div className="sf-row" ref={ref} onScroll={update}>{children}</div>
+      {!edge.end && <button type="button" className="sf-row-nav sf-row-next" onClick={() => scroll(1)} aria-label="Xem tiếp"><ChevronRight size={20} /></button>}
+    </div>
+  );
+};
+
 const SkeletonCard = () => (
   <div className="sf-skeleton">
     <div className="skeleton" style={{ aspectRatio: '16/10' }} />
@@ -60,6 +85,8 @@ const Home = ({ defaultCategory = 'all' }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const searchQuery = outletCtx?.searchQuery || '';
+  const { contactSettings } = useSettings();
+  const donateOn = contactSettings?.donateEnabled === 'true' && (contactSettings.donateQR || contactSettings.donateAccount);
   const setSearchQuery = outletCtx?.setSearchQuery;
 
   const activeCategory = searchParams.get('category') || defaultCategory || 'all';
@@ -304,12 +331,10 @@ const Home = ({ defaultCategory = 'all' }) => {
         ) : loading ? (
           <div className="sf-shelf">
             <div className="sf-section-head"><div className="skeleton" style={{ height: 28, width: 260, borderRadius: 6 }} /></div>
-            <div className="sf-grid">{[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}</div>
+            <div className="sf-row">{[...Array(5)].map((_, i) => <SkeletonCard key={i} />)}</div>
           </div>
         ) : (
           shelves.map(g => {
-            const large = g.id === 'tuong-tac';
-            const shown = g.items.slice(0, large ? 6 : SHELF_LIMIT);
             return (
               <div key={g.id} className={`sf-shelf sf-tone-${g.tone}`} id={`shelf-${g.id}`}>
                 <div className="sf-section-head">
@@ -324,11 +349,11 @@ const Home = ({ defaultCategory = 'all' }) => {
                     Xem tất cả <span>({g.items.length})</span> <ChevronRight size={16} />
                   </button>
                 </div>
-                <div className={`sf-grid ${large ? 'sf-grid-lg' : ''}`}>
-                  {shown.map(p => (
-                    <ProductCard key={p.id} product={p} size={large ? 'lg' : 'md'} highlight={topIds.has(p.id) ? 'top' : undefined} />
+                <ShelfRow>
+                  {g.items.map(p => (
+                    <ProductCard key={p.id} product={p} highlight={topIds.has(p.id) ? 'top' : undefined} />
                   ))}
-                </div>
+                </ShelfRow>
               </div>
             );
           })
@@ -379,6 +404,17 @@ const Home = ({ defaultCategory = 'all' }) => {
           </div>
         </div>
       </section>
+
+      {/* ── Donate strip (same modal as the floating button) ── */}
+      {donateOn && (
+        <section className="container">
+          <div className="sf-donate">
+            <span className="sf-donate-icon"><Heart size={20} fill="currentColor" /></span>
+            <p><strong>Ủng hộ TOOLLIVE</strong>{contactSettings.donateText || 'Thấy công cụ hữu ích? Mời mình một ly cà phê để có thêm tool miễn phí nhé!'}</p>
+            <button type="button" className="sf-btn sf-btn-donate" onClick={openDonate}>Ủng hộ qua QR</button>
+          </div>
+        </section>
+      )}
 
       {/* ── 6. DOCS & 7. TERMS ── */}
       <div className="container"><ArticleSlider /></div>

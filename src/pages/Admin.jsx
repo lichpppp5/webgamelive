@@ -851,7 +851,7 @@ const Admin = () => {
                 <span className="toggle-track">
                   <span className="toggle-thumb" />
                 </span>
-                <span className="toggle-label">Bật hiển thị bảng Donate ở Sidebar</span>
+                <span className="toggle-label">Bật nút “Ủng hộ” (QR Donate) ở góc dưới trái website</span>
               </label>
             </div>
 
