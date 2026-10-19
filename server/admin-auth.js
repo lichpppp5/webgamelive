@@ -2,8 +2,10 @@
 // ADMIN AUTH — server-side login for the admin panel
 //
 // - Password is never stored in plain text: only a scrypt hash, read from
-//   (1) env ADMIN_PASSWORD_HASH, or (2) server/admin-auth.json (created by
-//   `node server/set-admin-password.js`).
+//   (1) env ADMIN_PASSWORD_HASH, else the NEWER of
+//   (2) the DB (set from the admin panel: "Đổi mật khẩu") and
+//   (3) server/admin-auth.json (set with `node server/set-admin-password.js`).
+//   Panel changes go to the DB, not the git-tracked file, so `git pull` never conflicts.
 // - Login returns a short-lived token signed with a secret that is generated
 //   on the server and kept in the database (never in git).
 // - requireAdminFor(app) protects /api/admin/* and every write route of the
@@ -35,13 +37,10 @@ function verifyPassword(password, stored) {
   }
 }
 
-function loadCredentials() {
-  if (process.env.ADMIN_PASSWORD_HASH) {
-    return { username: process.env.ADMIN_USERNAME || 'admin', passwordHash: process.env.ADMIN_PASSWORD_HASH };
-  }
+function loadFileCredentials() {
   try {
     const cfg = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
-    if (cfg.username && cfg.passwordHash) return cfg;
+    if (cfg.username && cfg.passwordHash) return { ...cfg, source: 'file' };
   } catch { /* not configured */ }
   return null;
 }
@@ -99,33 +98,51 @@ function setupAdminAuth(app, getDb) {
     }
   }
 
-  // Simple per-IP brute-force limit: 8 failed logins per 15 minutes
+  function getCredentials(cb) {
+    if (process.env.ADMIN_PASSWORD_HASH) {
+      return cb({ username: process.env.ADMIN_USERNAME || 'admin', passwordHash: process.env.ADMIN_PASSWORD_HASH, source: 'env' });
+    }
+    const file = loadFileCredentials();
+    getDb().get("SELECT value FROM settings WHERE key = 'admin_credentials'", (err, row) => {
+      let fromDb = null;
+      try { fromDb = row && row.value ? { ...JSON.parse(row.value), source: 'db' } : null; } catch { /* ignore */ }
+      const newest = [fromDb, file]
+        .filter(c => c && c.username && c.passwordHash)
+        .sort((x, y) => (Date.parse(y.updatedAt) || 0) - (Date.parse(x.updatedAt) || 0))[0];
+      cb(newest || null);
+    });
+  }
+
+  // Simple per-IP brute-force limit: 8 failed password checks per 15 minutes
   const failures = new Map();
   const WINDOW = 15 * 60 * 1000, MAX_FAILS = 8;
   const clientIp = (req) => (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || '';
+  const isLocked = (ip) => { const f = failures.get(ip); return f && Date.now() - f.first < WINDOW && f.count >= MAX_FAILS; };
+  const recordFail = (ip) => {
+    const f = failures.get(ip);
+    const rec = f && Date.now() - f.first < WINDOW ? f : { first: Date.now(), count: 0 };
+    rec.count++;
+    failures.set(ip, rec);
+  };
+  const LOCKED_MSG = 'Nhập sai mật khẩu quá nhiều lần. Vui lòng thử lại sau 15 phút.';
 
   app.post('/api/admin/login', (req, res) => {
     const ip = clientIp(req);
-    const now = Date.now();
-    const f = failures.get(ip);
-    if (f && now - f.first < WINDOW && f.count >= MAX_FAILS) {
-      return res.status(429).json({ success: false, error: 'Đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.' });
-    }
-    const creds = loadCredentials();
-    if (!creds) {
-      return res.status(503).json({ success: false, error: 'Chưa cấu hình mật khẩu admin trên server (chạy: node server/set-admin-password.js).' });
-    }
-    const { username, password } = req.body || {};
-    const ok = typeof username === 'string' && typeof password === 'string' &&
-      username === creds.username && verifyPassword(password, creds.passwordHash);
-    if (!ok) {
-      const rec = f && now - f.first < WINDOW ? f : { first: now, count: 0 };
-      rec.count++;
-      failures.set(ip, rec);
-      return res.status(401).json({ success: false, error: 'Sai tên đăng nhập hoặc mật khẩu!' });
-    }
-    failures.delete(ip);
-    res.json({ success: true, token: issueToken(creds.username), expiresIn: TOKEN_TTL_MS });
+    if (isLocked(ip)) return res.status(429).json({ success: false, error: LOCKED_MSG });
+    getCredentials((creds) => {
+      if (!creds) {
+        return res.status(503).json({ success: false, error: 'Chưa cấu hình mật khẩu admin trên server (chạy: node server/set-admin-password.js).' });
+      }
+      const { username, password } = req.body || {};
+      const ok = typeof username === 'string' && typeof password === 'string' &&
+        username === creds.username && verifyPassword(password, creds.passwordHash);
+      if (!ok) {
+        recordFail(ip);
+        return res.status(401).json({ success: false, error: 'Sai tên đăng nhập hoặc mật khẩu!' });
+      }
+      failures.delete(ip);
+      res.json({ success: true, token: issueToken(creds.username), expiresIn: TOKEN_TTL_MS });
+    });
   });
 
   // Guard: must be registered before the API routes
@@ -141,6 +158,45 @@ function setupAdminAuth(app, getDb) {
   });
 
   app.get('/api/admin/session', (req, res) => res.json({ success: true, username: req.admin.u, exp: req.admin.exp }));
+
+  // Change password from the admin panel (needs a valid session + the current password).
+  // Stored in the DB; the session secret is rotated so every other session is logged out,
+  // and the caller gets a fresh token.
+  app.post('/api/admin/change-password', (req, res) => {
+    const ip = clientIp(req);
+    if (isLocked(ip)) return res.status(429).json({ success: false, error: LOCKED_MSG });
+    const { currentPassword, newPassword } = req.body || {};
+    if (typeof newPassword !== 'string' || newPassword.length < 10) {
+      return res.status(400).json({ success: false, error: 'Mật khẩu mới phải có ít nhất 10 ký tự.' });
+    }
+    if (newPassword.length > 200) {
+      return res.status(400).json({ success: false, error: 'Mật khẩu mới quá dài.' });
+    }
+    getCredentials((creds) => {
+      if (!creds) return res.status(503).json({ success: false, error: 'Chưa cấu hình mật khẩu admin trên server.' });
+      if (creds.source === 'env') {
+        return res.status(409).json({ success: false, error: 'Mật khẩu đang được đặt bằng biến môi trường ADMIN_PASSWORD_HASH trên server — hãy đổi ở đó.' });
+      }
+      if (typeof currentPassword !== 'string' || !verifyPassword(currentPassword, creds.passwordHash)) {
+        recordFail(ip);
+        return res.status(403).json({ success: false, error: 'Mật khẩu hiện tại không đúng.' });
+      }
+      if (verifyPassword(newPassword, creds.passwordHash)) {
+        return res.status(400).json({ success: false, error: 'Mật khẩu mới phải khác mật khẩu hiện tại.' });
+      }
+      const db = getDb();
+      const record = JSON.stringify({ username: creds.username, passwordHash: hashPassword(newPassword), updatedAt: new Date().toISOString() });
+      const freshSecret = crypto.randomBytes(32).toString('hex');
+      db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('admin_credentials', ?)", [record], (err) => {
+        if (err) return res.status(500).json({ success: false, error: 'Không lưu được mật khẩu: ' + err.message });
+        db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('admin_session_secret', ?)", [freshSecret], () => {
+          secret = freshSecret; // every previously issued token is now invalid
+          failures.delete(ip);
+          res.json({ success: true, message: 'Đã đổi mật khẩu admin. Các phiên đăng nhập khác đã bị đăng xuất.', token: issueToken(creds.username) });
+        });
+      });
+    });
+  });
 }
 
 module.exports = { setupAdminAuth, hashPassword, verifyPassword, needsAdmin };

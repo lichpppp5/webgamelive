@@ -55,3 +55,16 @@ export async function adminFetch(url, options = {}) {
   if (res.status === 401 && token) adminLogout(); // expired / invalid → back to the login screen
   return res;
 }
+
+// Change the admin password; the server logs out every other session and returns a new token
+export async function adminChangePassword(currentPassword, newPassword) {
+  const res = await adminFetch('/api/admin/change-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.success) throw new Error(data.error || 'Đổi mật khẩu thất bại');
+  setAdminToken(data.token);
+  return data;
+}

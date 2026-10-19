@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Key, Trash2, Edit, Plus, Upload, Image as ImageIcon, Eye, EyeOff, LayoutDashboard, Search, X, Flame, Package, Save, Settings as SettingsIcon, BarChart2, Globe, Clock, RotateCcw, BookOpen, AppWindow, Video } from 'lucide-react';
 import { useToast, useSettings } from '../context/AppContext';
 import LicenseManager from '../components/LicenseManager';
+import ChangePasswordCard from '../components/ChangePasswordCard';
 import { adminFetch, adminLogin, checkAdminSession, clearAdminSession } from '../utils/adminApi';
 import './Admin.css';
 
@@ -904,6 +905,7 @@ const Admin = () => {
           </form>
         </div>
       )}
+      {activeTab === 'settings' && <ChangePasswordCard />}
 
       {activeTab === 'products' && (
         <>

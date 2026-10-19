@@ -41,9 +41,11 @@ PUBLISH_DIR="/var/www/toollive"          # nếu nginx phục vụ thư mục kh
 
 ## Mật khẩu admin
 
-- Mật khẩu được kiểm tra ở server (`POST /api/admin/login`). File `server/admin-auth.json` chỉ chứa mã băm scrypt.
-- Đổi mật khẩu trên máy dev: `node server/set-admin-password.js`, rồi commit, push và `git pull` trên server. Không cần restart.
-- Hoặc chỉ đặt trên server bằng biến môi trường `ADMIN_PASSWORD_HASH` (và `ADMIN_USERNAME`). Biến này được ưu tiên hơn file.
-- Đăng nhập sai 8 lần trong 15 phút sẽ bị khoá tạm theo IP. Phiên đăng nhập có hạn 12 giờ.
+- **Đổi trên web:** Admin → tab **Cài đặt chung & Liên hệ** → mục **Đổi mật khẩu Admin**. Mật khẩu mới có hiệu lực ngay, không cần restart và không cần git. Mọi phiên đăng nhập khác bị đăng xuất.
+- Mật khẩu đổi trên web được lưu (dạng mã băm) trong database, không ghi vào file trong git, nên `git pull` không bao giờ bị xung đột.
+- Cách khác, trên máy dev: `node server/set-admin-password.js`, rồi commit, push và `git pull`. Server dùng bản **mới hơn** giữa database và file `server/admin-auth.json`.
+- Quên mật khẩu: chạy lệnh trên ở máy dev rồi push và pull. Bản trong file sẽ mới hơn nên được dùng.
+- Biến môi trường `ADMIN_PASSWORD_HASH` (và `ADMIN_USERNAME`) trên server, nếu có đặt, được ưu tiên hơn cả hai.
+- Nhập sai mật khẩu 8 lần trong 15 phút sẽ bị khoá tạm theo IP. Phiên đăng nhập có hạn 12 giờ.
 
 Các API công khai không đổi: game kích hoạt key (`/api/v1/license/verify`, `/api/license/verify`, `/api/v1/license/ping`), xem sản phẩm, bài viết, phần mềm, đếm lượt truy cập và lượt tải.
