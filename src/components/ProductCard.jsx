@@ -1,24 +1,41 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Eye, Share2, Download, Play, MessageSquare } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ShoppingCart, Share2, Download, MessageSquare, Gift, Trophy, Play } from 'lucide-react';
 import ContactModal from './ContactModal';
 import DownloadConfirmModal from './DownloadConfirmModal';
 import { useCart, useToast } from '../context/AppContext';
+import { groupOf } from '../data/catalog';
 import './ProductCard.css';
 
-const ProductCard = ({ product }) => {
+const ytThumbOf = (url) => {
+  const m = url ? url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/) : null;
+  return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : null;
+};
+const stripHtml = (s) => String(s || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+
+// highlight: 'top' → "Top tải" ribbon (passed by the page for the most downloaded items)
+const ProductCard = ({ product, highlight, size = 'md' }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDownloadConfirmOpen, setIsDownloadConfirmOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [downloadCount, setDownloadCount] = useState(product.downloads || 0);
   const { addToCart } = useCart();
   const { showToast } = useToast();
-  const navigate = useNavigate();
 
-  const [downloadCount, setDownloadCount] = useState(product.downloads || 0);
+  useEffect(() => { setDownloadCount(product.downloads || 0); }, [product.downloads]);
 
-  useEffect(() => {
-    setDownloadCount(product.downloads || 0);
-  }, [product.downloads]);
+  const group = groupOf(product);
+  const GroupIcon = group.icon;
+  const isFree = Boolean(product.isFree);
+  const price = Number(product.price) || 0;
+  const oldPrice = Number(product.oldPrice) || 0;
+  const discountPct = oldPrice > price && price > 0 ? Math.round((1 - price / oldPrice) * 100) : 0;
+
+  const ytThumb = ytThumbOf(product.image);
+  const isVideo = !ytThumb && /\.(mp4|webm)(\?|$)/i.test(product.image || '');
+  const imageSrc = ytThumb || product.image;
+  const hasMedia = imageSrc && !imgError;
+  const desc = stripHtml(product.description);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -32,170 +49,86 @@ const ProductCard = ({ product }) => {
     e.stopPropagation();
     const url = `${window.location.origin}/product/${product.id}`;
     try {
-      if (navigator.share) {
-        await navigator.share({ title: product.title, url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        showToast('Đã sao chép link công cụ!', 'info');
-      }
-    } catch {
-      // user cancelled share
-    }
+      if (navigator.share) await navigator.share({ title: product.title, url });
+      else { await navigator.clipboard.writeText(url); showToast('Đã sao chép link sản phẩm!', 'info'); }
+    } catch { /* cancelled */ }
   };
 
-  const discountPct = product.oldPrice > 0
-    ? Math.round((1 - product.price / product.oldPrice) * 100)
-    : 0;
+  // One clear primary action per state
+  let cta;
+  if (product.downloadLink) {
+    cta = { label: isFree ? 'Tải miễn phí' : 'Tải xuống', short: 'Tải', icon: Download, kind: 'download', onClick: () => setIsDownloadConfirmOpen(true) };
+  } else if (isFree) {
+    cta = { label: 'Nhận miễn phí', short: 'Nhận', icon: Gift, kind: 'download', onClick: () => setIsModalOpen(true) };
+  } else if (price > 0) {
+    cta = { label: 'Liên hệ mua', short: 'Mua', icon: MessageSquare, kind: 'buy', onClick: () => setIsModalOpen(true) };
+  } else {
+    cta = { label: 'Liên hệ', short: 'Liên hệ', icon: MessageSquare, kind: 'contact', onClick: () => setIsModalOpen(true) };
+  }
+  const CtaIcon = cta.icon;
 
   return (
     <>
-      <div className="product-card">
-        {/* Image */}
-        <Link to={`/product/${product.id}`} className="product-image-link" tabIndex={-1}>
-          {(() => {
-            const ytMatch = product.image ? product.image.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/) : null;
-            const ytThumb = ytMatch ? `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg` : null;
-            const isVideo = !ytThumb && product.image && (product.image.endsWith('.mp4') || product.image.endsWith('.webm'));
-            const imageSrc = ytThumb || product.image;
+      <article className={`pc pc-${size} pc-tone-${group.tone}`}>
+        <Link to={`/product/${product.id}`} className="pc-media" aria-label={product.title}>
+          {hasMedia ? (
+            isVideo ? (
+              <video src={product.image} autoPlay loop muted playsInline preload="metadata" onError={() => setImgError(true)} />
+            ) : (
+              <img src={imageSrc} alt="" loading="lazy" onError={() => setImgError(true)} />
+            )
+          ) : (
+            <div className="pc-fallback">
+              <GroupIcon size={34} strokeWidth={1.6} />
+              <span>{product.title}</span>
+            </div>
+          )}
+          {ytThumb && <span className="pc-play"><Play size={18} fill="currentColor" /></span>}
 
-            return (
-              <div className={`product-image ${isVideo ? 'video-mode' : ''}`}>
-                {imgError || !imageSrc ? (
-                  <div className="img-fallback">
-                    <Download size={32} />
-                  </div>
-                ) : isVideo ? (
-                  <video
-                    src={product.image}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    onError={() => setImgError(true)}
-                  />
-                ) : (
-                  <img
-                    src={imageSrc}
-                    alt={product.title}
-                    loading="lazy"
-                    onError={() => setImgError(true)}
-                  />
-                )}
-
-                {/* Overlay */}
-                <div className="product-overlay">
-                  <button
-                    className="overlay-btn"
-                    onClick={(e) => { e.preventDefault(); navigate(`/product/${product.id}`); }}
-                    aria-label="Xem chi tiết"
-                  >
-                    <Eye size={18} />
-                    <span>Xem chi tiết</span>
-                  </button>
-                </div>
-
-                {/* Badges */}
-                <div className="product-badges">
-                  {product.isHot && (
-                    <span className="badge badge-hot" aria-label="Công cụ hot">🔥 HOT</span>
-                  )}
-                  {discountPct > 0 && product.price > 0 && !product.isFree && (
-                    <span className="badge badge-sale">-{discountPct}%</span>
-                  )}
-                </div>
-
-                {/* Share btn */}
-                <button
-                  className="share-btn"
-                  onClick={handleShare}
-                  aria-label="Chia sẻ công cụ"
-                >
-                  <Share2 size={14} />
-                </button>
-              </div>
-            );
-          })()}
+          <span className="pc-chip"><GroupIcon size={12} />{group.short}</span>
+          <div className="pc-flags">
+            {isFree && <span className="pc-flag pc-flag-free"><Gift size={11} />Miễn phí</span>}
+            {discountPct > 0 && <span className="pc-flag pc-flag-sale">-{discountPct}%</span>}
+            {highlight === 'top' && !isFree && <span className="pc-flag pc-flag-top"><Trophy size={11} />Top tải</span>}
+          </div>
+          <button type="button" className="pc-share" onClick={handleShare} aria-label="Chia sẻ">
+            <Share2 size={14} />
+          </button>
         </Link>
 
-        {/* Info */}
-        <div className="product-info">
-          <div className="product-meta">
-            <span className="product-category">{product.category}</span>
-            <span className="product-downloads">
-              <Download size={12} />
-              {(downloadCount || 0).toLocaleString()}
-            </span>
-          </div>
-
-          <Link to={`/product/${product.id}`}>
-            <h3 className="product-title">{product.title}</h3>
+        <div className="pc-body">
+          <Link to={`/product/${product.id}`} className="pc-title-link">
+            <h3 className="pc-title" title={product.title}>{product.title}</h3>
           </Link>
+          {size === 'lg' && desc && <p className="pc-desc">{desc}</p>}
 
-          {/* Price */}
-          <div className="product-price">
-            {Boolean(product.isFree) ? (
-              <span className="price-free-tag">🎁 Miễn Phí</span>
-            ) : (product.price > 0) ? (
-              <span className="price-current">{product.price.toLocaleString('vi-VN')}đ</span>
-            ) : (
-              <span className="price-contact-tag">💬 Liên Hệ</span>
-            )}
-            {product.oldPrice > 0 && product.price > 0 && !product.isFree && (
-              <span className="price-old">{product.oldPrice.toLocaleString('vi-VN')}đ</span>
-            )}
+          <div className="pc-meta">
+            <span><Download size={12} />{(downloadCount || 0).toLocaleString('vi-VN')} lượt tải</span>
+            {product.version && <span className="pc-ver">{product.version}</span>}
           </div>
 
-          {/* Actions */}
-          <div className="product-actions">
-            {product.downloadLink ? (
-              <button
-                className="action-btn btn-download"
-                onClick={() => setIsDownloadConfirmOpen(true)}
-                id={`download-btn-${product.id}`}
-                aria-label={`Tải xuống ${product.title}`}
-              >
-                <Download size={15} />
-                Tải xuống
-              </button>
-            ) : Boolean(product.isFree) ? (
-              <button
-                className="action-btn btn-download"
-                onClick={() => setIsModalOpen(true)}
-                id={`download-btn-${product.id}`}
-                aria-label={`Nhận miễn phí ${product.title}`}
-              >
-                <Download size={15} />
-                Nhận miễn phí
-              </button>
-            ) : (
-              <button
-                className="action-btn btn-download btn-contact-action"
-                onClick={() => setIsModalOpen(true)}
-                id={`contact-btn-${product.id}`}
-                aria-label={`Liên hệ ${product.title}`}
-              >
-                <MessageSquare size={15} />
-                Liên hệ ngay
-              </button>
+          <div className="pc-foot">
+            {price > 0 && !isFree && (
+              <div className="pc-price">
+                <strong>{price.toLocaleString('vi-VN')}đ</strong>
+                {oldPrice > price && <s>{oldPrice.toLocaleString('vi-VN')}đ</s>}
+              </div>
             )}
-            <button
-              className="action-btn btn-cart"
-              onClick={handleAddToCart}
-              id={`cart-btn-${product.id}`}
-              aria-label={`Thêm ${product.title} vào danh sách tải`}
-            >
-              <ShoppingCart size={15} />
-            </button>
+            <div className="pc-actions">
+              <button type="button" className={`pc-cta pc-cta-${cta.kind}`} onClick={cta.onClick} id={`cta-btn-${product.id}`}>
+                <CtaIcon size={15} />
+                <span className="pc-cta-long">{cta.label}</span>
+                <span className="pc-cta-short">{cta.short}</span>
+              </button>
+              <button type="button" className="pc-cart" onClick={handleAddToCart} aria-label={`Thêm ${product.title} vào danh sách tải`} id={`cart-btn-${product.id}`}>
+                <ShoppingCart size={15} />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </article>
 
-      <ContactModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        productTitle={product.title}
-      />
-      
+      <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} productTitle={product.title} />
       <DownloadConfirmModal
         isOpen={isDownloadConfirmOpen}
         onClose={() => setIsDownloadConfirmOpen(false)}

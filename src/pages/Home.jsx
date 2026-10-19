@@ -1,622 +1,392 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useOutletContext, useSearchParams, useNavigate } from 'react-router-dom';
-import { 
-  Sparkles, 
-  Flame, 
-  Layers, 
-  Wrench, 
-  Gamepad2, 
-  Cpu, 
-  AppWindow, 
-  Clock, 
-  ShieldCheck, 
-  Zap, 
-  RefreshCw, 
-  Headphones, 
-  ArrowRight, 
-  MessageSquare, 
-  CheckCircle2, 
-  Star, 
-  Download,
-  Filter,
-  Laptop,
-  LayoutGrid,
-  Monitor,
-  Compass
+import {
+  ShieldCheck, Zap, RefreshCw, Headphones, ArrowRight, MessageSquare,
+  Download, Search, ChevronRight, Package, Users, Sparkles, X,
 } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import HeroBanner from '../components/HeroBanner';
 import ArticleSlider from '../components/ArticleSlider';
 import DisclaimerSection from '../components/DisclaimerSection';
-import SoftwareShowcase from '../components/SoftwareShowcase';
 import ContactModal from '../components/ContactModal';
-import { categories } from '../data/mockData';
-import { useSettings } from '../context/AppContext';
+import { GROUPS, OTHER_GROUP, VIRTUAL_FILTERS, groupOf, filterFor, filterMeta } from '../data/catalog';
 import './Home.css';
+import './Storefront.css';
 
-// Skeleton loading card
+const SORT_OPTIONS = [
+  { value: 'popular', label: 'Tải nhiều nhất' },
+  { value: 'newest', label: 'Mới nhất' },
+  { value: 'price-asc', label: 'Giá tăng dần' },
+  { value: 'price-desc', label: 'Giá giảm dần' },
+];
+const SHELF_LIMIT = 8;
+const FreeIcon = VIRTUAL_FILTERS['mien-phi'].icon;
+
+const ytThumbOf = (url) => {
+  const m = url ? url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/) : null;
+  return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : null;
+};
+
+// Image / video / YouTube thumbnail with a graceful fallback
+const MediaThumb = ({ src, title, icon: Icon }) => {
+  const [err, setErr] = useState(false);
+  const yt = ytThumbOf(src);
+  const isVideo = !yt && /\.(mp4|webm)(\?|$)/i.test(src || '');
+  if (!src || err) {
+    return (
+      <div className="sf-thumb-fallback">
+        {Icon && <Icon size={28} strokeWidth={1.6} />}
+        {title && <span>{title}</span>}
+      </div>
+    );
+  }
+  return isVideo
+    ? <video src={src} autoPlay loop muted playsInline preload="metadata" onError={() => setErr(true)} />
+    : <img src={yt || src} alt="" loading="lazy" onError={() => setErr(true)} />;
+};
+
 const SkeletonCard = () => (
-  <div className="skeleton-card">
-    <div className="skeleton" style={{ aspectRatio: '16/10', width: '100%', borderRadius: '12px' }} />
-    <div className="skeleton-info" style={{ padding: '1rem' }}>
-      <div className="skeleton" style={{ height: '12px', width: '60px', borderRadius: '4px' }} />
-      <div className="skeleton" style={{ height: '18px', width: '90%', borderRadius: '4px', marginTop: '8px' }} />
-      <div className="skeleton" style={{ height: '14px', width: '70%', borderRadius: '4px', marginTop: '6px' }} />
-      <div className="skeleton" style={{ height: '38px', width: '100%', borderRadius: '8px', marginTop: '1rem' }} />
+  <div className="sf-skeleton">
+    <div className="skeleton" style={{ aspectRatio: '16/10' }} />
+    <div style={{ padding: '0.9rem 1rem' }}>
+      <div className="skeleton" style={{ height: 16, width: '90%', borderRadius: 4 }} />
+      <div className="skeleton" style={{ height: 14, width: '60%', borderRadius: 4, marginTop: 8 }} />
+      <div className="skeleton" style={{ height: 38, width: '100%', borderRadius: 10, marginTop: 14 }} />
     </div>
   </div>
 );
 
-// Helper to extract YouTube thumbnail
-const getYouTubeThumbnail = (url) => {
-  if (!url) return null;
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-  return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : null;
-};
-
-// Bulletproof media card with fallback for spotlight items
-const SpotlightMediaCard = ({ src, tag, badgeClass = 'cyan' }) => {
-  const [hasError, setHasError] = useState(false);
-  const ytThumb = getYouTubeThumbnail(src);
-  const isVideo = !ytThumb && src && (src.endsWith('.mp4') || src.endsWith('.webm'));
-  const finalSrc = ytThumb || src;
-
-  return (
-    <div className="spotlight-media-wrap">
-      {!hasError && finalSrc ? (
-        isVideo ? (
-          <video
-            src={finalSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="spotlight-img"
-            onError={() => setHasError(true)}
-          />
-        ) : (
-          <img
-            src={finalSrc}
-            alt=""
-            className="spotlight-img"
-            onError={() => setHasError(true)}
-          />
-        )
-      ) : (
-        <div className="spotlight-fallback-media">
-          <div className="fallback-glow" />
-          <div className="fallback-icon-wrap">
-            <Zap size={30} />
-          </div>
-          <span className="fallback-label">Tools &amp; Phần Mềm Tiện Ích</span>
-        </div>
-      )}
-      <div className="spotlight-media-overlay" />
-      {tag && <span className={`bento-tag ${badgeClass}`}>{tag}</span>}
-    </div>
-  );
-};
-
-const SORT_OPTIONS = [
-  { value: 'newest', label: '🆕 Mới nhất' },
-  { value: 'downloads', label: '🔥 Lượt tải nhiều nhất' },
-  { value: 'price-asc', label: '💰 Mức đóng góp tăng dần' },
-  { value: 'price-desc', label: '💎 Mức đóng góp giảm dần' },
-];
-
 const Home = ({ defaultCategory = 'all' }) => {
   const outletCtx = useOutletContext();
-  const { contactSettings } = useSettings();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const searchQuery = outletCtx?.searchQuery || '';
+  const setSearchQuery = outletCtx?.setSearchQuery;
 
-  const initialCat = searchParams.get('category') || defaultCategory;
-  const [activeCategory, setActiveCategory] = useState(initialCat);
+  const activeCategory = searchParams.get('category') || defaultCategory || 'all';
   const [games, setGames] = useState([]);
+  const [softwareList, setSoftwareList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState('popular');
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
-  // Software showcase data
-  const [softwareList, setSoftwareList] = useState([]);
-  const [softwareLoading, setSoftwareLoading] = useState(true);
-  const [softwareViewMode, setSoftwareViewMode] = useState('grid'); // 'grid' | 'showcase'
-
-  const fetchSoftware = () => {
-    fetch('/api/software')
-      .then(res => res.json())
-      .then(data => {
-        setSoftwareList(data || []);
-        setSoftwareLoading(false);
-      })
-      .catch(err => {
-        console.error('Lỗi khi tải phần mềm:', err);
-        setSoftwareLoading(false);
-      });
-  };
-
   useEffect(() => {
-    fetchSoftware();
-  }, []);
-
-  useEffect(() => {
-    const cat = searchParams.get('category');
-    if (cat) {
-      if (cat !== activeCategory) {
-        setActiveCategory(cat);
-      }
-    } else {
-      const target = defaultCategory || 'all';
-      if (activeCategory !== target) {
-        setActiveCategory(target);
-      }
-    }
-  }, [searchParams, defaultCategory, activeCategory]);
-
-  useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        setGames(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Lỗi khi tải dữ liệu:', err);
-        setLoading(false);
-      });
-  }, []);
-
-  const handleCategoryChange = (catId) => {
-    setActiveCategory(catId);
-    setSearchParams(catId === 'all' ? {} : { category: catId });
-    const section = document.getElementById('product-section');
-    if (section) section.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // Combine products and software into a unified catalog
-  const allCatalogItems = useMemo(() => {
-    const list = [...games];
-
-    (softwareList || []).forEach(sw => {
-      if (!list.some(g => g.id === sw.id)) {
-        list.push({
-          id: sw.id,
-          title: sw.title,
-          description: sw.tagline || sw.description,
-          price: sw.price || 0,
-          oldPrice: 0,
-          image: sw.media || '',
-          category: 'Phần Mềm',
-          downloads: sw.downloads || 0,
-          isHot: Boolean(sw.badge?.includes('Hot') || sw.badge?.includes('Khuyên') || sw.badge?.includes('Đề Xuất') || sw.badge?.includes('Trend')),
-          isFree: Boolean(sw.isFree),
-          downloadLink: sw.downloadLink || '',
-          version: sw.version || 'v1.0',
-          platform: sw.platform || 'Windows 10/11 (64-bit)',
-          isSoftware: true
-        });
-      }
+    Promise.all([
+      fetch('/api/products').then(r => r.json()).catch(() => []),
+      fetch('/api/software').then(r => r.json()).catch(() => []),
+    ]).then(([products, software]) => {
+      setGames(Array.isArray(products) ? products : []);
+      setSoftwareList(Array.isArray(software) ? software : []);
+      setLoading(false);
     });
+  }, []);
 
+  const goCategory = (catId, scroll = true) => {
+    setSearchParams(catId === 'all' ? {} : { category: catId });
+    if (scroll) {
+      requestAnimationFrame(() => document.getElementById('product-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+  };
+
+  // Products + software in one catalog (software normalised to the product shape)
+  const catalog = useMemo(() => {
+    const list = [...games];
+    softwareList.forEach(sw => {
+      if (list.some(g => g.id === sw.id)) return;
+      list.push({
+        id: sw.id,
+        title: sw.title,
+        description: sw.tagline || sw.description,
+        price: sw.price || 0,
+        oldPrice: 0,
+        image: sw.media || '',
+        category: 'Phần Mềm',
+        downloads: sw.downloads || 0,
+        isHot: Boolean(sw.badge),
+        isFree: Boolean(sw.isFree),
+        downloadLink: sw.downloadLink || '',
+        version: sw.version || '',
+        platform: sw.platform || '',
+        isSoftware: true,
+      });
+    });
     return list;
   }, [games, softwareList]);
 
-  const filteredAndSorted = useMemo(() => {
-    let result = [...allCatalogItems];
+  const byPopularity = useMemo(() => [...catalog].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)), [catalog]);
+  const topIds = useMemo(() => new Set(byPopularity.slice(0, 3).filter(p => (p.downloads || 0) > 0).map(p => p.id)), [byPopularity]);
+  const totalDownloads = useMemo(() => catalog.reduce((s, p) => s + (p.downloads || 0), 0), [catalog]);
 
-    // Category filter
-    if (activeCategory !== 'all') {
-      const catName = categories.find(c => c.id === activeCategory)?.name;
-      result = result.filter(g => {
-        if (activeCategory === 'tools-tien-ich') {
-          return g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO';
-        }
-        if (activeCategory === 'phan-mem') {
-          return g.category === 'Phần Mềm' || g.category?.toLowerCase() === 'phần mềm' || g.category === 'phan-mem' || g.isSoftware;
-        }
-        if (activeCategory === 'tools-game') {
-          return g.category !== 'Phần Mềm' && g.category?.toLowerCase() !== 'phần mềm' && !g.isSoftware;
-        }
-        if (activeCategory === 'tuong-tac') {
-          return g.category === 'Game Tương Tác' || g.category === 'Tương tác';
-        }
-        return g.category === catName;
-      });
+  // Non-empty groups, in display order, items sorted by popularity
+  const shelves = useMemo(() => {
+    const all = [...GROUPS, OTHER_GROUP];
+    return all
+      .map(g => ({ ...g, items: byPopularity.filter(p => groupOf(p).id === g.id) }))
+      .filter(g => g.items.length > 0);
+  }, [byPopularity]);
+  const freeItems = useMemo(() => byPopularity.filter(VIRTUAL_FILTERS['mien-phi'].filter), [byPopularity]);
+
+  // Hero mosaic: best item with media from three different groups
+  const mosaic = useMemo(() => {
+    const picks = [];
+    for (const g of shelves) {
+      const it = g.items.find(p => p.image);
+      if (it) picks.push({ item: it, group: g });
+      if (picks.length === 3) break;
     }
+    for (const p of byPopularity) {
+      if (picks.length >= 3) break;
+      if (p.image && !picks.some(x => x.item.id === p.id)) picks.push({ item: p, group: groupOf(p) });
+    }
+    return picks;
+  }, [shelves, byPopularity]);
 
-    // Search filter
+  const isCatalogMode = activeCategory !== 'all' || Boolean(searchQuery.trim());
+
+  const catalogItems = useMemo(() => {
+    let result = catalog.filter(filterFor(activeCategory));
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(g =>
-        g.title?.toLowerCase().includes(q) ||
-        g.category?.toLowerCase().includes(q) ||
-        g.description?.toLowerCase().includes(q)
-      );
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(p =>
+        p.title?.toLowerCase().includes(q) ||
+        groupOf(p).name.toLowerCase().includes(q) ||
+        p.category?.toLowerCase().includes(q) ||
+        String(p.description || '').replace(/<[^>]*>?/gm, ' ').toLowerCase().includes(q));
     }
-
-    // Sort
     switch (sortBy) {
-      case 'downloads':
-        result.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
-        break;
-      case 'price-asc':
-        result.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        result.sort((a, b) => b.price - a.price);
-        break;
-      case 'newest':
-      default:
-        break;
+      case 'popular': result.sort((a, b) => (b.downloads || 0) - (a.downloads || 0)); break;
+      case 'price-asc': result.sort((a, b) => (a.price || 0) - (b.price || 0)); break;
+      case 'price-desc': result.sort((a, b) => (b.price || 0) - (a.price || 0)); break;
+      default: break; // newest = API order
     }
-
     return result;
-  }, [allCatalogItems, activeCategory, searchQuery, sortBy]);
+  }, [catalog, activeCategory, searchQuery, sortBy]);
 
-  // Flagship Hot items for Spotlight (includes hot software)
-  const hotGames = useMemo(() => allCatalogItems.filter(g => g.isHot), [allCatalogItems]);
-  const spotlightItems = useMemo(() => {
-    if (hotGames.length >= 3) return hotGames.slice(0, 3);
-    return allCatalogItems.slice(0, 3);
-  }, [hotGames, allCatalogItems]);
+  const filterPills = useMemo(() => {
+    const pills = [{ ...VIRTUAL_FILTERS.all, count: catalog.length }];
+    shelves.forEach(g => pills.push({ id: g.id, short: g.short, icon: g.icon, count: g.items.length }));
+    if (freeItems.length) pills.push({ ...VIRTUAL_FILTERS['mien-phi'], count: freeItems.length });
+    if (activeCategory === 'tools-game') pills.splice(1, 0, { ...VIRTUAL_FILTERS['tools-game'], count: catalog.filter(VIRTUAL_FILTERS['tools-game'].filter).length });
+    return pills;
+  }, [catalog, shelves, freeItems, activeCategory]);
 
-  // Helper icons for categories
-  const getCategoryIcon = (id) => {
-    switch (id) {
-      case 'all': return <Layers size={16} />;
-      case 'phan-mem': return <AppWindow size={16} />;
-      case 'tools-game': return <Compass size={16} />;
-      case 'tools-tien-ich': return <Wrench size={16} />;
-      case 'tuong-tac': return <Gamepad2 size={16} />;
-      case 'tools-suu-tam': return <Cpu size={16} />;
-      case 'treo-afk': return <Clock size={16} />;
-      default: return <Sparkles size={16} />;
-    }
-  };
-
-  const getCategoryCount = (id) => {
-    if (id === 'all') return allCatalogItems.length;
-    if (id === 'phan-mem') {
-      return allCatalogItems.filter(g => g.category === 'Phần Mềm' || g.category?.toLowerCase() === 'phần mềm' || g.category === 'phan-mem' || g.isSoftware).length;
-    }
-    if (id === 'tools-game') {
-      return allCatalogItems.filter(g => g.category !== 'Phần Mềm' && g.category?.toLowerCase() !== 'phần mềm' && !g.isSoftware).length;
-    }
-    if (id === 'tools-tien-ich') {
-      return allCatalogItems.filter(g => g.category === 'Tools Tiện Ích' || g.category === 'Tools MMO').length;
-    }
-    if (id === 'tuong-tac') {
-      return allCatalogItems.filter(g => g.category === 'Game Tương Tác' || g.category === 'Tương tác').length;
-    }
-    const catName = categories.find(c => c.id === id)?.name;
-    return allCatalogItems.filter(g => g.category === catName).length;
-  };
+  const activeMeta = filterMeta(activeCategory);
 
   return (
-    <div className="home-showcase-page page-enter">
-      {/* 1. Hero Showcase Section */}
-      <HeroBanner 
-        hotGames={hotGames} 
-        allProducts={allCatalogItems}
-        softwareList={softwareList}
-        totalProducts={allCatalogItems.length} 
-        onSelectCategory={handleCategoryChange}
-      />
-
-      {/* 2. Featured Spotlight Cards (Flagship Showcase) */}
-      {spotlightItems.length > 0 && activeCategory === 'all' && !searchQuery && (
-        <section className="spotlight-showcase-section container">
-          <div className="section-head-center">
-            <div className="section-pill-tag">
-              <Flame size={14} className="icon-pulse" />
-              <span>SẢN PHẨM &amp; PHẦN MỀM TIÊU BIỂU</span>
-            </div>
-            <h2 className="section-title">Giải Pháp Đột Phá Được Ưa Chuộng Nhất</h2>
-            <p className="section-desc">
-              Những công cụ và phần mềm tiện ích có lượng tải cao nhất, được kiểm duyệt độ ổn định và mang lại giá trị thực tế vượt trội.
+    <div className="home-showcase-page sf-page page-enter">
+      {/* ── 1. HERO ── */}
+      <section className="sf-hero">
+        <div className="container sf-hero-inner">
+          <div className="sf-hero-copy">
+            <span className="sf-eyebrow"><Sparkles size={14} /> Kho tools &amp; game livestream cho creator</span>
+            <h1 className="sf-hero-title">
+              Tools, Game Livestream <br className="sf-br" />&amp; <span className="sf-grad">Phần Mềm</span> tự động hoá
+            </h1>
+            <p className="sf-hero-sub">
+              Game tương tác TikTok Live, tool MMO bán hàng và phần mềm tiện ích — tải về dùng ngay,
+              được hỗ trợ cài đặt tận nơi.
             </p>
-          </div>
-
-          <div className="spotlight-cards-grid">
-            {spotlightItems.map((item, idx) => {
-              const displayCategory = item.category === 'Tools MMO' ? 'Tools Tiện Ích' : (item.category || 'Tools Tiện Ích');
-              const badgeLabel = idx === 0 ? '🔥 ĐƯỢC CHỌN NHIỀU NHẤT' : idx === 1 ? '⚡ TỐI ƯU TỐC ĐỘ' : '🛡️ AN TOÀN & ỔN ĐỊNH';
-              const badgeClass = idx === 0 ? 'flame' : idx === 1 ? 'cyan' : 'green';
-
-              return (
-                <div 
-                  key={item.id} 
-                  className={`spotlight-item-card ${idx === 0 ? 'card-highlight' : ''}`}
-                  onClick={() => navigate(`/product/${item.id}`)}
-                >
-                  <SpotlightMediaCard 
-                    src={item.image} 
-                    tag={badgeLabel}
-                    badgeClass={badgeClass}
-                  />
-
-                  <div className="spotlight-card-body">
-                    <div className="spotlight-meta-top">
-                      <span className="spotlight-cat-tag">{displayCategory}</span>
-                      <span className="spotlight-rating-pill">⭐ 4.9</span>
-                    </div>
-
-                    <h3 className="spotlight-card-title">{item.title}</h3>
-
-                    <p className="spotlight-card-desc">
-                      {item.description?.replace(/<[^>]*>?/gm, '').slice(0, 95) || 'Công cụ tiện ích chất lượng cao, tối ưu hiệu suất làm việc.'}...
-                    </p>
-
-                    <div className="spotlight-features-checklist">
-                      <div className="spotlight-feat-item">
-                        <CheckCircle2 size={14} />
-                        <span>Vận hành đa luồng ổn định</span>
-                      </div>
-                      <div className="spotlight-feat-item">
-                        <CheckCircle2 size={14} />
-                        <span>Hỗ trợ cài đặt từ xa 24/7</span>
-                      </div>
-                    </div>
-
-                    <div className="spotlight-card-footer">
-                      <span className="spotlight-downloads-count">
-                        <Download size={14} />
-                        {(item.downloads || 850).toLocaleString()} lượt tải
-                      </span>
-                      <button type="button" className="btn-spotlight-action">
-                        <span>Khám phá</span>
-                        <ArrowRight size={15} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* 3. Catalog Section with Modern Pill Tabs */}
-      <section className="catalog-showcase-section container" id="product-section">
-        <div className="catalog-section-header">
-          <div className="catalog-header-left">
-            <div className="section-pill-tag">
-              <Filter size={14} />
-              <span>DANH MỤC TRỰC TUYẾN</span>
-            </div>
-            <h2 className="catalog-title">Kho Sản Phẩm &amp; Bộ Sưu Tập Công Cụ</h2>
-          </div>
-        </div>
-
-        {/* Modern Pill Tabs Category Filter */}
-        <div className="category-pills-bar">
-          {categories.map(cat => {
-            const isActive = activeCategory === cat.id;
-            const count = getCategoryCount(cat.id);
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                className={`cat-pill-btn ${isActive ? 'active' : ''}`}
-                onClick={() => handleCategoryChange(cat.id)}
-              >
-                <span className="cat-pill-icon">{getCategoryIcon(cat.id)}</span>
-                <span className="cat-pill-name">{cat.name}</span>
-                {cat.id === 'phan-mem' && <span className="cat-hot-pill">Hot</span>}
-                <span className="cat-pill-count">{count}</span>
+            <div className="sf-hero-cta">
+              <button type="button" className="sf-btn sf-btn-primary" onClick={() => document.getElementById('sf-browse')?.scrollIntoView({ behavior: 'smooth' })}>
+                Khám phá sản phẩm <ArrowRight size={17} />
               </button>
-            );
-          })}
-        </div>
-
-        {/* Catalog Content Area: Always renders grid for tools, games, and software */}
-        <div className="catalog-content-wrapper">
-          {/* Filter Sub-Bar */}
-          <div className="catalog-sub-bar">
-            <div className="catalog-results-count">
-              {searchQuery ? (
-                <span className="search-query-tag">
-                  🔍 Kết quả cho: <strong>"{searchQuery}"</strong>
-                </span>
-              ) : (
-                <span>
-                  Đang hiển thị <strong>{filteredAndSorted.length}</strong> {activeCategory === 'phan-mem' ? 'phần mềm' : 'sản phẩm'}
-                </span>
-              )}
+              <button type="button" className="sf-btn sf-btn-ghost" onClick={() => setIsContactModalOpen(true)}>
+                <MessageSquare size={17} /> Tư vấn &amp; đặt làm riêng
+              </button>
             </div>
-
-            <div className="catalog-sub-right">
-              {/* View Mode Switcher for Software Tab */}
-              {activeCategory === 'phan-mem' && (
-                <div className="catalog-view-toggle">
-                  <button
-                    type="button"
-                    className={`view-mode-btn ${softwareViewMode === 'grid' ? 'active' : ''}`}
-                    onClick={() => setSoftwareViewMode('grid')}
-                    title="Hiển thị dạng thẻ lưới như tools & game"
-                  >
-                    <LayoutGrid size={14} />
-                    <span>Dạng Lưới</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`view-mode-btn ${softwareViewMode === 'showcase' ? 'active' : ''}`}
-                    onClick={() => setSoftwareViewMode('showcase')}
-                    title="Chế độ trình chiếu đa phương tiện"
-                  >
-                    <Monitor size={14} />
-                    <span>Trình Chiếu</span>
-                  </button>
-                </div>
-              )}
-
-              <div className="catalog-sort-wrap">
-                <select
-                  className="catalog-sort-select"
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value)}
-                  id="sort-select"
-                  aria-label="Sắp xếp danh sách"
-                >
-                  {SORT_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="sf-hero-stats">
+              <div><strong>{loading ? '—' : catalog.length}</strong><span>sản phẩm</span></div>
+              <div><strong>{loading ? '—' : totalDownloads.toLocaleString('vi-VN')}+</strong><span>lượt tải</span></div>
+              <div><strong>24/7</strong><span>hỗ trợ cài đặt</span></div>
             </div>
           </div>
 
-          {/* If user switched to multimedia showcase mode on phan-mem tab */}
-          {activeCategory === 'phan-mem' && softwareViewMode === 'showcase' ? (
-            <div className="software-view-wrapper">
-              <SoftwareShowcase 
-                softwareList={softwareList}
-                loading={softwareLoading}
-                onReload={fetchSoftware}
-              />
-            </div>
-          ) : (
-            /* Product Grid: Shows tools, game, and software as rich interactive cards */
-            loading ? (
-              <div className="product-showcase-grid">
-                {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
-              </div>
-            ) : filteredAndSorted.length > 0 ? (
-              <div className="product-showcase-grid">
-                {filteredAndSorted.map((game, i) => (
-                  <div key={game.id} className="card-enter" style={{ animationDelay: `${i * 0.04}s` }}>
-                    <ProductCard product={game} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-catalog-state">
-                <div className="empty-icon">🔍</div>
-                <h3>Chưa tìm thấy {activeCategory === 'phan-mem' ? 'phần mềm' : 'công cụ'} phù hợp</h3>
-                <p>
-                  {searchQuery
-                    ? `Không có kết quả nào khớp với "${searchQuery}". Hãy thử tìm với từ khóa khác.`
-                    : activeCategory === 'phan-mem'
-                      ? 'Danh mục phần mềm hiện chưa có sản phẩm nào. Bạn có thể thêm trong trang Quản Trị.'
-                      : 'Danh mục này hiện chưa có công cụ nào.'}
-                </p>
-                <button 
-                  type="button" 
-                  className="btn-primary" 
-                  onClick={() => handleCategoryChange('all')}
-                  style={{ marginTop: '1rem' }}
-                >
-                  Xem tất cả sản phẩm
+          <div className="sf-mosaic" aria-label="Sản phẩm tiêu biểu">
+            {loading
+              ? [0, 1, 2].map(i => <div key={i} className={`sf-mosaic-tile sf-tile-${i} skeleton`} />)
+              : mosaic.map(({ item, group }, i) => (
+                <button key={item.id} type="button" className={`sf-mosaic-tile sf-tile-${i} sf-tone-${group.tone}`} onClick={() => navigate(`/product/${item.id}`)}>
+                  <MediaThumb src={item.image} title={item.title} icon={group.icon} />
+                  <span className="sf-mosaic-caption">
+                    <span className="sf-mosaic-chip"><group.icon size={12} />{group.short}</span>
+                    <span className="sf-mosaic-title">{item.title}</span>
+                    <span className="sf-mosaic-dl"><Download size={12} />{(item.downloads || 0).toLocaleString('vi-VN')} lượt tải</span>
+                  </span>
                 </button>
-              </div>
-            )
+              ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 2. BROWSE BY CATEGORY ── */}
+      <section className="container sf-browse" id="sf-browse">
+        <div className="sf-section-head">
+          <div>
+            <h2 className="sf-h2">Bạn đang tìm gì?</h2>
+            <p className="sf-sub">Chọn nhóm sản phẩm phù hợp với nhu cầu của bạn</p>
+          </div>
+        </div>
+        <div className="sf-cat-grid">
+          {(loading ? GROUPS.slice(0, 4) : shelves).map(g => (
+            <button key={g.id} type="button" className={`sf-cat-tile sf-tone-${g.tone} ${activeCategory === g.id ? 'is-active' : ''}`} onClick={() => goCategory(g.id)}>
+              <span className="sf-cat-icon"><g.icon size={22} /></span>
+              <span className="sf-cat-text">
+                <span className="sf-cat-name">{g.name}</span>
+                <span className="sf-cat-desc">{g.desc}</span>
+              </span>
+              <span className="sf-cat-foot">
+                <span className="sf-cat-count">{loading ? '…' : `${g.items.length} sản phẩm`}</span>
+                <ChevronRight size={18} className="sf-cat-arrow" />
+              </span>
+            </button>
+          ))}
+          {!loading && freeItems.length > 0 && (
+            <button type="button" className={`sf-cat-tile sf-tone-green sf-cat-free ${activeCategory === 'mien-phi' ? 'is-active' : ''}`} onClick={() => goCategory('mien-phi')}>
+              <span className="sf-cat-icon"><FreeIcon size={22} /></span>
+              <span className="sf-cat-text">
+                <span className="sf-cat-name">{VIRTUAL_FILTERS['mien-phi'].name}</span>
+                <span className="sf-cat-desc">{VIRTUAL_FILTERS['mien-phi'].desc}</span>
+              </span>
+              <span className="sf-cat-foot"><span className="sf-cat-count">{freeItems.length} sản phẩm</span><ChevronRight size={18} className="sf-cat-arrow" /></span>
+            </button>
           )}
         </div>
       </section>
 
-      {/* 4. Why Choose Us (Ưu Điểm Vượt Trội - 4 Trụ Cột) */}
-      <section className="features-showcase-section container" id="features-section">
-        <div className="section-head-center">
-          <div className="section-pill-tag">
-            <ShieldCheck size={14} />
-            <span>UY TÍN &amp; CHẤT LƯỢNG HÀNG ĐẦU</span>
+      {/* ── 3. PRODUCTS: shelves on the home page, a filtered grid otherwise ── */}
+      <section className="container sf-products" id="product-section">
+        {isCatalogMode ? (
+          <>
+            <div className="sf-section-head sf-catalog-head">
+              <div>
+                <h2 className="sf-h2">{searchQuery.trim() ? <>Kết quả tìm kiếm “{searchQuery.trim()}”</> : activeMeta.name}</h2>
+                <p className="sf-sub">
+                  {loading ? 'Đang tải…' : `${catalogItems.length} sản phẩm`}
+                  {activeMeta.desc && !searchQuery.trim() ? ` · ${activeMeta.desc}` : ''}
+                </p>
+              </div>
+              <div className="sf-catalog-tools">
+                {searchQuery.trim() && setSearchQuery && (
+                  <button type="button" className="sf-clear" onClick={() => setSearchQuery('')}><X size={14} /> Xoá tìm kiếm</button>
+                )}
+                <label className="sf-sort">
+                  <span>Sắp xếp</span>
+                  <select value={sortBy} onChange={e => setSortBy(e.target.value)} id="sort-select" aria-label="Sắp xếp">
+                    {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div className="sf-pills" role="tablist">
+              {filterPills.map(p => (
+                <button key={p.id} type="button" role="tab" aria-selected={activeCategory === p.id}
+                  className={`sf-pill ${activeCategory === p.id ? 'is-active' : ''}`} onClick={() => goCategory(p.id, false)}>
+                  <p.icon size={15} /> {p.short} <span className="sf-pill-count">{p.count}</span>
+                </button>
+              ))}
+            </div>
+
+            {loading ? (
+              <div className="sf-grid">{[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}</div>
+            ) : catalogItems.length ? (
+              <div className="sf-grid">
+                {catalogItems.map(p => <ProductCard key={p.id} product={p} highlight={topIds.has(p.id) ? 'top' : undefined} />)}
+              </div>
+            ) : (
+              <div className="sf-empty">
+                <Search size={36} />
+                <h3>Chưa có sản phẩm phù hợp</h3>
+                <p>{searchQuery.trim() ? `Không có kết quả cho “${searchQuery.trim()}”. Thử từ khoá khác nhé.` : 'Danh mục này hiện chưa có sản phẩm.'}</p>
+                <button type="button" className="sf-btn sf-btn-primary" onClick={() => { setSearchQuery?.(''); goCategory('all', false); }}>Xem tất cả sản phẩm</button>
+              </div>
+            )}
+          </>
+        ) : loading ? (
+          <div className="sf-shelf">
+            <div className="sf-section-head"><div className="skeleton" style={{ height: 28, width: 260, borderRadius: 6 }} /></div>
+            <div className="sf-grid">{[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}</div>
           </div>
-          <h2 className="section-title">Tại Sao Khách Hàng Lựa Chọn TOOL LIVE?</h2>
-          <p className="section-desc">
-            Chúng tôi cam kết mang tới những giải pháp tối ưu nhất, vận hành bền bỉ và đồng hành hỗ trợ kỹ thuật lâu dài.
-          </p>
+        ) : (
+          shelves.map(g => {
+            const large = g.id === 'tuong-tac';
+            const shown = g.items.slice(0, large ? 6 : SHELF_LIMIT);
+            return (
+              <div key={g.id} className={`sf-shelf sf-tone-${g.tone}`} id={`shelf-${g.id}`}>
+                <div className="sf-section-head">
+                  <div className="sf-shelf-title">
+                    <span className="sf-shelf-icon"><g.icon size={20} /></span>
+                    <div>
+                      <h2 className="sf-h2">{g.name}</h2>
+                      <p className="sf-sub">{g.desc}</p>
+                    </div>
+                  </div>
+                  <button type="button" className="sf-see-all" onClick={() => goCategory(g.id)}>
+                    Xem tất cả <span>({g.items.length})</span> <ChevronRight size={16} />
+                  </button>
+                </div>
+                <div className={`sf-grid ${large ? 'sf-grid-lg' : ''}`}>
+                  {shown.map(p => (
+                    <ProductCard key={p.id} product={p} size={large ? 'lg' : 'md'} highlight={topIds.has(p.id) ? 'top' : undefined} />
+                  ))}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </section>
+
+      {/* ── 4. WHY US ── */}
+      <section className="container sf-why" id="features-section">
+        <div className="sf-section-head sf-center">
+          <div>
+            <h2 className="sf-h2">Vì sao chọn TOOLLIVE?</h2>
+            <p className="sf-sub">Sản phẩm tự phát triển, kiểm thử kỹ và được hỗ trợ lâu dài</p>
+          </div>
         </div>
-
-        <div className="features-four-grid">
-          <div className="feature-modern-card">
-            <div className="feat-icon-bubble cyan">
-              <Zap size={24} />
+        <div className="sf-why-grid">
+          {[
+            { icon: Zap, tone: 'cyan', t: 'Hiệu năng ổn định', d: 'Tối ưu đa luồng, chạy 24/7 không ngốn CPU hay RAM.' },
+            { icon: ShieldCheck, tone: 'green', t: 'An toàn', d: 'Quét mã độc trước khi đăng tải, không backdoor.' },
+            { icon: RefreshCw, tone: 'violet', t: 'Cập nhật thường xuyên', d: 'Sửa lỗi và bổ sung tính năng theo nền tảng.' },
+            { icon: Headphones, tone: 'orange', t: 'Hỗ trợ 24/7', d: 'Cài đặt, cấu hình qua UltraViewer / Zalo / Telegram.' },
+          ].map(f => (
+            <div key={f.t} className={`sf-why-card sf-tone-${f.tone}`}>
+              <span className="sf-why-icon"><f.icon size={22} /></span>
+              <div>
+                <h3>{f.t}</h3>
+                <p>{f.d}</p>
+              </div>
             </div>
-            <h3 className="feat-card-title">Hiệu Năng Cực Đại</h3>
-            <p className="feat-card-desc">
-              Kiến trúc thuật toán đa luồng tối ưu, vận hành ổn định 24/7 mà không làm ngốn CPU hay dung lượng bộ nhớ RAM máy tính.
-            </p>
+          ))}
+        </div>
+      </section>
+
+      {/* ── 5. CUSTOM DEVELOPMENT CTA ── */}
+      <section className="container sf-cta-wrap">
+        <div className="sf-cta">
+          <div className="sf-cta-copy">
+            <span className="sf-cta-tag"><Users size={14} /> Dịch vụ lập trình theo yêu cầu</span>
+            <h2>Cần tool, game livestream hoặc phần mềm riêng?</h2>
+            <p>Gửi ý tưởng hoặc quy trình bạn muốn tự động hoá — chúng tôi tư vấn miễn phí và báo giá nhanh.</p>
           </div>
-
-          <div className="feature-modern-card">
-            <div className="feat-icon-bubble green">
-              <ShieldCheck size={24} />
-            </div>
-            <h3 className="feat-card-title">An Toàn Tuyệt Đối</h3>
-            <p className="feat-card-desc">
-              Mọi công cụ và phần mềm đều được quét kiểm tra mã độc qua VirusTotal trước khi đăng tải, nói không với backdoor.
-            </p>
-          </div>
-
-          <div className="feature-modern-card">
-            <div className="feat-icon-bubble purple">
-              <RefreshCw size={24} />
-            </div>
-            <h3 className="feat-card-title">Cập Nhật Trọn Đời</h3>
-            <p className="feat-card-desc">
-              Đội ngũ liên tục bảo trì, khắc phục lỗi thuật toán và bổ sung tính năng mới thường xuyên theo sự biến động của thị trường.
-            </p>
-          </div>
-
-          <div className="feature-modern-card">
-            <div className="feat-icon-bubble orange">
-              <Headphones size={24} />
-            </div>
-            <h3 className="feat-card-title">Hỗ Trợ Kỹ Thuật 24/7</h3>
-            <p className="feat-card-desc">
-              Kỹ thuật viên nhiệt tình hỗ trợ cài đặt, cấu hình trực tiếp qua Ultraview / Zalo / Telegram bất kể ngày đêm.
-            </p>
+          <div className="sf-cta-actions">
+            <button type="button" className="sf-btn sf-btn-white" onClick={() => setIsContactModalOpen(true)}>
+              <MessageSquare size={17} /> Liên hệ đặt làm
+            </button>
+            <button type="button" className="sf-btn sf-btn-glass" onClick={() => goCategory('phan-mem')}>
+              <Package size={17} /> Xem phần mềm mẫu
+            </button>
           </div>
         </div>
       </section>
 
-      {/* 5. Custom Tool Request CTA Banner */}
-      <section className="cta-banner-section container">
-        <div className="cta-banner-card">
-          <div className="cta-banner-content">
-            <span className="cta-tag">🚀 DỊCH VỤ LẬP TRÌNH CHUYÊN NGHIỆP</span>
-            <h2 className="cta-heading">Cần Phát Triển Tool, Game Hoặc Phần Mềm Theo Yêu Cầu Riêng?</h2>
-            <p className="cta-paragraph">
-              Bạn có ý tưởng độc đáo hoặc quy trình làm việc phức tạp cần tự động hóa? Đội ngũ lập trình viên chuyên nghiệp của chúng tôi sẵn sàng xây dựng giải pháp riêng biệt tối ưu theo đúng nhu cầu của bạn.
-            </p>
-            <div className="cta-btn-group">
-              <button 
-                type="button" 
-                className="btn-cta-white" 
-                onClick={() => setIsContactModalOpen(true)}
-              >
-                <MessageSquare size={17} />
-                <span>Liên Hệ Đặt Hàng Ngay</span>
-              </button>
-              <button 
-                type="button" 
-                className="btn-cta-glass" 
-                onClick={() => handleCategoryChange('phan-mem')}
-              >
-                <span>Xem Demo Phần Mềm</span>
-                <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
-          <div className="cta-banner-glow" />
-        </div>
-      </section>
+      {/* ── 6. DOCS & 7. TERMS ── */}
+      <div className="container"><ArticleSlider /></div>
+      <div className="container"><DisclaimerSection /></div>
 
-      {/* 6. Articles & Documentation Slider */}
-      <div className="container">
-        <ArticleSlider />
-      </div>
-
-      {/* 7. Disclaimer Section */}
-      <div className="container">
-        <DisclaimerSection />
-      </div>
-
-      {/* Contact Support Modal */}
-      <ContactModal 
-        isOpen={isContactModalOpen} 
-        onClose={() => setIsContactModalOpen(false)} 
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
         productTitle="Yêu cầu lập trình công cụ / phần mềm theo yêu cầu"
       />
     </div>

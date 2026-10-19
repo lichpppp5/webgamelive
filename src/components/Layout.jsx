@@ -11,7 +11,7 @@ const Layout = () => {
     <div className="app-layout">
       <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       <main className="main-content" style={{ minHeight: 'calc(100vh - var(--header-height) - 80px)' }}>
-        <Outlet context={{ searchQuery }} />
+        <Outlet context={{ searchQuery, setSearchQuery }} />
       </main>
       <Footer />
       <CookieConsent />
