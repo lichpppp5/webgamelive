@@ -13,7 +13,17 @@ const norm = (s) => String(s || '').trim().toLowerCase();
 export const isSoftwareItem = (p) =>
   Boolean(p.isSoftware) || norm(p.category) === 'phần mềm' || norm(p.category) === 'phan-mem';
 
+// Display order on the homepage (category tiles, shelves, filter pills)
 export const GROUPS = [
+  {
+    id: 'phan-mem',
+    name: 'Phần Mềm',
+    short: 'Phần Mềm',
+    desc: 'Phần mềm hoàn chỉnh cho Windows, hỗ trợ cài đặt và cập nhật.',
+    icon: AppWindow,
+    tone: 'blue',
+    match: isSoftwareItem,
+  },
   {
     id: 'tuong-tac',
     name: 'Game Livestream Tương Tác',
@@ -31,15 +41,6 @@ export const GROUPS = [
     icon: Wrench,
     tone: 'cyan',
     match: (p) => ['tools mmo', 'tools tiện ích'].includes(norm(p.category)),
-  },
-  {
-    id: 'phan-mem',
-    name: 'Phần Mềm',
-    short: 'Phần Mềm',
-    desc: 'Phần mềm hoàn chỉnh cho Windows, hỗ trợ cài đặt và cập nhật.',
-    icon: AppWindow,
-    tone: 'blue',
-    match: isSoftwareItem,
   },
   {
     id: 'tools-suu-tam',
