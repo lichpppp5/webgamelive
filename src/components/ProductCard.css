@@ -129,6 +129,7 @@
 .pc-flag-free { background: #10b981; color: #fff; }
 .pc-flag-sale { background: #ef4444; color: #fff; }
 .pc-flag-top  { background: #f59e0b; color: #1f1300; }
+.pc-flag-new  { background: #ec4899; color: #fff; }
 
 .pc-share {
   position: absolute;

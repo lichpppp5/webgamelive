@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Share2, Download, MessageSquare, Gift, Trophy, Play } from 'lucide-react';
+import { ShoppingCart, Share2, Download, MessageSquare, Gift, Trophy, Play, Sparkles } from 'lucide-react';
 import ContactModal from './ContactModal';
 import DownloadConfirmModal from './DownloadConfirmModal';
 import { useCart, useToast } from '../context/AppContext';
@@ -13,7 +13,7 @@ const ytThumbOf = (url) => {
 };
 const stripHtml = (s) => String(s || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
 
-// highlight: 'top' → "Top tải" ribbon (passed by the page for the most downloaded items)
+// highlight: 'new' and/or 'top' (string or array) → "Mới" / "Top tải" flags, decided by the page
 const ProductCard = ({ product, highlight, size = 'md' }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDownloadConfirmOpen, setIsDownloadConfirmOpen] = useState(false);
@@ -24,6 +24,7 @@ const ProductCard = ({ product, highlight, size = 'md' }) => {
 
   useEffect(() => { setDownloadCount(product.downloads || 0); }, [product.downloads]);
 
+  const flags = [].concat(highlight || []);
   const group = groupOf(product);
   const GroupIcon = group.icon;
   const isFree = Boolean(product.isFree);
@@ -89,7 +90,8 @@ const ProductCard = ({ product, highlight, size = 'md' }) => {
           <div className="pc-flags">
             {isFree && <span className="pc-flag pc-flag-free"><Gift size={11} />Miễn phí</span>}
             {discountPct > 0 && <span className="pc-flag pc-flag-sale">-{discountPct}%</span>}
-            {highlight === 'top' && !isFree && <span className="pc-flag pc-flag-top"><Trophy size={11} />Top tải</span>}
+            {flags.includes('new') && <span className="pc-flag pc-flag-new"><Sparkles size={11} />Mới</span>}
+            {flags.includes('top') && !isFree && <span className="pc-flag pc-flag-top"><Trophy size={11} />Top tải</span>}
           </div>
           <button type="button" className="pc-share" onClick={handleShare} aria-label="Chia sẻ">
             <Share2 size={14} />

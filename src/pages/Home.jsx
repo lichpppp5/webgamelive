@@ -15,12 +15,22 @@ import './Home.css';
 import './Storefront.css';
 
 const SORT_OPTIONS = [
-  { value: 'popular', label: 'Tải nhiều nhất' },
   { value: 'newest', label: 'Mới nhất' },
+  { value: 'popular', label: 'Tải nhiều nhất' },
   { value: 'price-asc', label: 'Giá tăng dần' },
   { value: 'price-desc', label: 'Giá giảm dần' },
 ];
 const FreeIcon = VIRTUAL_FILTERS['mien-phi'].icon;
+
+// When was it published? Product ids are "g" + Date.now() and software ids "sw" + Date.now();
+// software also has created_at. Falls back to 0 (sorted last).
+const NEW_DAYS = 14;
+const createdAtOf = (p) => {
+  const m = String(p.id || '').match(/(\d{12,14})/);
+  if (m) return Number(m[1]);
+  const t = Date.parse(p.createdAt || p.created_at || '');
+  return Number.isFinite(t) ? t : 0;
+};
 
 const ytThumbOf = (url) => {
   const m = url ? url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/) : null;
@@ -93,7 +103,7 @@ const Home = ({ defaultCategory = 'all' }) => {
   const [games, setGames] = useState([]);
   const [softwareList, setSoftwareList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState('popular');
+  const [sortBy, setSortBy] = useState('newest');
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
@@ -134,29 +144,37 @@ const Home = ({ defaultCategory = 'all' }) => {
         version: sw.version || '',
         platform: sw.platform || '',
         isSoftware: true,
+        createdAt: sw.created_at,
       });
     });
     return list;
   }, [games, softwareList]);
 
   const byPopularity = useMemo(() => [...catalog].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)), [catalog]);
+  const byNewest = useMemo(() => [...catalog].sort((a, b) => createdAtOf(b) - createdAtOf(a)), [catalog]);
   const topIds = useMemo(() => new Set(byPopularity.slice(0, 3).filter(p => (p.downloads || 0) > 0).map(p => p.id)), [byPopularity]);
+  const newIds = useMemo(() => {
+    const cutoff = Date.now() - NEW_DAYS * 86400000;
+    return new Set(catalog.filter(p => createdAtOf(p) > cutoff).map(p => p.id));
+  }, [catalog]);
+  // Card flags: "Mới" for recent uploads, "Top tải" for the 3 most downloaded
+  const flagsOf = (p) => [newIds.has(p.id) && 'new', topIds.has(p.id) && 'top'].filter(Boolean);
   const totalDownloads = useMemo(() => catalog.reduce((s, p) => s + (p.downloads || 0), 0), [catalog]);
 
   // Non-empty groups, in display order, items sorted by popularity
   const shelves = useMemo(() => {
     const all = [...GROUPS, OTHER_GROUP];
     return all
-      .map(g => ({ ...g, items: byPopularity.filter(p => groupOf(p).id === g.id) }))
+      .map(g => ({ ...g, items: byNewest.filter(p => groupOf(p).id === g.id) }))  // newest first
       .filter(g => g.items.length > 0);
-  }, [byPopularity]);
-  const freeItems = useMemo(() => byPopularity.filter(VIRTUAL_FILTERS['mien-phi'].filter), [byPopularity]);
+  }, [byNewest]);
+  const freeItems = useMemo(() => byNewest.filter(VIRTUAL_FILTERS['mien-phi'].filter), [byNewest]);
 
   // Hero mosaic: best item with media from three different groups
   const mosaic = useMemo(() => {
     const picks = [];
     for (const g of shelves) {
-      const it = g.items.find(p => p.image);
+      const it = byPopularity.find(p => p.image && groupOf(p).id === g.id); // showcase the best-known item
       if (it) picks.push({ item: it, group: g });
       if (picks.length === 3) break;
     }
@@ -183,7 +201,8 @@ const Home = ({ defaultCategory = 'all' }) => {
       case 'popular': result.sort((a, b) => (b.downloads || 0) - (a.downloads || 0)); break;
       case 'price-asc': result.sort((a, b) => (a.price || 0) - (b.price || 0)); break;
       case 'price-desc': result.sort((a, b) => (b.price || 0) - (a.price || 0)); break;
-      default: break; // newest = API order
+      case 'newest': result.sort((a, b) => createdAtOf(b) - createdAtOf(a)); break;
+      default: break;
     }
     return result;
   }, [catalog, activeCategory, searchQuery, sortBy]);
@@ -317,7 +336,7 @@ const Home = ({ defaultCategory = 'all' }) => {
               <div className="sf-grid">{[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}</div>
             ) : catalogItems.length ? (
               <div className="sf-grid">
-                {catalogItems.map(p => <ProductCard key={p.id} product={p} highlight={topIds.has(p.id) ? 'top' : undefined} />)}
+                {catalogItems.map(p => <ProductCard key={p.id} product={p} highlight={flagsOf(p)} />)}
               </div>
             ) : (
               <div className="sf-empty">
@@ -351,7 +370,7 @@ const Home = ({ defaultCategory = 'all' }) => {
                 </div>
                 <ShelfRow>
                   {g.items.map(p => (
-                    <ProductCard key={p.id} product={p} highlight={topIds.has(p.id) ? 'top' : undefined} />
+                    <ProductCard key={p.id} product={p} highlight={flagsOf(p)} />
                   ))}
                 </ShelfRow>
               </div>
